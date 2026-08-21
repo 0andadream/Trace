@@ -1,15 +1,19 @@
 import { askAlex } from "@/lib/agent/alex";
 import { formatVerdict } from "@/lib/agent/reason";
-import { attestOnBase, memoryHash } from "@/lib/base/attest";
+import { sendTransfer, skipped } from "@/lib/base/send";
 import { requestFromBody } from "@/lib/desk/scenarios";
 import { labelAddress } from "@/lib/format";
 import { buildCounterpartyProfile, buildReputation, listCounterparties } from "@/lib/memory/derive";
 import { appendAction, listActions, sibylHealth, updateAction } from "@/lib/memory/store";
 import { computeRiskScore } from "@/lib/risk/score";
-import type { ActionRecord, DecideRequestBody, DecideResult } from "@/types";
+import type { ActionRecord, DecideRequestBody, DecideResult, Execution } from "@/types";
 
 function newId() {
   return `live-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function shouldSend(decision: ActionRecord["decision"]) {
+  return decision === "Proceed" || decision === "Proceed with flag";
 }
 
 export async function runDecide(body: DecideRequestBody): Promise<DecideResult> {
@@ -41,22 +45,22 @@ export async function runDecide(body: DecideRequestBody): Promise<DecideResult> 
     reasoningSource: verdict.source,
   };
 
+  let tx: Execution = skipped("Not broadcast.");
+  if (body.persist !== false && shouldSend(verdict.decision)) {
+    tx = await sendTransfer(request);
+    if (tx.txHash) {
+      pending.txHash = tx.txHash;
+      pending.explorerUrl = tx.explorerUrl;
+    }
+  } else if (verdict.decision === "Hold for approval") {
+    tx = skipped("Held. Approve to broadcast.");
+  }
+
   if (body.persist !== false) {
     await appendAction(pending);
   }
 
-  const [health, base] = await Promise.all([
-    sibylHealth(),
-    body.persist === false
-      ? Promise.resolve({
-          chainId: 84532,
-          chainLabel: "Base Sepolia",
-          memoryHash: memoryHash(pending),
-          written: false,
-          reason: "Dry run — Base write skipped.",
-        })
-      : attestOnBase(pending),
-  ]);
+  const health = await sibylHealth();
 
   return {
     id,
@@ -71,8 +75,8 @@ export async function runDecide(body: DecideRequestBody): Promise<DecideResult> 
     assessment,
     verdict,
     emptyCounterparty: !profile,
-    sibyl: health!,
-    base,
+    sibyl: health,
+    tx,
   };
 }
 
@@ -83,12 +87,25 @@ export async function resolveHold(id: string, resolution: "approved" | "rejected
   if (current.decision !== "Hold for approval") {
     throw new Error("Only Hold for approval records can be resolved.");
   }
+
+  let tx: Execution = skipped("Rejected. No broadcast.");
+  if (resolution === "approved") {
+    tx = await sendTransfer({
+      action: current.action,
+      token: current.token,
+      amount: current.amount,
+      recipient: current.recipient,
+    });
+  }
+
   const updated = await updateAction(id, {
     outcome: resolution === "approved" ? "success" : "rejected",
     userOverride: resolution === "approved",
     overrideDirection: resolution,
+    txHash: tx.txHash,
+    explorerUrl: tx.explorerUrl,
   });
-  return updated;
+  return { record: updated, tx };
 }
 
 export async function memorySnapshot() {

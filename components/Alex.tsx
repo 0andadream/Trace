@@ -79,9 +79,14 @@ export function Alex() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "resolve failed");
+      if (data.tx) {
+        setResult((current) => (current ? { ...current, tx: data.tx } : current));
+      }
       setNote(
         resolution === "approved"
-          ? "Override written to Sibyl. This counterparty now has a successful interaction."
+          ? data.tx?.sent
+            ? "Approved and broadcast."
+            : data.tx?.reason || "Approved in Sibyl. No broadcast."
           : "Hold confirmed. Recorded as rejected.",
       );
     } catch (err) {
@@ -224,6 +229,15 @@ Risk: ${result.verdict.risk.toFixed(2)}`}
                   Reject
                 </button>
               </div>
+            ) : null}
+            {result.tx?.sent && result.tx.explorerUrl ? (
+              <p className="mt-3 text-sm">
+                <a className="text-trace underline" href={result.tx.explorerUrl} target="_blank" rel="noreferrer">
+                  {result.tx.txHash}
+                </a>
+              </p>
+            ) : result.tx?.reason ? (
+              <p className="mt-3 text-sm text-paper-500">{result.tx.reason}</p>
             ) : null}
             {note ? <p className="mt-3 text-sm text-trace">{note}</p> : null}
           </>

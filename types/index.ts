@@ -27,6 +27,8 @@ export type ActionRecord = {
   seed: boolean;
   reasoning: string[];
   reasoningSource?: ReasoningSource;
+  txHash?: string;
+  explorerUrl?: string;
 };
 
 export type ActionTypeStats = {
@@ -109,11 +111,11 @@ export type SibylHealth = {
   loadBearing: boolean;
 };
 
-export type BaseAttestation = {
+export type Execution = {
   chainId: number;
   chainLabel: string;
-  memoryHash: `0x${string}`;
-  written: boolean;
+  sent: boolean;
+  from?: `0x${string}`;
   txHash?: `0x${string}`;
   explorerUrl?: string;
   reason?: string;
@@ -129,7 +131,7 @@ export type DecideResult = {
   verdict: AlexVerdict;
   emptyCounterparty: boolean;
   sibyl: SibylHealth;
-  base: BaseAttestation;
+  tx: Execution;
 };
 
 export type PreviewResult = {
