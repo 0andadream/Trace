@@ -1,5 +1,4 @@
 import { Header } from "@/components/Header";
-import { TraceArc } from "@/components/TraceArc";
 import { formatAmount, formatPct, shortAddress } from "@/lib/format";
 import { memorySnapshot } from "@/lib/desk/run";
 
@@ -13,13 +12,12 @@ export default async function MemoryPage() {
     <div className="min-h-screen">
       <Header />
       <main className="mx-auto w-full max-w-6xl px-5 pb-20 pt-10">
-        <p className="mono-label text-trace">Persistent memory</p>
-        <h1 className="mt-2 text-3xl font-medium tracking-tight">What Alex is allowed to know</h1>
-        <TraceArc className="mt-3 w-24" />
+        <p className="text-sm text-paper-500">Sibyl Memory</p>
+        <h1 className="mt-1 text-3xl font-medium tracking-tight">What Alex is allowed to know</h1>
         <p className="mt-3 max-w-2xl text-sm text-paper-300">
-          Historical claims in a decision come from Sibyl Memory only. Empty counterparty profiles
-          stay empty until a recorded interaction exists. Delete the Sibyl database and learned
-          overrides disappear — the next unknown recipient is a Hold again.
+          These blocks are the only history Alex may cite. Empty counterparty profiles stay empty
+          until Sibyl has a recorded interaction. Delete the database and learned overrides
+          disappear.
         </p>
 
         {snap.sibyl ? (

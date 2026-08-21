@@ -19,5 +19,6 @@ export async function updateAction(id: string, patch: Partial<ActionRecord>): Pr
 
 export async function sibylHealth() {
   const result = await callSibyl("health");
+  if (!result.health) throw new Error("Sibyl Memory returned no health block.");
   return result.health;
 }

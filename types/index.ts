@@ -133,6 +133,14 @@ export type DecideResult = {
   base: BaseAttestation;
 };
 
+export type PreviewResult = {
+  request: TreasuryRequest;
+  memory: MemoryBlocks;
+  assessment: RiskAssessment;
+  emptyCounterparty: boolean;
+  sibyl: SibylHealth;
+};
+
 export type DecideRequestBody = Partial<TreasuryRequest> & {
   /** Skip persisting (tests / dry run). */
   persist?: boolean;

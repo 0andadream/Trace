@@ -1,11 +1,5 @@
-import { Desk } from "@/components/Desk";
-import { Header } from "@/components/Header";
+import { redirect } from "next/navigation";
 
 export default function DeskPage() {
-  return (
-    <div className="min-h-screen">
-      <Header />
-      <Desk />
-    </div>
-  );
+  redirect("/");
 }

@@ -22,7 +22,7 @@ Alex always receives three memory blocks, **recalled from Sibyl**, never from a 
 
 Every decision is also a COLD journal event (`write_event`) and a WARM `action/<id>` entity. Policy lives in REFERENCE `policy`. Last decision is HOT state.
 
-**Load-bearing test:** approve Desk scenario C (unknown recipient), restart the process, run C again → **Proceed**. Then:
+**Load-bearing test:** Hold an unseen address, approve it, restart, submit the same address again → **Proceed**. Then:
 
 ```bash
 rm .data/sibyl-memory.db
@@ -42,7 +42,7 @@ Engine: [`sibyl-memory-client`](https://github.com/Sibyl-Labs/Sibyl-Memory) · f
 
 Code maps the score. Alex (Grok) writes reasoning from the Sibyl blocks only. The model cannot change `decision` or `RISK_SCORE`.
 
-## Demo
+## Run
 
 ```bash
 # Python 3.10+ required for Sibyl Memory
@@ -50,25 +50,21 @@ Code maps the score. Alex (Grok) writes reasoning from the Sibyl blocks only. Th
 .venv/bin/pip install -r requirements.txt
 
 pnpm install
-cp .env.example .env.local   # optional XAI_API_KEY, BASE_PRIVATE_KEY
+cp .env.example .env.local
 pnpm test
 pnpm dev                     # http://localhost:3002
 ```
 
-### Fresh-session recall (the judging moment)
+Alex is the home page. Submit a treasury intent. The three memory blocks load from Sibyl before you ask. The reply is only:
 
-1. Open `/desk`.
-2. **C · Unknown recipient** → Hold. First reasoning line: *No prior interactions with this counterparty.*
-3. Approve the Hold (user override).
-4. Restart `pnpm dev` (new process, new session).
-5. Run **C** again → Proceed. Sibyl still has the counterparty entity.
-6. `rm .data/sibyl-memory.db` and run **C** → Hold again.
+```
+Decision: …
+Reasoning:
+- …
+Risk: 0.00
+```
 
-| | Expected |
-|---|---|
-| **A · Typical vault** | Proceed · $500 USDT to Treasury Vault |
-| **B · Oversized vault** | Proceed with flag · $2,400 to the same vault |
-| **C · Unknown recipient** | Hold, until Sibyl records an approval |
+Known vault $500 → Proceed. Same vault $2400 → Proceed with flag. An unseen address → Hold, with “No prior interactions with this counterparty.” Approve that Hold, submit the same address again → Proceed. Restart the process: still Proceed. `rm .data/sibyl-memory.db` → Hold again.
 
 ## Base (optional stack)
 

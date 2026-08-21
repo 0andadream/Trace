@@ -1,6 +1,5 @@
 import { Header } from "@/components/Header";
 import { LogActions } from "@/components/LogActions";
-import { TraceArc } from "@/components/TraceArc";
 import { formatAmount, shortAddress } from "@/lib/format";
 import { memorySnapshot } from "@/lib/desk/run";
 
@@ -20,12 +19,11 @@ export default async function LogPage() {
     <div className="min-h-screen">
       <Header />
       <main className="mx-auto w-full max-w-6xl px-5 pb-20 pt-10">
-        <p className="mono-label text-trace">Decision log</p>
-        <h1 className="mt-2 text-3xl font-medium tracking-tight">Every recorded action</h1>
-        <TraceArc className="mt-3 w-24" />
+        <p className="text-sm text-paper-500">Operating history</p>
+        <h1 className="mt-1 text-3xl font-medium tracking-tight">Recorded decisions</h1>
         <p className="mt-3 max-w-2xl text-sm text-paper-300">
-          Seeded history plus live desk decisions. Approving a Hold writes a user override into
-          reputation.
+          Every line is a Sibyl action entity. Approving a Hold writes a user override. That
+          changes the next decision for that counterparty.
         </p>
 
         {pending.length > 0 ? (

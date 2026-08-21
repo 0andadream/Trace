@@ -17,9 +17,8 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Trace — Alex, autonomous treasury agent",
-  description:
-    "Memory-grounded treasury decisions. Proceed, flag, or hold — from operating history, not vibes.",
+  title: "Trace — Alex",
+  description: "Autonomous treasury agent. Decision, reasoning, risk — grounded in Sibyl Memory.",
   icons: {
     icon: "/icon.jpg",
     apple: "/icon.jpg",
