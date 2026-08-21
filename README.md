@@ -55,7 +55,7 @@ pnpm test
 pnpm dev                     # http://localhost:3002
 ```
 
-Alex is the home page. Submit a treasury intent. The three memory blocks load from Sibyl before you ask. The reply is only:
+The landing page is `/`. Alex lives at `/alex`. Submit a treasury intent. The three memory blocks load from Sibyl before you ask. The reply is only:
 
 ```
 Decision: …

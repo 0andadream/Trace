@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Logo } from "@/components/Logo";
 
 const NAV = [
-  { href: "/", label: "Alex" },
+  { href: "/alex", label: "Alex" },
   { href: "/memory", label: "Memory" },
   { href: "/log", label: "Log" },
 ];
@@ -21,7 +21,7 @@ export function Header() {
         </Link>
         <nav className="flex items-center gap-6 text-sm text-paper-500">
           {NAV.map((n) => {
-            const active = n.href === "/" ? path === "/" : path?.startsWith(n.href);
+            const active = path === n.href || path?.startsWith(`${n.href}/`);
             return (
               <Link key={n.href} href={n.href} className={active ? "text-white" : "hover:text-paper"}>
                 {n.label}
