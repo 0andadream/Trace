@@ -1,9 +1,8 @@
-import { SEED_ACTIONS } from "@/lib/memory/seed";
 import { callSibyl } from "@/lib/memory/sibyl";
 import type { ActionRecord } from "@/types";
 
 export async function listActions(): Promise<ActionRecord[]> {
-  const result = await callSibyl<{ actions: ActionRecord[] }>("list", { seed: SEED_ACTIONS });
+  const result = await callSibyl<{ actions: ActionRecord[] }>("list");
   return result.actions || [];
 }
 

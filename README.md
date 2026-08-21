@@ -22,13 +22,13 @@ Alex always receives three memory blocks, **recalled from Sibyl**, never from a 
 
 Every decision is also a COLD journal event (`write_event`) and a WARM `action/<id>` entity. Policy lives in REFERENCE `policy`. Last decision is HOT state.
 
-**Load-bearing test:** Hold an unseen address, approve it, restart, submit the same address again → **Proceed**. Then:
+**Load-bearing test:** Submit a real recipient Alex has never seen → Hold. Approve it. Restart the process. Submit the same address again → the decision changes because Sibyl still has that counterparty. Then:
 
 ```bash
 rm .data/sibyl-memory.db
 ```
 
-Run C again → **Hold**. The learned counterparty is gone because Sibyl is gone. A JSON file next to the app is not a backup of this.
+Submit it again → Hold. The learned counterparty is gone because Sibyl is gone.
 
 Engine: [`sibyl-memory-client`](https://github.com/Sibyl-Labs/Sibyl-Memory) · file-based SQLite + FTS5 · no vector DB.
 
@@ -64,7 +64,7 @@ Reasoning:
 Risk: 0.00
 ```
 
-Known vault $500 → Proceed. Same vault $2400 → Proceed with flag. An unseen address → Hold, with “No prior interactions with this counterparty.” Approve that Hold, submit the same address again → Proceed. Restart the process: still Proceed. `rm .data/sibyl-memory.db` → Hold again.
+There is no canned history. Until Sibyl has recorded actions, reputation is thin and counterparties are empty, so Alex holds. History is only what you (or the agent) actually logged.
 
 ## Base (optional stack)
 

@@ -8,7 +8,7 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const preview = await previewRequest({
       action: (url.searchParams.get("action") as TxAction) || "transfer",
-      token: url.searchParams.get("token") || "USDT",
+      token: url.searchParams.get("token") || "",
       amount: Number(url.searchParams.get("amount") || 0),
       recipient: url.searchParams.get("recipient") || "",
     });

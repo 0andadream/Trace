@@ -23,7 +23,6 @@ const tools = [
         token: { type: "string" },
         amount: { type: "number" },
         recipient: { type: "string" },
-        scenario: { type: "string", enum: ["typical", "oversized", "unknown"] },
       },
     },
   },
@@ -68,10 +67,9 @@ async function callTool(name: string, args: Record<string, unknown>) {
   if (name === "alex_decide") {
     return runDecide({
       action: (args.action as TxAction) || "transfer",
-      token: String(args.token || "USDT"),
-      amount: args.amount == null ? 500 : Number(args.amount),
-      recipient: args.recipient ? String(args.recipient) : undefined,
-      scenario: args.scenario as "typical" | "oversized" | "unknown" | undefined,
+      token: args.token ? String(args.token) : "",
+      amount: args.amount == null ? 0 : Number(args.amount),
+      recipient: args.recipient ? String(args.recipient) : "",
     });
   }
   throw new Error(`unknown tool: ${name}`);

@@ -9,7 +9,6 @@ export type TreasuryRequest = {
   amount: number;
   recipient: string;
   note?: string;
-  scenario?: "typical" | "oversized" | "unknown" | "custom";
 };
 
 export type ActionRecord = {

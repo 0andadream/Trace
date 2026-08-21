@@ -1,3 +1,4 @@
+/** Engine-test fixture only. Not loaded by the running agent. */
 import {
   OPS_WALLET,
   REJECTED_A,

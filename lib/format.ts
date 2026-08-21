@@ -1,8 +1,6 @@
-import { COUNTERPARTY_LABELS, UNKNOWN_LABEL } from "@/lib/counterparties";
-
 export function shortAddress(address: string) {
   const a = address.trim();
-  if (a.length < 12) return a;
+  if (a.length < 12) return a || "—";
   return `${a.slice(0, 6)}…${a.slice(-4)}`;
 }
 
@@ -11,13 +9,15 @@ export function normalizeAddress(address: string) {
 }
 
 export function labelAddress(address: string) {
-  const key = normalizeAddress(address);
-  return COUNTERPARTY_LABELS[key] || UNKNOWN_LABEL;
+  const a = address.trim();
+  if (!a) return "Unlabeled";
+  return shortAddress(a);
 }
 
-export function formatAmount(amount: number, token = "USDT") {
+export function formatAmount(amount: number, token = "") {
   const n = Number.isFinite(amount) ? amount : 0;
-  return `$${n.toLocaleString("en-US", { maximumFractionDigits: 2 })} ${token}`;
+  const value = `$${n.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+  return token ? `${value} ${token}` : value;
 }
 
 export function formatPct(n: number) {

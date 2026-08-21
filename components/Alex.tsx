@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FRESH_WALLET, SWAP_ROUTER, TREASURY_VAULT, VENDOR_DESK } from "@/lib/counterparties";
 import { formatAmount, formatPct, shortAddress } from "@/lib/format";
 import type { DecideResult, Decision, PreviewResult, TxAction } from "@/types";
 
@@ -13,9 +12,9 @@ const TONE: Record<Decision, string> = {
 
 export function Alex() {
   const [action, setAction] = useState<TxAction>("transfer");
-  const [token, setToken] = useState("USDT");
-  const [amount, setAmount] = useState(500);
-  const [recipient, setRecipient] = useState(TREASURY_VAULT);
+  const [token, setToken] = useState("");
+  const [amount, setAmount] = useState("");
+  const [recipient, setRecipient] = useState("");
   const [preview, setPreview] = useState<PreviewResult | null>(null);
   const [result, setResult] = useState<DecideResult | null>(null);
   const [busy, setBusy] = useState(false);
@@ -26,7 +25,7 @@ export function Alex() {
     const params = new URLSearchParams({
       action,
       token,
-      amount: String(amount),
+      amount: String(amount || 0),
       recipient,
     });
     const t = window.setTimeout(() => {
@@ -49,7 +48,7 @@ export function Alex() {
       const res = await fetch("/api/decide", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ action, token, amount, recipient }),
+        body: JSON.stringify({ action, token, amount: Number(amount), recipient }),
       });
       const data = (await res.json()) as DecideResult & { error?: string };
       if (!res.ok) throw new Error(data.error || "decide failed");
@@ -102,8 +101,8 @@ export function Alex() {
         <p className="text-sm text-paper-500">Alex</p>
         <h1 className="mt-1 text-3xl font-medium tracking-tight">Treasury request</h1>
         <p className="mt-2 text-sm leading-relaxed text-paper-300">
-          Submit an intent. Alex reads three memory blocks from Sibyl, then answers in this format
-          only: Decision, Reasoning, Risk.
+          Submit a real intent. Alex reads only what Sibyl has recorded. With no history, thin
+          history is a risk factor and unknown counterparties are held.
         </p>
 
         <form
@@ -125,7 +124,12 @@ export function Alex() {
             </label>
             <label className="text-xs text-paper-500">
               Token
-              <input className="field" value={token} onChange={(e) => setToken(e.target.value)} />
+              <input
+                className="field"
+                value={token}
+                placeholder="USDC"
+                onChange={(e) => setToken(e.target.value)}
+              />
             </label>
             <label className="text-xs text-paper-500">
               Amount
@@ -133,24 +137,9 @@ export function Alex() {
                 type="number"
                 className="field"
                 value={amount}
-                onChange={(e) => setAmount(Number(e.target.value))}
+                placeholder="0"
+                onChange={(e) => setAmount(e.target.value)}
               />
-            </label>
-            <label className="text-xs text-paper-500">
-              Known recipients
-              <select
-                className="field"
-                value={[TREASURY_VAULT, VENDOR_DESK, SWAP_ROUTER, FRESH_WALLET].includes(recipient) ? recipient : "custom"}
-                onChange={(e) => {
-                  if (e.target.value !== "custom") setRecipient(e.target.value);
-                }}
-              >
-                <option value={TREASURY_VAULT}>Treasury Vault</option>
-                <option value={VENDOR_DESK}>Vendor Desk</option>
-                <option value={SWAP_ROUTER}>Swap Router</option>
-                <option value={FRESH_WALLET}>Unseen address</option>
-                <option value="custom">Paste address</option>
-              </select>
             </label>
           </div>
           <label className="block text-xs text-paper-500">
@@ -158,10 +147,15 @@ export function Alex() {
             <input
               className="field font-mono text-xs"
               value={recipient}
+              placeholder="0x…"
               onChange={(e) => setRecipient(e.target.value)}
             />
           </label>
-          <button className="btn-trace h-11 px-5" disabled={busy} type="submit">
+          <button
+            className="btn-trace h-11 px-5"
+            disabled={busy || !recipient.trim() || !token.trim() || !amount}
+            type="submit"
+          >
             {busy ? "Deciding…" : "Ask Alex"}
           </button>
         </form>
