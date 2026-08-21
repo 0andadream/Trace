@@ -24,10 +24,11 @@ def db_path() -> Path:
     return Path(raw).expanduser() if raw else DEFAULT_DB
 
 
-def client() -> MemoryClient:
+def client(tenant: str | None = None) -> MemoryClient:
     path = db_path()
     path.parent.mkdir(parents=True, exist_ok=True)
-    return MemoryClient.local(str(path), tenant_id=TENANT)
+    tid = (tenant or TENANT).strip() or TENANT
+    return MemoryClient.local(str(path), tenant_id=tid)
 
 
 def body(row: dict) -> dict:
@@ -95,6 +96,17 @@ def list_actions(mem: MemoryClient) -> list[dict]:
     return actions
 
 
+def wipe(mem: MemoryClient) -> None:
+    for category in ("action", "counterparty", "agent"):
+        for row in mem.list_entities(category, limit=1000):
+            name = row.get("name")
+            if name:
+                try:
+                    mem.delete_entity(category, name)
+                except NotFoundError:
+                    pass
+
+
 def persist_action(mem: MemoryClient, row: dict, acted: str) -> None:
     mem.set_entity("action", row["id"], row)
     mem.write_event(
@@ -129,7 +141,7 @@ def health(mem: MemoryClient) -> dict:
 
 def handle(msg: dict) -> dict:
     op = msg.get("op")
-    mem = client()
+    mem = client(msg.get("tenant") if isinstance(msg.get("tenant"), str) else None)
 
     if op == "health":
         return {"ok": True, "health": health(mem)}
@@ -183,6 +195,30 @@ def handle(msg: dict) -> dict:
         except NotFoundError:
             return {"ok": True, "entity": None}
         return {"ok": True, "entity": row}
+
+    if op == "wipe":
+        wipe(mem)
+        return {"ok": True, "health": health(mem), "actions": [], "counterparties": 0}
+
+    if op == "replace":
+        wipe(mem)
+        rows = msg.get("actions") or []
+        for row in rows:
+            mem.set_entity("action", row["id"], row)
+        rebuilt = list_actions(mem)
+        rebuild_warm(mem, rebuilt)
+        mem.set_state("seeded", {"ok": True, "count": len(rows)})
+        mem.set_reference(
+            "policy",
+            {
+                "proceed": "<0.30",
+                "flag": "0.30-0.60",
+                "hold": ">0.60",
+                "note": "Code maps RISK_SCORE. Alex cannot change the decision.",
+            },
+        )
+        mem.write_event(acted=[f"replaced Sibyl memory with {len(rows)} seed actions"])
+        return {"ok": True, "health": health(mem), "actions": rebuilt}
 
     return {"ok": False, "error": f"unknown op {op}"}
 

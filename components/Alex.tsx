@@ -8,6 +8,7 @@ const TONE: Record<Decision, string> = {
   Proceed: "text-proceed",
   "Proceed with flag": "text-flag",
   "Hold for approval": "text-hold",
+  "Ceiling blocked": "text-hold",
 };
 
 export function Alex() {

@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import path from "node:path";
+import { currentTenant } from "@/lib/user/session";
 
 export class SibylUnavailable extends Error {
   constructor(message: string) {
@@ -75,7 +76,7 @@ export function callSibyl<T = Record<string, unknown>>(
         );
       }
     });
-    child.stdin.write(JSON.stringify({ op, ...payload }));
+    child.stdin.write(JSON.stringify({ op, tenant: payload.tenant ?? currentTenant(), ...payload }));
     child.stdin.end();
   });
 }

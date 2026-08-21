@@ -9,7 +9,10 @@
     "start": "next start --port 3002",
     "test": "npx tsx --test lib/**/*.test.ts sibyl/bridge.test.ts",
     "mcp": "npx tsx mcp/server.ts",
-    "sibyl:health": ".venv/bin/python sibyl/bridge.py <<< '{\"op\":\"health\"}'"
+    "sibyl:health": ".venv/bin/python sibyl/bridge.py <<< '{\"op\":\"health\"}'",
+    "wallet:create": "npx tsx scripts/create-wallet.ts",
+    "memory:seed": "npx tsx scripts/seed-memory.ts",
+    "memory:reset": "npx tsx scripts/reset-memory-empty.ts"
   },
   "engines": {
     "node": ">=20"

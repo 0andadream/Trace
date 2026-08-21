@@ -66,17 +66,19 @@ Risk: 0.00
 
 There is no canned history. Until Sibyl has recorded actions, reputation is thin and counterparties are empty, so Alex holds. History is only what you (or the agent) actually logged.
 
-## Broadcast (no wallet connect)
+## Wallet, faucet, seed (local CLI only)
 
-The agent signs with `BASE_PRIVATE_KEY` in `.env.local`. There is no Connect Wallet.
+Reset and seed are **not** HTTP routes. Visitors cannot trigger them.
 
-1. Put a private key in `.env.local`. Fund that address with ETH for gas, and with USDC/ETH if that is what you will send.
-2. `BASE_CHAIN_ID=84532` for Base Sepolia, or `8453` for Base.
-3. `BASE_EXECUTE=1`
-4. Restart `pnpm dev`.
-5. Submit a **transfer**. If Alex returns Proceed or Proceed with flag, it broadcasts. If it Holds, Approve — then it broadcasts.
+```bash
+pnpm wallet:create          # prints address + key once; writes .env.local + config/agent-wallet.json
+pnpm memory:seed            # loads seeds/demo-seed.json into Sibyl
+pnpm memory:reset           # wipes Sibyl to 0 actions
+```
 
-Token field: `ETH`, `USDC`, or an ERC-20 address. Recipient must be `0x…`.
+Hard cap: `MAX_TX_AMOUNT_USDC` (default 25). Amounts above it are `ceiling_blocked` — not a Hold — and never go to risk scoring or broadcast.
+
+The agent signs with `AGENT_PRIVATE_KEY`. There is no Connect Wallet. Token field: `ETH`, `USDC`, or an ERC-20 address.
 
 ## API
 

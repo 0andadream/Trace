@@ -1,6 +1,6 @@
 export type TxAction = "transfer" | "approve" | "swap" | "contract";
-export type ActionOutcome = "success" | "rejected" | "incident" | "pending";
-export type Decision = "Proceed" | "Proceed with flag" | "Hold for approval";
+export type ActionOutcome = "success" | "rejected" | "incident" | "pending" | "ceiling_blocked";
+export type Decision = "Proceed" | "Proceed with flag" | "Hold for approval" | "Ceiling blocked";
 export type ReasoningSource = "deterministic" | "grok-4.6";
 
 export type TreasuryRequest = {

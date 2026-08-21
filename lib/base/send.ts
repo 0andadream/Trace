@@ -6,10 +6,11 @@ import {
   parseEther,
   parseUnits,
   type Address,
-  type Hex,
 } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+
 import { base, baseSepolia } from "viem/chains";
+import { ceilingCheck } from "@/lib/policy/ceiling";
+import { getAgentAccount } from "@/lib/wallet";
 import type { TreasuryRequest } from "@/types";
 
 const ERC20_ABI = [
@@ -50,7 +51,7 @@ export type Execution = {
   chainLabel: string;
   sent: boolean;
   from?: Address;
-  txHash?: Hex;
+  txHash?: `0x${string}`;
   explorerUrl?: string;
   reason?: string;
 };
@@ -66,10 +67,8 @@ function chainConfig() {
   return { id: chain.id, chain, rpc, explorer, label: chain.name };
 }
 
-function privateKey(): Hex | null {
-  const raw = process.env.BASE_PRIVATE_KEY?.trim();
-  if (!raw) return null;
-  return (raw.startsWith("0x") ? raw : `0x${raw}`) as Hex;
+function privateKeyPresent() {
+  return Boolean(process.env.AGENT_PRIVATE_KEY?.trim() || process.env.BASE_PRIVATE_KEY?.trim());
 }
 
 function executeEnabled() {
@@ -108,9 +107,12 @@ export async function sendTransfer(request: TreasuryRequest): Promise<Execution>
   if (!executeEnabled()) {
     return skipped("BASE_EXECUTE is not set. Decision is in Sibyl only. Set BASE_EXECUTE=1 to broadcast.");
   }
-  const key = privateKey();
-  if (!key) {
-    return skipped("No BASE_PRIVATE_KEY. The agent signs with an env key — there is no wallet connect.");
+  const ceil = ceilingCheck(request);
+  if (ceil.blocked) {
+    return skipped(ceil.reason);
+  }
+  if (!privateKeyPresent()) {
+    return skipped("AGENT_PRIVATE_KEY is missing. Run pnpm wallet:create. The agent signs with an env key — there is no wallet connect.");
   }
   if (!isAddress(request.recipient, { strict: false })) {
     return skipped("Recipient is not a valid address.");
@@ -120,7 +122,7 @@ export async function sendTransfer(request: TreasuryRequest): Promise<Execution>
   }
 
   try {
-    const account = privateKeyToAccount(key);
+    const account = getAgentAccount();
     const publicClient = createPublicClient({ chain: cfg.chain, transport: http(cfg.rpc) });
     const wallet = createWalletClient({
       account,

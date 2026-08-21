@@ -5,6 +5,7 @@ import { requestFromBody } from "@/lib/desk/scenarios";
 import { labelAddress } from "@/lib/format";
 import { buildCounterpartyProfile, buildReputation, listCounterparties } from "@/lib/memory/derive";
 import { appendAction, listActions, sibylHealth, updateAction } from "@/lib/memory/store";
+import { ceilingCheck } from "@/lib/policy/ceiling";
 import { computeRiskScore } from "@/lib/risk/score";
 import type { ActionRecord, DecideRequestBody, DecideResult, Execution } from "@/types";
 
@@ -21,6 +22,63 @@ export async function runDecide(body: DecideRequestBody): Promise<DecideResult> 
   const actions = await listActions();
   const reputation = buildReputation(actions);
   const profile = buildCounterpartyProfile(actions, request.recipient);
+  const ceil = ceilingCheck(request);
+
+  if (ceil.blocked) {
+    const at = new Date().toISOString();
+    const id = newId();
+    const assessment = {
+      score: 1,
+      factors: [{ id: "ceiling_blocked", delta: 1, reason: ceil.reason }],
+    };
+    const verdict = {
+      decision: "Ceiling blocked" as const,
+      reasoning: [
+        ceil.reason,
+        "This refusal is a hard execution ceiling. Reputation, counterparty history, and risk score were not used.",
+        `Lower the amount to at most $${ceil.max} USDC-equivalent to proceed to scoring.`,
+      ],
+      risk: 1,
+      source: "deterministic" as const,
+      raw: "",
+    };
+    verdict.raw = formatVerdict(verdict);
+    const pending: ActionRecord = {
+      id,
+      at,
+      action: request.action,
+      token: request.token,
+      amount: request.amount,
+      recipient: request.recipient,
+      counterpartyLabel: profile?.label || labelAddress(request.recipient),
+      outcome: "ceiling_blocked",
+      decision: "Ceiling blocked",
+      riskScore: 1,
+      userOverride: false,
+      overrideDirection: null,
+      seed: false,
+      reasoning: verdict.reasoning,
+      reasoningSource: "deterministic",
+    };
+    if (body.persist !== false) await appendAction(pending);
+    return {
+      id,
+      at,
+      request,
+      counterpartyLabel: pending.counterpartyLabel,
+      memory: {
+        AGENT_REPUTATION: reputation,
+        COUNTERPARTY_PROFILE: profile,
+        RISK_SCORE: 1,
+      },
+      assessment,
+      verdict,
+      emptyCounterparty: !profile,
+      sibyl: await sibylHealth(),
+      tx: skipped(ceil.reason),
+    };
+  }
+
   const assessment = computeRiskScore(request, reputation, profile);
   const verdict = await askAlex({ request, reputation, profile, assessment });
   verdict.raw = formatVerdict(verdict);
@@ -89,18 +147,26 @@ export async function resolveHold(id: string, resolution: "approved" | "rejected
   }
 
   let tx: Execution = skipped("Rejected. No broadcast.");
+  let outcome: ActionRecord["outcome"] = "rejected";
   if (resolution === "approved") {
-    tx = await sendTransfer({
-      action: current.action,
-      token: current.token,
-      amount: current.amount,
-      recipient: current.recipient,
-    });
+    const ceil = ceilingCheck(current);
+    if (ceil.blocked) {
+      tx = skipped(ceil.reason);
+      outcome = "ceiling_blocked";
+    } else {
+      tx = await sendTransfer({
+        action: current.action,
+        token: current.token,
+        amount: current.amount,
+        recipient: current.recipient,
+      });
+      outcome = "success";
+    }
   }
 
   const updated = await updateAction(id, {
-    outcome: resolution === "approved" ? "success" : "rejected",
-    userOverride: resolution === "approved",
+    outcome,
+    userOverride: resolution === "approved" && outcome === "success",
     overrideDirection: resolution,
     txHash: tx.txHash,
     explorerUrl: tx.explorerUrl,
