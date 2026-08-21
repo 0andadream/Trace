@@ -1,0 +1,119 @@
+export type TxAction = "transfer" | "approve" | "swap" | "contract";
+export type ActionOutcome = "success" | "rejected" | "incident" | "pending";
+export type Decision = "Proceed" | "Proceed with flag" | "Hold for approval";
+export type ReasoningSource = "deterministic" | "grok-4.6";
+
+export type TreasuryRequest = {
+  action: TxAction;
+  token: string;
+  amount: number;
+  recipient: string;
+  note?: string;
+  scenario?: "typical" | "oversized" | "unknown" | "custom";
+};
+
+export type ActionRecord = {
+  id: string;
+  at: string;
+  action: TxAction;
+  token: string;
+  amount: number;
+  recipient: string;
+  counterpartyLabel: string;
+  outcome: ActionOutcome;
+  decision: Decision;
+  riskScore: number;
+  userOverride: boolean;
+  overrideDirection: "approved" | "rejected" | null;
+  seed: boolean;
+  reasoning: string[];
+  reasoningSource?: ReasoningSource;
+};
+
+export type ActionTypeStats = {
+  count: number;
+  successful: number;
+  rejected: number;
+  incidents: number;
+  overrides: number;
+  holdDecisions: number;
+  avgAmount: number;
+};
+
+export type AgentReputation = {
+  agent: string;
+  totalActions: number;
+  successfulActions: number;
+  rejectedActions: number;
+  incidentActions: number;
+  pendingActions: number;
+  userOverrides: number;
+  holdDecisions: number;
+  holdOverrideRate: number;
+  incidentRate: number;
+  rejectionRate: number;
+  thinHistory: boolean;
+  rejectedUnverifiedCount: number;
+  byActionType: Record<TxAction, ActionTypeStats>;
+};
+
+export type CounterpartyProfile = {
+  address: string;
+  label: string;
+  interactionCount: number;
+  successful: number;
+  rejected: number;
+  incidents: number;
+  overrides: number;
+  avgAmount: number;
+  minAmount: number;
+  maxAmount: number;
+  lastAt: string | null;
+  actions: TxAction[];
+};
+
+export type RiskFactor = {
+  id: string;
+  delta: number;
+  reason: string;
+};
+
+export type RiskAssessment = {
+  score: number;
+  factors: RiskFactor[];
+};
+
+export type MemoryBlocks = {
+  AGENT_REPUTATION: AgentReputation;
+  COUNTERPARTY_PROFILE: CounterpartyProfile | null;
+  RISK_SCORE: number;
+};
+
+export type AlexVerdict = {
+  decision: Decision;
+  reasoning: string[];
+  risk: number;
+  source: ReasoningSource;
+  raw: string;
+};
+
+export type DecideResult = {
+  id: string;
+  at: string;
+  request: TreasuryRequest;
+  counterpartyLabel: string;
+  memory: MemoryBlocks;
+  assessment: RiskAssessment;
+  verdict: AlexVerdict;
+  emptyCounterparty: boolean;
+};
+
+export type DecideRequestBody = Partial<TreasuryRequest> & {
+  /** Skip persisting (tests / dry run). */
+  persist?: boolean;
+};
+
+export type ResolveBody = {
+  id: string;
+  resolution: "approved" | "rejected";
+};
