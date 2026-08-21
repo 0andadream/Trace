@@ -34,11 +34,10 @@ def body(row: dict) -> dict:
     return row.get("body") if isinstance(row.get("body"), dict) else row
 
 
-def list_actions(mem: MemoryClient) -> list[dict]:
-    rows = mem.list_entities("action", limit=400)
-    actions = [body(r) for r in rows]
-    actions.sort(key=lambda a: a.get("at") or "", reverse=True)
-    return actions
+def scrub_labels(row: dict) -> dict:
+    if row.get("counterpartyLabel") == "OKX DEX Router":
+        return {**row, "counterpartyLabel": "Swap Router"}
+    return row
 
 
 def rebuild_warm(mem: MemoryClient, actions: list[dict]) -> None:
@@ -79,6 +78,21 @@ def rebuild_warm(mem: MemoryClient, actions: list[dict]) -> None:
             "holds": sum(1 for r in actions if r.get("decision") == "Hold for approval"),
         },
     )
+
+
+def list_actions(mem: MemoryClient) -> list[dict]:
+    rows = mem.list_entities("action", limit=400)
+    actions = [scrub_labels(body(r)) for r in rows]
+    rewritten = False
+    for row in actions:
+        raw = next((body(r) for r in rows if body(r).get("id") == row.get("id")), {})
+        if raw.get("counterpartyLabel") == "OKX DEX Router":
+            mem.set_entity("action", row["id"], row)
+            rewritten = True
+    if rewritten:
+        rebuild_warm(mem, actions)
+    actions.sort(key=lambda a: a.get("at") or "", reverse=True)
+    return actions
 
 
 def persist_action(mem: MemoryClient, row: dict, acted: str) -> None:

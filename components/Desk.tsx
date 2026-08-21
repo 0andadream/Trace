@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   FRESH_WALLET,
-  OKX_DEX_ROUTER,
+  SWAP_ROUTER,
   TREASURY_VAULT,
   VENDOR_DESK,
 } from "@/lib/counterparties";
@@ -189,7 +189,7 @@ export function Desk() {
               <select
                 className="field"
                 value={
-                  [TREASURY_VAULT, VENDOR_DESK, OKX_DEX_ROUTER, FRESH_WALLET].includes(recipient)
+                  [TREASURY_VAULT, VENDOR_DESK, SWAP_ROUTER, FRESH_WALLET].includes(recipient)
                     ? recipient
                     : "custom"
                 }
@@ -199,7 +199,7 @@ export function Desk() {
               >
                 <option value={TREASURY_VAULT}>Treasury Vault</option>
                 <option value={VENDOR_DESK}>Vendor Desk</option>
-                <option value={OKX_DEX_ROUTER}>OKX DEX Router</option>
+                <option value={SWAP_ROUTER}>Swap Router</option>
                 <option value={FRESH_WALLET}>Unknown (fresh)</option>
                 <option value="custom">Custom address</option>
               </select>
