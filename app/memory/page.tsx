@@ -1,4 +1,5 @@
 import { Header } from "@/components/Header";
+import { TraceArc } from "@/components/TraceArc";
 import { formatAmount, formatPct, shortAddress } from "@/lib/format";
 import { memorySnapshot } from "@/lib/desk/run";
 
@@ -13,8 +14,9 @@ export default async function MemoryPage() {
       <Header />
       <main className="mx-auto w-full max-w-6xl px-5 pb-20 pt-10">
         <p className="mono-label text-trace">Persistent memory</p>
-        <h1 className="mt-2 text-3xl tracking-tight">What Alex is allowed to know</h1>
-        <p className="mt-2 max-w-2xl text-sm text-paper-300">
+        <h1 className="mt-2 text-3xl font-medium tracking-tight">What Alex is allowed to know</h1>
+        <TraceArc className="mt-3 w-24" />
+        <p className="mt-3 max-w-2xl text-sm text-paper-300">
           Historical claims in a decision come from these blocks only. Empty counterparty profiles
           stay empty until a recorded interaction exists.
         </p>

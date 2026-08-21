@@ -8,51 +8,51 @@
 
 html,
 body {
-  background: #07080a;
-  color: #ece8dc;
+  background: #0a0219;
+  color: #fbfbfb;
 }
 
 body {
   min-height: 100vh;
   background-image:
-    radial-gradient(880px 420px at 0% -8%, rgba(110, 231, 210, 0.06), transparent 52%),
-    linear-gradient(180deg, #07080a 0%, #0b0c0f 100%);
+    radial-gradient(900px 480px at 50% -10%, rgba(120, 40, 232, 0.18), transparent 55%),
+    radial-gradient(700px 360px at 100% 100%, rgba(120, 40, 232, 0.08), transparent 50%),
+    linear-gradient(180deg, #0a0219 0%, #0d0520 100%);
 }
 
 ::selection {
-  background: #6ee7d2;
-  color: #07080a;
-}
-
-.hairline {
-  border-color: rgba(236, 232, 220, 0.08);
+  background: #7828e8;
+  color: #fbfbfb;
 }
 
 .panel {
-  @apply border border-white/[0.07] bg-ink-800;
+  @apply rounded-[1.1rem] border border-white/[0.07] bg-ink-800/80 backdrop-blur-sm;
 }
 
 .mono-label {
-  @apply font-mono text-[10px] uppercase tracking-[0.18em] text-paper-500;
+  @apply font-mono text-[10px] uppercase tracking-[0.2em] text-paper-500;
 }
 
 .btn {
-  @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40;
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40;
 }
 
 .btn-trace {
-  @apply btn bg-trace text-ink hover:bg-trace-200;
+  @apply btn bg-trace text-white hover:bg-trace-200;
 }
 
 .btn-ghost {
-  @apply btn border border-white/10 text-paper-300 hover:border-trace/40 hover:text-trace;
+  @apply btn border border-white/10 text-paper-300 hover:border-trace/50 hover:text-white;
 }
 
 .btn-hold {
   @apply btn border border-hold/40 text-hold hover:bg-hold/10;
 }
 
+.field {
+  @apply mt-1 w-full rounded-xl border border-white/10 bg-ink px-3 py-2 text-sm text-paper outline-none transition focus:border-trace/70;
+}
+
 .scanline {
-  background-image: linear-gradient(rgba(236, 232, 220, 0.025) 1px, transparent 1px);
-  background-size: 100% 4px;
+  background-image: radial-gradient(ellipse at 50% 120%, rgba(120, 40, 232, 0.12), transparent 70%);
 }

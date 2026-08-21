@@ -18,21 +18,22 @@ export function Header() {
   return (
     <header className="border-b border-white/[0.06]">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3">
-        <Link href="/" className="flex items-center gap-3">
-          <Logo className="h-8 w-8" />
-          <div>
-            <div className="text-sm font-medium tracking-tight">Trace</div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-paper-500">
-              Alex · Treasury Agent
-            </div>
-          </div>
+        <Link href="/" className="flex items-center py-1" aria-label="Trace home">
+          <Logo variant="compact" />
         </Link>
         <nav className="flex items-center gap-5 text-sm text-paper-500">
           {NAV.map((n) => {
             const active = n.href === "/" ? path === "/" : path?.startsWith(n.href);
             return (
-              <Link key={n.href} href={n.href} className={active ? "text-trace" : "hover:text-paper"}>
-                {n.label}
+              <Link
+                key={n.href}
+                href={n.href}
+                className={active ? "text-white" : "hover:text-paper"}
+              >
+                <span className="flex flex-col items-center">
+                  {n.label}
+                  {active ? <span className="mt-1 h-px w-5 bg-trace" /> : <span className="mt-1 h-px w-5 bg-transparent" />}
+                </span>
               </Link>
             );
           })}

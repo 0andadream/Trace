@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { IBM_Plex_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
-const sans = IBM_Plex_Sans({
+const sans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-sans",
   display: "swap",
 });
@@ -20,6 +20,15 @@ export const metadata: Metadata = {
   title: "Trace — Alex, autonomous treasury agent",
   description:
     "Memory-grounded treasury decisions. Proceed, flag, or hold — from operating history, not vibes.",
+  icons: {
+    icon: "/icon.jpg",
+    apple: "/icon.jpg",
+  },
+  openGraph: {
+    title: "Trace",
+    description: "Alex, autonomous treasury agent.",
+    images: ["/logo.jpg"],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

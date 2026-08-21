@@ -14,7 +14,7 @@ export function FlowStrip() {
           <span className="font-mono text-[10px] text-trace">{s.k}</span>
           <span className="text-sm">{s.t}</span>
           {i < STEPS.length - 1 ? (
-            <span className="ml-auto hidden text-paper-500 sm:inline">→</span>
+            <span className="ml-auto hidden text-trace/50 sm:inline">→</span>
           ) : null}
         </li>
       ))}

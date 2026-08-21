@@ -7,6 +7,7 @@ import {
   TREASURY_VAULT,
   VENDOR_DESK,
 } from "@/lib/counterparties";
+import { TraceArc } from "@/components/TraceArc";
 import { formatAmount, formatPct, shortAddress } from "@/lib/format";
 import type { DecideResult, Decision, TxAction } from "@/types";
 
@@ -120,8 +121,9 @@ export function Desk() {
   return (
     <main className="mx-auto w-full max-w-6xl px-5 pb-20 pt-10">
       <p className="mono-label text-trace">Treasury desk</p>
-      <h1 className="mt-2 text-3xl tracking-tight">Ask Alex</h1>
-      <p className="mt-2 max-w-2xl text-sm text-paper-300">
+      <h1 className="mt-2 text-3xl font-medium tracking-tight">Ask Alex</h1>
+      <TraceArc className="mt-3 w-24" />
+      <p className="mt-3 max-w-2xl text-sm text-paper-300">
         Three seeded paths, or a custom intent. Code computes risk. Alex writes the reasoning from
         memory — nothing else.
       </p>
@@ -155,7 +157,7 @@ export function Desk() {
             <label className="text-xs text-paper-500">
               Action
               <select
-                className="mt-1 w-full border border-white/10 bg-ink px-3 py-2 text-sm text-paper"
+                className="field"
                 value={action}
                 onChange={(e) => setAction(e.target.value as TxAction)}
               >
@@ -168,7 +170,7 @@ export function Desk() {
             <label className="text-xs text-paper-500">
               Token
               <input
-                className="mt-1 w-full border border-white/10 bg-ink px-3 py-2 text-sm text-paper"
+                className="field"
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
               />
@@ -177,7 +179,7 @@ export function Desk() {
               Amount
               <input
                 type="number"
-                className="mt-1 w-full border border-white/10 bg-ink px-3 py-2 text-sm text-paper"
+                className="field"
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
               />
@@ -185,7 +187,7 @@ export function Desk() {
             <label className="text-xs text-paper-500">
               Recipient
               <select
-                className="mt-1 w-full border border-white/10 bg-ink px-3 py-2 text-sm text-paper"
+                className="field"
                 value={
                   [TREASURY_VAULT, VENDOR_DESK, OKX_DEX_ROUTER, FRESH_WALLET].includes(recipient)
                     ? recipient
@@ -204,7 +206,7 @@ export function Desk() {
             </label>
           </div>
           <input
-            className="mt-3 w-full border border-white/10 bg-ink px-3 py-2 font-mono text-xs text-paper"
+            className="field mt-3 font-mono text-xs"
             value={recipient}
             onChange={(e) => setRecipient(e.target.value)}
           />
