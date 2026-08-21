@@ -7,8 +7,9 @@
     "dev": "next dev --turbopack --port 3002",
     "build": "next build",
     "start": "next start --port 3002",
-    "test": "npx tsx --test lib/**/*.test.ts",
-    "mcp": "npx tsx mcp/server.ts"
+    "test": "npx tsx --test lib/**/*.test.ts sibyl/bridge.test.ts",
+    "mcp": "npx tsx mcp/server.ts",
+    "sibyl:health": ".venv/bin/python sibyl/bridge.py <<< '{\"op\":\"health\"}'"
   },
   "engines": {
     "node": ">=20"
@@ -17,7 +18,8 @@
     "next": "^15.4.6",
     "openai": "^5.12.2",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "viem": "^2.55.19"
   },
   "devDependencies": {
     "@types/node": "^22.17.1",

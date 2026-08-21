@@ -10,8 +10,9 @@ export default function DevelopersPage() {
         <h1 className="mt-2 text-3xl font-medium tracking-tight">Agent API</h1>
         <TraceArc className="mt-3 w-24" />
         <p className="mt-3 max-w-2xl text-sm text-paper-300">
-          POST a treasury intent. Receive a policy decision, the three memory blocks, and Alex&apos;s
-          reasoning. The model cannot change <code>decision</code> or <code>RISK_SCORE</code>.
+          POST a treasury intent. Receive a policy decision, the three memory blocks recalled from
+          Sibyl Memory, and Alex&apos;s reasoning. If Sibyl is down the API returns 503. The model
+          cannot change <code>decision</code> or <code>RISK_SCORE</code>.
         </p>
 
         <section className="panel mt-8 p-5">

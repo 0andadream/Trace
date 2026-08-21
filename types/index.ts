@@ -97,6 +97,29 @@ export type AlexVerdict = {
   raw: string;
 };
 
+export type SibylHealth = {
+  engine: string;
+  db: string;
+  tenant: string;
+  tier: string;
+  actionCount: number;
+  counterpartyCount: number;
+  recentEvents: number;
+  lastEvent: unknown;
+  freeTier: unknown;
+  loadBearing: boolean;
+};
+
+export type BaseAttestation = {
+  chainId: number;
+  chainLabel: string;
+  memoryHash: `0x${string}`;
+  written: boolean;
+  txHash?: `0x${string}`;
+  explorerUrl?: string;
+  reason?: string;
+};
+
 export type DecideResult = {
   id: string;
   at: string;
@@ -106,6 +129,8 @@ export type DecideResult = {
   assessment: RiskAssessment;
   verdict: AlexVerdict;
   emptyCounterparty: boolean;
+  sibyl: SibylHealth;
+  base: BaseAttestation;
 };
 
 export type DecideRequestBody = Partial<TreasuryRequest> & {

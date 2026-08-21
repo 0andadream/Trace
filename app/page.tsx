@@ -10,16 +10,16 @@ export default function HomePage() {
       <Header />
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col items-center px-5 pb-20 pt-10">
         <Logo className="w-full max-w-md" />
-        <p className="mono-label -mt-2 text-trace">Treasury agent · memory-grounded</p>
+        <p className="mono-label -mt-2 text-trace">Treasury agent · Sibyl Memory</p>
         <p className="mt-6 max-w-xl text-center text-lg font-medium tracking-tight text-paper sm:text-2xl">
           Alex does not guess.
           <br />
           Alex reads memory, then decides.
         </p>
         <p className="mt-4 max-w-xl text-center text-sm leading-relaxed text-paper-300">
-          An autonomous treasury agent. Every request is scored against persistent operating history:
-          agent reputation, the counterparty profile, and a risk score from 0 to 1. Code applies the
-          policy. Alex writes the reasoning.
+          An autonomous treasury agent. Every request is scored against Sibyl Memory: agent
+          reputation, the counterparty profile, and a risk score from 0 to 1. Code applies the
+          policy. Alex writes the reasoning. Delete the Sibyl database and the agent forgets.
         </p>
 
         <div className="mt-8 flex flex-wrap justify-center gap-3">
@@ -43,7 +43,7 @@ export default function HomePage() {
             {
               k: "Memory",
               t: "Three blocks, always",
-              d: "AGENT_REPUTATION, COUNTERPARTY_PROFILE, RISK_SCORE. If the profile is empty, Alex says so. No invented history.",
+              d: "Sibyl WARM entities + COLD journal. AGENT_REPUTATION, COUNTERPARTY_PROFILE, RISK_SCORE. If the profile is empty, Alex says so.",
             },
             {
               k: "Policy",
@@ -53,7 +53,7 @@ export default function HomePage() {
             {
               k: "Record",
               t: "History updates the next call",
-              d: "Approving a Hold is a user override. The next request to that counterparty is a different decision.",
+              d: "Approving a Hold is a user override written to Sibyl. Restart the process: the next request to that counterparty is a different decision.",
             },
           ].map((card) => (
             <article key={card.k} className="panel p-5">

@@ -1,9 +1,10 @@
 import { askAlex } from "@/lib/agent/alex";
 import { formatVerdict } from "@/lib/agent/reason";
+import { attestOnBase, memoryHash } from "@/lib/base/attest";
 import { requestFromBody } from "@/lib/desk/scenarios";
 import { labelAddress } from "@/lib/format";
 import { buildCounterpartyProfile, buildReputation, listCounterparties } from "@/lib/memory/derive";
-import { appendAction, listActions, updateAction } from "@/lib/memory/store";
+import { appendAction, listActions, sibylHealth, updateAction } from "@/lib/memory/store";
 import { computeRiskScore } from "@/lib/risk/score";
 import type { ActionRecord, DecideRequestBody, DecideResult } from "@/types";
 
@@ -22,23 +23,6 @@ export async function runDecide(body: DecideRequestBody): Promise<DecideResult> 
 
   const at = new Date().toISOString();
   const id = newId();
-  const result: DecideResult = {
-    id,
-    at,
-    request,
-    counterpartyLabel: profile?.label || labelAddress(request.recipient),
-    memory: {
-      AGENT_REPUTATION: reputation,
-      COUNTERPARTY_PROFILE: profile,
-      RISK_SCORE: assessment.score,
-    },
-    assessment,
-    verdict,
-    emptyCounterparty: !profile,
-  };
-
-  if (body.persist === false) return result;
-
   const pending: ActionRecord = {
     id,
     at,
@@ -46,7 +30,7 @@ export async function runDecide(body: DecideRequestBody): Promise<DecideResult> 
     token: request.token,
     amount: request.amount,
     recipient: request.recipient,
-    counterpartyLabel: result.counterpartyLabel,
+    counterpartyLabel: profile?.label || labelAddress(request.recipient),
     outcome: verdict.decision === "Hold for approval" ? "pending" : "success",
     decision: verdict.decision,
     riskScore: assessment.score,
@@ -56,8 +40,40 @@ export async function runDecide(body: DecideRequestBody): Promise<DecideResult> 
     reasoning: verdict.reasoning,
     reasoningSource: verdict.source,
   };
-  await appendAction(pending);
-  return result;
+
+  if (body.persist !== false) {
+    await appendAction(pending);
+  }
+
+  const [health, base] = await Promise.all([
+    sibylHealth(),
+    body.persist === false
+      ? Promise.resolve({
+          chainId: 84532,
+          chainLabel: "Base Sepolia",
+          memoryHash: memoryHash(pending),
+          written: false,
+          reason: "Dry run — Base write skipped.",
+        })
+      : attestOnBase(pending),
+  ]);
+
+  return {
+    id,
+    at,
+    request,
+    counterpartyLabel: pending.counterpartyLabel,
+    memory: {
+      AGENT_REPUTATION: reputation,
+      COUNTERPARTY_PROFILE: profile,
+      RISK_SCORE: assessment.score,
+    },
+    assessment,
+    verdict,
+    emptyCounterparty: !profile,
+    sibyl: health!,
+    base,
+  };
 }
 
 export async function resolveHold(id: string, resolution: "approved" | "rejected") {
@@ -81,5 +97,6 @@ export async function memorySnapshot() {
     actions,
     reputation: buildReputation(actions),
     counterparties: listCounterparties(actions),
+    sibyl: await sibylHealth(),
   };
 }

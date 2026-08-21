@@ -5,5 +5,8 @@ out
 .env
 .env.local
 .data
+.venv
+__pycache__
+*.pyc
 *.log
 tsconfig.tsbuildinfo

@@ -17,9 +17,36 @@ export default async function MemoryPage() {
         <h1 className="mt-2 text-3xl font-medium tracking-tight">What Alex is allowed to know</h1>
         <TraceArc className="mt-3 w-24" />
         <p className="mt-3 max-w-2xl text-sm text-paper-300">
-          Historical claims in a decision come from these blocks only. Empty counterparty profiles
-          stay empty until a recorded interaction exists.
+          Historical claims in a decision come from Sibyl Memory only. Empty counterparty profiles
+          stay empty until a recorded interaction exists. Delete the Sibyl database and learned
+          overrides disappear — the next unknown recipient is a Hold again.
         </p>
+
+        {snap.sibyl ? (
+          <section className="panel mt-8 p-5">
+            <div className="mono-label text-trace">Sibyl Memory · load-bearing</div>
+            <dl className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 text-sm">
+              <div>
+                <dt className="font-mono text-[10px] uppercase tracking-[0.14em] text-paper-500">engine</dt>
+                <dd className="mt-1">{snap.sibyl.engine}</dd>
+              </div>
+              <div>
+                <dt className="font-mono text-[10px] uppercase tracking-[0.14em] text-paper-500">tenant</dt>
+                <dd className="mt-1 font-mono text-xs">{snap.sibyl.tenant}</dd>
+              </div>
+              <div>
+                <dt className="font-mono text-[10px] uppercase tracking-[0.14em] text-paper-500">actions / counterparties</dt>
+                <dd className="mt-1">
+                  {snap.sibyl.actionCount} / {snap.sibyl.counterpartyCount}
+                </dd>
+              </div>
+              <div>
+                <dt className="font-mono text-[10px] uppercase tracking-[0.14em] text-paper-500">db</dt>
+                <dd className="mt-1 break-all font-mono text-xs text-paper-500">{snap.sibyl.db}</dd>
+              </div>
+            </dl>
+          </section>
+        ) : null}
 
         <section className="panel mt-8 p-5">
           <div className="mono-label">AGENT_REPUTATION</div>

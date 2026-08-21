@@ -275,8 +275,14 @@ export function Desk() {
               </ul>
             </div>
             <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.16em] text-paper-500">
-              source {result.verdict.source}
+              source {result.verdict.source} · sibyl {result.sibyl?.engine} · {result.sibyl?.actionCount} actions
             </p>
+            {result.base ? (
+              <p className="mt-1 break-all font-mono text-[10px] text-paper-500">
+                base {result.base.chainLabel} · {result.base.memoryHash}
+                {result.base.written ? " · written" : result.base.reason ? ` · ${result.base.reason}` : ""}
+              </p>
+            ) : null}
             {result.verdict.decision === "Hold for approval" ? (
               <div className="mt-5 flex flex-wrap gap-3">
                 <button className="btn-trace h-10 px-4" disabled={busy} onClick={() => resolve("approved")}>
