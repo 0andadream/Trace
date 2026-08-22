@@ -1,88 +1,77 @@
 import { Header } from "@/components/Header";
-import { LogActions } from "@/components/LogActions";
 import { formatAmount, shortAddress } from "@/lib/format";
-import { memorySnapshot } from "@/lib/desk/run";
+import { lendingSnapshot } from "@/lib/lending/run";
 
 export const dynamic = "force-dynamic";
 
 const TONE: Record<string, string> = {
-  Proceed: "text-proceed",
-  "Proceed with flag": "text-flag",
-  "Hold for approval": "text-hold",
-  "Ceiling blocked": "text-hold",
+  on_time: "text-proceed",
+  late: "text-flag",
+  defaulted: "text-hold",
+  active: "text-paper",
 };
 
 export default async function LogPage() {
-  const snap = await memorySnapshot();
-  const pending = snap.actions.filter((a) => a.outcome === "pending");
+  const snap = await lendingSnapshot();
+  const loans = snap.relationships.flatMap((rel) =>
+    rel.loans.map((loan) => ({ ...loan, wallet_address: rel.wallet_address })),
+  );
+  const quotes = snap.relationships.flatMap((rel) =>
+    (rel.quotes || []).map((q) => ({ ...q, wallet_address: rel.wallet_address })),
+  );
 
   return (
     <div className="min-h-screen">
       <Header />
       <main className="mx-auto w-full max-w-6xl px-5 pb-20 pt-10">
         <p className="text-sm text-paper-500">Operating history</p>
-        <h1 className="mt-1 text-3xl font-medium tracking-tight">Recorded decisions</h1>
+        <h1 className="mt-1 text-3xl font-medium tracking-tight">Loans this agent originated</h1>
         <p className="mt-3 max-w-2xl text-sm text-paper-300">
-          Every line is a Sibyl action entity. Approving a Hold writes a user override. That
-          changes the next decision for that counterparty.
+          Every line is a Sibyl relationship entity. Repayment outcomes live here, not on a public
+          indexer. Reset memory and the improved rate disappears.
         </p>
 
-        {pending.length > 0 ? (
-          <section className="panel mt-8 p-5">
-            <div className="mono-label text-hold">Pending holds</div>
-            <ul className="mt-3 space-y-3">
-              {pending.map((row) => (
-                <li key={row.id} className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <div className="text-sm">
-                      {row.action} {formatAmount(row.amount, row.token)} → {row.counterpartyLabel}
-                    </div>
-                    <div className="font-mono text-[10px] text-paper-500">
-                      {shortAddress(row.recipient)} · risk {row.riskScore.toFixed(2)}
-                    </div>
-                  </div>
-                  <LogActions id={row.id} />
-                </li>
-              ))}
+        <section className="mt-8 space-y-3">
+          {loans.length === 0 ? (
+            <article className="panel p-5">
+              <p className="text-sm text-paper-500">No loans in memory.</p>
+            </article>
+          ) : (
+            loans.map((loan) => (
+              <article key={loan.loan_id} className="panel p-4">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <p className="text-sm">
+                    {formatAmount(loan.amount, loan.asset)} · {(loan.rate_quoted * 100).toFixed(1)}% ·{" "}
+                    {shortAddress(loan.wallet_address)}
+                  </p>
+                  <p className={`text-sm ${TONE[loan.outcome] || ""}`}>{loan.outcome}</p>
+                </div>
+                <p className="mt-1 font-mono text-[10px] text-paper-500">
+                  {loan.loan_id} · origin {loan.origin_date.slice(0, 10)} · due {loan.due_date.slice(0, 10)}
+                  {loan.repaid_date ? ` · repaid ${loan.repaid_date.slice(0, 10)}` : ""}
+                </p>
+              </article>
+            ))
+          )}
+        </section>
+
+        {quotes.length > 0 ? (
+          <section className="mt-10">
+            <div className="mono-label">Prior quotes</div>
+            <ul className="mt-3 space-y-2">
+              {quotes
+                .slice()
+                .reverse()
+                .slice(0, 12)
+                .map((q) => (
+                  <li key={q.quote_id} className="text-sm text-paper-300">
+                    {q.at.slice(0, 10)} · {shortAddress(q.wallet_address)} · {q.decision} ·{" "}
+                    {(q.apr * 100).toFixed(1)}% · {q.primary_signal}
+                  </li>
+                ))}
             </ul>
           </section>
         ) : null}
-
-        <div className="mt-8 overflow-x-auto panel">
-          <table className="w-full text-left text-sm">
-            <thead className="font-mono text-[10px] uppercase tracking-[0.14em] text-paper-500">
-              <tr>
-                <th className="px-4 py-3">When</th>
-                <th className="px-4 py-3">Decision</th>
-                <th className="px-4 py-3">Request</th>
-                <th className="px-4 py-3">Counterparty</th>
-                <th className="px-4 py-3">Risk</th>
-                <th className="px-4 py-3">Outcome</th>
-              </tr>
-            </thead>
-            <tbody>
-              {snap.actions.map((row) => (
-                <tr key={row.id} className="border-t border-white/[0.06]">
-                  <td className="px-4 py-3 font-mono text-xs text-paper-500">{row.at.slice(0, 16).replace("T", " ")}</td>
-                  <td className={`px-4 py-3 ${TONE[row.decision] ?? ""}`}>
-                    {row.decision}
-                    {row.userOverride ? <span className="ml-2 text-[10px] uppercase text-flag">override</span> : null}
-                    {row.seed ? <span className="ml-2 text-[10px] uppercase text-paper-500">seed</span> : null}
-                  </td>
-                  <td className="px-4 py-3">
-                    {row.action} {formatAmount(row.amount, row.token)}
-                  </td>
-                  <td className="px-4 py-3">
-                    {row.counterpartyLabel}
-                    <div className="font-mono text-[10px] text-paper-500">{shortAddress(row.recipient)}</div>
-                  </td>
-                  <td className="px-4 py-3 font-mono text-xs">{row.riskScore.toFixed(2)}</td>
-                  <td className="px-4 py-3">{row.outcome}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </main>
     </div>
   );

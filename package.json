@@ -2,9 +2,9 @@
   "name": "trace",
   "private": true,
   "version": "0.1.0",
-  "description": "Alex — autonomous treasury agent. Memory-grounded Proceed / Flag / Hold decisions.",
+  "description": "Alex — reputation-weighted lending agent. Memory-grounded Approve / reduced limit / Decline.",
   "scripts": {
-    "dev": "next dev --turbopack --port 3002",
+    "dev": "next dev --port 3002",
     "build": "next build",
     "start": "next start --port 3002",
     "test": "npx tsx --test lib/**/*.test.ts sibyl/bridge.test.ts",

@@ -1,0 +1,157 @@
+{
+  "kind": "lending",
+  "note": "USER_RELATIONSHIP only — loans this agent originated. Standing is recomputed on read, not stored. A third wallet (any unlisted address) is the on-chain-only baseline.",
+  "relationships": [
+    {
+      "wallet_address": "0x111111111111111111111111111111111111c1ea",
+      "first_seen": "2026-04-01T12:00:00.000Z",
+      "last_seen": "2026-07-14T16:00:00.000Z",
+      "loans": [
+        {
+          "loan_id": "loan-clean-1",
+          "amount": 8,
+          "asset": "USDC",
+          "rate_quoted": 0.18,
+          "collateral_ratio": 2,
+          "origin_date": "2026-04-01T12:00:00.000Z",
+          "due_date": "2026-04-15T12:00:00.000Z",
+          "repaid_date": "2026-04-14T09:00:00.000Z",
+          "outcome": "on_time"
+        },
+        {
+          "loan_id": "loan-clean-2",
+          "amount": 10,
+          "asset": "USDC",
+          "rate_quoted": 0.1,
+          "collateral_ratio": 1.6,
+          "origin_date": "2026-05-01T12:00:00.000Z",
+          "due_date": "2026-05-15T12:00:00.000Z",
+          "repaid_date": "2026-05-12T11:00:00.000Z",
+          "outcome": "on_time"
+        },
+        {
+          "loan_id": "loan-clean-3",
+          "amount": 12,
+          "asset": "USDC",
+          "rate_quoted": 0.08,
+          "collateral_ratio": 1.5,
+          "origin_date": "2026-06-01T12:00:00.000Z",
+          "due_date": "2026-06-15T12:00:00.000Z",
+          "repaid_date": "2026-06-10T10:00:00.000Z",
+          "outcome": "on_time"
+        },
+        {
+          "loan_id": "loan-clean-4",
+          "amount": 15,
+          "asset": "USDC",
+          "rate_quoted": 0.07,
+          "collateral_ratio": 1.5,
+          "origin_date": "2026-07-01T12:00:00.000Z",
+          "due_date": "2026-07-15T12:00:00.000Z",
+          "repaid_date": "2026-07-14T16:00:00.000Z",
+          "outcome": "on_time"
+        }
+      ],
+      "quotes": [
+        {
+          "quote_id": "quote-clean-last",
+          "at": "2026-07-01T11:50:00.000Z",
+          "amount": 15,
+          "asset": "USDC",
+          "apr": 0.07,
+          "collateral_ratio": 1.5,
+          "decision": "Approve",
+          "standing_score": 0.88,
+          "primary_signal": "USER_RELATIONSHIP",
+          "reasoning": [
+            "3 loans this agent originated with this wallet (3 on_time, 0 late, 0 defaulted). ONCHAIN_SIGNAL not used.",
+            "Loan loan-clean-3: 12 USDC originated 2026-06-01, outcome on_time (repaid 2026-06-10).",
+            "Quoted 7.0% APR with 1.50x collateral (standing 0.88)."
+          ]
+        }
+      ],
+      "total_loans": 4,
+      "on_time_count": 4,
+      "late_count": 0,
+      "default_count": 0,
+      "active_count": 0,
+      "total_borrowed": 45,
+      "total_repaid": 45,
+      "override_count": 0,
+      "override_outcomes": [],
+      "collateral": [
+        { "asset": "USDC", "amount": 80, "at": "2026-04-01T11:00:00.000Z" }
+      ]
+    },
+    {
+      "wallet_address": "0x222222222222222222222222222222222222d00d",
+      "first_seen": "2026-04-01T12:00:00.000Z",
+      "last_seen": "2026-06-20T12:00:00.000Z",
+      "loans": [
+        {
+          "loan_id": "loan-pen-1",
+          "amount": 15,
+          "asset": "USDC",
+          "rate_quoted": 0.18,
+          "collateral_ratio": 2,
+          "origin_date": "2026-04-01T12:00:00.000Z",
+          "due_date": "2026-04-15T12:00:00.000Z",
+          "repaid_date": "2026-04-14T12:00:00.000Z",
+          "outcome": "on_time"
+        },
+        {
+          "loan_id": "loan-pen-2",
+          "amount": 18,
+          "asset": "USDC",
+          "rate_quoted": 0.1,
+          "collateral_ratio": 1.7,
+          "origin_date": "2026-05-01T12:00:00.000Z",
+          "due_date": "2026-05-15T12:00:00.000Z",
+          "repaid_date": "2026-05-12T12:00:00.000Z",
+          "outcome": "on_time"
+        },
+        {
+          "loan_id": "loan-pen-3",
+          "amount": 20,
+          "asset": "USDC",
+          "rate_quoted": 0.08,
+          "collateral_ratio": 1.5,
+          "origin_date": "2026-06-01T12:00:00.000Z",
+          "due_date": "2026-06-15T12:00:00.000Z",
+          "repaid_date": null,
+          "outcome": "defaulted"
+        }
+      ],
+      "quotes": [
+        {
+          "quote_id": "quote-pen-last",
+          "at": "2026-06-20T12:00:00.000Z",
+          "amount": 8,
+          "asset": "USDC",
+          "apr": 0.33,
+          "collateral_ratio": 2.2,
+          "decision": "Decline",
+          "standing_score": 0.12,
+          "primary_signal": "USER_RELATIONSHIP",
+          "reasoning": [
+            "3 loans this agent originated with this wallet (2 on_time, 0 late, 1 defaulted). ONCHAIN_SIGNAL not used.",
+            "Loan loan-pen-3: 20 USDC originated 2026-06-01, outcome defaulted.",
+            "Standing 0.12 after default history. Quoted 32.6% APR — declined."
+          ]
+        }
+      ],
+      "total_loans": 3,
+      "on_time_count": 2,
+      "late_count": 0,
+      "default_count": 1,
+      "active_count": 0,
+      "total_borrowed": 53,
+      "total_repaid": 33,
+      "override_count": 0,
+      "override_outcomes": [],
+      "collateral": [
+        { "asset": "USDC", "amount": 40, "at": "2026-04-01T11:00:00.000Z" }
+      ]
+    }
+  ]
+}

@@ -1,14 +1,22 @@
 import { memorySnapshot } from "@/lib/desk/run";
+import { lendingSnapshot } from "@/lib/lending/run";
 import { SibylUnavailable } from "@/lib/memory/sibyl";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const snap = await memorySnapshot();
+    const lending = await lendingSnapshot();
+    let treasury: Awaited<ReturnType<typeof memorySnapshot>> | null = null;
+    try {
+      treasury = await memorySnapshot();
+    } catch {
+      treasury = null;
+    }
     return NextResponse.json({
-      AGENT_REPUTATION: snap.reputation,
-      counterparties: snap.counterparties,
-      sibyl: snap.sibyl,
+      relationships: lending.relationships,
+      AGENT_REPUTATION: treasury?.reputation ?? null,
+      counterparties: treasury?.counterparties ?? [],
+      sibyl: lending.sibyl,
     });
   } catch (err) {
     const status = err instanceof SibylUnavailable ? 503 : 400;

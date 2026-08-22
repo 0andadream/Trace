@@ -19,14 +19,14 @@ const mono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("http://localhost:3002"),
   title: "Trace — Alex",
-  description: "Autonomous treasury agent. Decision, reasoning, risk — grounded in Sibyl Memory.",
+  description: "Reputation-weighted lending agent. Decision, reasoning, score — grounded in Sibyl Memory.",
   icons: {
     icon: "/icon.jpg",
     apple: "/icon.jpg",
   },
   openGraph: {
     title: "Trace",
-    description: "Alex, autonomous treasury agent.",
+    description: "Alex, reputation-weighted lending agent.",
     images: ["/logo.jpg"],
   },
 };

@@ -1,3 +1,18 @@
+export type {
+  CollateralPosition,
+  LendingDecision,
+  LendingVerdict,
+  LoanOutcome,
+  LoanRecord,
+  OnchainSignal,
+  QuoteRecord,
+  QuoteRequest,
+  QuoteResult,
+  RateQuote,
+  RatePrimary,
+  UserRelationship,
+} from "./lending";
+
 /**
  * transfer — fully supported (decide + broadcast).
  * approve / swap / contract — experimental: scored and stored, not broadcast.
@@ -117,6 +132,7 @@ export type SibylHealth = {
   tier: string;
   actionCount: number;
   counterpartyCount: number;
+  relationshipCount?: number;
   recentEvents: number;
   lastEvent: unknown;
   freeTier: unknown;

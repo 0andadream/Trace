@@ -13,15 +13,15 @@ export default function HomePage() {
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center px-5 pb-24 pt-10 text-center">
         <Logo className="w-full max-w-md" />
         <p className="mt-2 max-w-md text-lg font-medium tracking-tight text-paper sm:text-xl">
-          A treasury agent that remembers.
+          A lending agent that remembers.
         </p>
         <p className="mt-4 max-w-lg text-sm leading-relaxed text-paper-300">
-          Alex decides whether a payment can go out. It reads operating history from Sibyl Memory —
-          who it has paid, what failed, what you overrode — then answers Proceed, Flag, or Hold.
-          It does not chat. It does not connect a wallet. It signs with its own key.
+          Alex quotes supply and borrow terms from its own memory of loans it originated with your
+          wallet — repayments, lates, defaults, overrides. On-chain history is only a conservative
+          baseline for wallets it has never lent to. Delete Sibyl and it forgets.
         </p>
 
-        <Link href="/alex" className="btn-trace mt-8 h-11 px-8">
+        <Link href="/lend" className="btn-trace mt-8 h-11 px-8">
           Open Alex
         </Link>
 
@@ -36,15 +36,15 @@ export default function HomePage() {
           {[
             {
               t: "Memory first",
-              d: "Every decision is grounded in Sibyl. Empty counterparty means it says so. Delete the store and it forgets.",
+              d: "Rate and limit are f(loans this agent made with you). Chain age and tx count cannot reconstruct that book.",
             },
             {
-              t: "Hold strangers",
-              d: "Unknown recipients and thin history hold for your approval. Approving writes an override into memory.",
+              t: "On-chain is fallback",
+              d: "New wallets get conservative terms from a fresh on-chain read. After one on-time repayment, relationship memory dominates.",
             },
             {
               t: "Hard ceiling",
-              d: "Amounts over MAX_TX_AMOUNT_USDC are blocked before scoring. That is not a Hold. Nothing broadcasts.",
+              d: "MAX_BORROW_AMOUNT and MIN_COLLATERAL_RATIO are checked before scoring. Score and the LLM cannot override them.",
             },
           ].map((card) => (
             <article key={card.t} className="panel p-5">

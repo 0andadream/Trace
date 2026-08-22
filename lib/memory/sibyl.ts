@@ -16,6 +16,7 @@ export type SibylHealth = {
   tier: string;
   actionCount: number;
   counterpartyCount: number;
+  relationshipCount?: number;
   recentEvents: number;
   lastEvent: unknown;
   freeTier: unknown;

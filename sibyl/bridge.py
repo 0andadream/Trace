@@ -3,7 +3,8 @@
 
 Reads one JSON object from stdin, writes one JSON object to stdout.
 The Next.js app does not keep a parallel JSON log. If this database is
-deleted, learned counterparties and overrides disappear.
+deleted, USER_RELATIONSHIP (loans this agent originated) disappears.
+On-chain wallet history is never written here.
 """
 
 from __future__ import annotations
@@ -101,7 +102,7 @@ def list_actions(mem: MemoryClient) -> list[dict]:
 
 
 def wipe(mem: MemoryClient) -> None:
-    for category in ("action", "counterparty", "agent"):
+    for category in ("action", "counterparty", "agent", "relationship", "loan", "collateral", "quote"):
         for row in mem.list_entities(category, limit=1000):
             name = row.get("name")
             if name:
@@ -109,6 +110,35 @@ def wipe(mem: MemoryClient) -> None:
                     mem.delete_entity(category, name)
                 except NotFoundError:
                     pass
+
+
+def body_rel(row: dict) -> dict:
+    payload = body(row)
+    payload.pop("current_standing_score", None)
+    return payload
+
+
+def list_relationships(mem: MemoryClient) -> list[dict]:
+    rows = mem.list_entities("relationship", limit=400)
+    rels = [body_rel(r) for r in rows]
+    rels.sort(key=lambda a: a.get("last_seen") or "", reverse=True)
+    return rels
+
+
+def persist_relationship(mem: MemoryClient, rel: dict) -> dict:
+    addr = str(rel.get("wallet_address") or "").strip().lower()
+    if not addr:
+        raise ValueError("relationship.wallet_address required")
+    rel = {**rel, "wallet_address": addr}
+    rel.pop("current_standing_score", None)
+    mem.set_entity("relationship", addr, rel)
+    mem.write_event(
+        acted=[f"relationship {addr} loans={rel.get('total_loans')} last={rel.get('last_seen')}"],
+        extra={"wallet": addr, "total_loans": rel.get("total_loans")},
+        ts=rel.get("last_seen"),
+    )
+    mem.set_state("last_relationship", {"wallet": addr, "total_loans": rel.get("total_loans")})
+    return rel
 
 
 def persist_action(mem: MemoryClient, row: dict, acted: str) -> None:
@@ -127,6 +157,7 @@ def persist_action(mem: MemoryClient, row: dict, acted: str) -> None:
 def health(mem: MemoryClient) -> dict:
     actions = mem.list_entities("action", limit=400)
     counterparties = mem.list_entities("counterparty", limit=400)
+    relationships = mem.list_entities("relationship", limit=400)
     events = mem.read_events(limit=20)
     status = mem.free_tier_status()
     return {
@@ -136,6 +167,7 @@ def health(mem: MemoryClient) -> dict:
         "tier": mem.get_tier(),
         "actionCount": len(actions),
         "counterpartyCount": len(counterparties),
+        "relationshipCount": len(relationships),
         "recentEvents": len(events),
         "lastEvent": events[0] if events else None,
         "freeTier": status,
@@ -200,9 +232,49 @@ def handle(msg: dict) -> dict:
             return {"ok": True, "entity": None}
         return {"ok": True, "entity": row}
 
+    if op == "list_relationships":
+        rels = list_relationships(mem)
+        return {"ok": True, "relationships": rels, "health": health(mem)}
+
+    if op == "get_relationship":
+        addr = str(msg.get("wallet") or "").strip().lower()
+        try:
+            row = mem.get_entity("relationship", addr)
+        except NotFoundError:
+            return {"ok": True, "relationship": None, "health": health(mem)}
+        return {"ok": True, "relationship": body_rel(row), "health": health(mem)}
+
+    if op == "upsert_relationship":
+        rel = persist_relationship(mem, msg["relationship"])
+        return {"ok": True, "relationship": rel, "health": health(mem)}
+
+    if op == "replace_relationships":
+        wipe(mem)
+        rows = msg.get("relationships") or []
+        stored = []
+        for rel in rows:
+            stored.append(persist_relationship(mem, rel))
+        mem.set_state("seeded", {"ok": True, "kind": "lending", "count": len(stored)})
+        mem.set_reference(
+            "lending_policy",
+            {
+                "primary": "USER_RELATIONSHIP",
+                "secondary": "ONCHAIN_SIGNAL only when total_loans == 0",
+                "note": "Code computes APR and decision. Alex cannot change the numbers.",
+            },
+        )
+        mem.write_event(acted=[f"replaced Sibyl memory with {len(stored)} lending relationships"])
+        return {"ok": True, "health": health(mem), "relationships": list_relationships(mem)}
+
     if op == "wipe":
         wipe(mem)
-        return {"ok": True, "health": health(mem), "actions": [], "counterparties": 0}
+        return {
+            "ok": True,
+            "health": health(mem),
+            "actions": [],
+            "counterparties": 0,
+            "relationships": [],
+        }
 
     if op == "replace":
         wipe(mem)
