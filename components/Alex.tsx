@@ -79,7 +79,7 @@ export function Alex() {
         body: JSON.stringify({ id: result.id, resolution }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "resolve failed");
+      if (!res.ok) throw new Error(data.error || `resolve failed (${res.status})`);
       if (data.tx) {
         setResult((current) => (current ? { ...current, tx: data.tx } : current));
       }

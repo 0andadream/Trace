@@ -19,7 +19,7 @@ const USDC: Record<number, { address: Address; decimals: number }> = {
 };
 
 function agentKey(): Hex {
-  const raw = process.env.AGENT_PRIVATE_KEY?.trim();
+  const raw = (process.env.AGENT_PRIVATE_KEY || process.env.BASE_PRIVATE_KEY || "").trim();
   if (!raw) {
     throw new Error(
       "AGENT_PRIVATE_KEY is missing. Run `pnpm wallet:create` (or npm run wallet:create) to generate one. The key is stored in .env.local and is never committed.",
