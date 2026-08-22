@@ -2,35 +2,121 @@
 
 **Alex — autonomous treasury agent.**
 
-Treasury decisions grounded in operating history, not vibes. Persistent memory is **Sibyl Memory**. Delete that layer and the agent forgets.
+Alex decides whether a payment can go out. It reads operating history from [Sibyl Memory](https://github.com/Sibyl-Labs/Sibyl-Memory), then answers **Proceed**, **Proceed with flag**, **Hold for approval**, or **Ceiling blocked**. It does not chat. It does not connect a wallet. It signs with its own key.
 
 ```
-REQUEST → SIBYL MEMORY → RISK → DECIDE → RECORD (Sibyl + optional Base)
+REQUEST → SIBYL MEMORY → CEILING → RISK → DECIDE → RECORD → (optional) BROADCAST
 ```
 
-Built for the [Sibyl Labs Hackathon](https://hack.sibyllabs.org/) eligibility gate: memory is load-bearing.
+Built so memory is **load-bearing**: delete Sibyl and the agent forgets. That is the [Sibyl Labs Hackathon](https://hack.sibyllabs.org/) eligibility gate.
 
-## Memory implementation note
-
-Alex always receives three memory blocks, **recalled from Sibyl**, never from a parallel app log:
-
-| Block | Sibyl tier | What is stored |
-|---|---|---|
-| AGENT_REPUTATION | WARM `agent/Alex` + derived from `action/*` | totals, success/reject/override rates |
-| COUNTERPARTY_PROFILE | WARM `counterparty/<address>` | prior interactions with that wallet |
-| RISK_SCORE | computed in code from those blocks | 0.0–1.0 deviation from history |
-
-Every decision is also a COLD journal event (`write_event`) and a WARM `action/<id>` entity. Policy lives in REFERENCE `policy`. Last decision is HOT state.
-
-**Load-bearing test:** Submit a real recipient Alex has never seen → Hold. Approve it. Restart the process. Submit the same address again → the decision changes because Sibyl still has that counterparty. Then:
+## Use Alex
 
 ```bash
-rm .data/sibyl-memory.db
+pnpm dev                 # http://localhost:3002
 ```
 
-Submit it again → Hold. The learned counterparty is gone because Sibyl is gone.
+| URL | What |
+|---|---|
+| `/` | Landing |
+| `/alex` | Agent — submit a treasury intent |
+| `/memory` | What Sibyl currently stores |
+| `/log` | Recorded decisions |
 
-Engine: [`sibyl-memory-client`](https://github.com/Sibyl-Labs/Sibyl-Memory) · file-based SQLite + FTS5 · no vector DB.
+On `/alex` fill in:
+
+- **Action** — `transfer` is the only action that can broadcast
+- **Token** — `ETH`, `USDC`, or an ERC-20 address
+- **Amount**
+- **Recipient** — `0x…`
+
+The three memory blocks load from Sibyl before you ask. The reply is only:
+
+```
+Decision: Proceed with flag
+
+Reasoning:
+- …
+- …
+
+Risk: 0.38
+```
+
+| Decision | What happens |
+|---|---|
+| **Proceed** / **Proceed with flag** | Written to Sibyl. Broadcasts if execute is on and the agent key is funded. |
+| **Hold for approval** | Nothing sends. **Approve** (may broadcast) or **Reject**. |
+| **Ceiling blocked** | Amount is over `MAX_TX_AMOUNT_USDC`. Not a Hold. Risk scoring is skipped. Nothing sends. |
+
+Empty memory is real. Unknown counterparties and thin history **Hold**. Approve once; the next submit to that address should change because Sibyl now has a record.
+
+## Setup
+
+Python 3.10+ (3.12 recommended) and Node 20+.
+
+```bash
+cd Trace
+python3.12 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+pnpm install
+cp .env.example .env.local
+pnpm test
+pnpm dev                     # http://localhost:3002
+```
+
+## Wallet (no Connect Wallet)
+
+The agent broadcasts from an env key. Generate it locally:
+
+```bash
+pnpm wallet:create
+```
+
+That prints the address and private key **once**, writes the key to **`.env.local`** as `AGENT_PRIVATE_KEY` (gitignored), and writes the public address to `config/agent-wallet.json`.
+
+Fund **that address** on **Base Sepolia** (chain 84532), not Ethereum Sepolia:
+
+1. Copy the address from the console or `config/agent-wallet.json`
+2. Paste it into https://www.alchemy.com/faucets/base-sepolia
+3. Confirm `.env.local` has `BASE_EXECUTE=1` and `BASE_CHAIN_ID=84532`
+4. Restart `pnpm dev`
+
+You need Sepolia ETH for gas. For USDC transfers, the same address also needs Base Sepolia USDC.
+
+Verify:
+
+```bash
+cat config/agent-wallet.json
+git check-ignore -v .env.local    # should hit .gitignore
+```
+
+Do not commit `.env.local`. Do not use a key that holds funds you cannot lose.
+
+## Memory seed and reset
+
+Local CLI only. **Not** exposed as HTTP routes.
+
+```bash
+pnpm memory:seed     # loads seeds/demo-seed.json
+pnpm memory:reset    # 0 actions, no counterparties
+```
+
+`pnpm memory:seed` should print:
+
+- 40 actions
+- 4 counterparties
+- 2 rejections
+- 2 overrides (5%)
+- **Known desk** `0xc0ffee254729296a45a3885639ac7e10f9d54979` — 10 clean transfers
+- **Failed verification** `0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb` — 2 rejections
+
+After seeding, a small USDC transfer to Known desk should score low; the same amount to Failed verification should **Hold**. An amount above `MAX_TX_AMOUNT_USDC` (default **25**) is **Ceiling blocked**.
+
+Load-bearing check:
+
+1. Hold an unseen address, approve it
+2. Restart `pnpm dev`, submit the same address — decision should change
+3. `pnpm memory:reset` (or delete `.data/sibyl-memory.db`) — that address Holds again
 
 ## Policy
 
@@ -40,53 +126,41 @@ Engine: [`sibyl-memory-client`](https://github.com/Sibyl-Labs/Sibyl-Memory) · f
 | `0.30 – 0.60` | Proceed with flag |
 | `> 0.60` | Hold for approval |
 
-Code maps the score. Alex (Grok) writes reasoning from the Sibyl blocks only. The model cannot change `decision` or `RISK_SCORE`.
+`MAX_TX_AMOUNT_USDC` is checked **before** risk scoring. It cannot be overridden by memory or by Alex.
 
-## Run
+Code maps the score. Grok (optional `XAI_API_KEY`) only writes reasoning from the memory blocks. The model cannot change `decision` or `RISK_SCORE`.
 
-```bash
-# Python 3.10+ required for Sibyl Memory
-/opt/homebrew/bin/python3.12 -m venv .venv
-.venv/bin/pip install -r requirements.txt
+## Sibyl Memory
 
-pnpm install
-cp .env.example .env.local
-pnpm test
-pnpm dev                     # http://localhost:3002
-```
+Alex always receives three blocks, recalled from Sibyl — not from a parallel app log:
 
-The landing page is `/`. Alex lives at `/alex`. Submit a treasury intent. The three memory blocks load from Sibyl before you ask. The reply is only:
+| Block | Sibyl tier | Contents |
+|---|---|---|
+| AGENT_REPUTATION | WARM `agent/Alex` + derived from `action/*` | totals, success / reject / override rates |
+| COUNTERPARTY_PROFILE | WARM `counterparty/<address>` | prior interactions with that wallet (may be empty) |
+| RISK_SCORE | computed in code | 0.0–1.0 deviation from history |
 
-```
-Decision: …
-Reasoning:
-- …
-Risk: 0.00
-```
+Each decision is also a COLD journal event and a WARM `action/<id>` entity. Policy lives in REFERENCE `policy`. If Sibyl is down, `POST /api/decide` returns **503**.
 
-There is no canned history. Until Sibyl has recorded actions, reputation is thin and counterparties are empty, so Alex holds. History is only what you (or the agent) actually logged.
+Engine: [`sibyl-memory-client`](https://github.com/Sibyl-Labs/Sibyl-Memory) · local SQLite + FTS5 · no vector DB.
 
-## Wallet, faucet, seed (local CLI only)
+## Env
 
-Reset and seed are **not** HTTP routes. Visitors cannot trigger them.
+See `.env.example`. Important:
 
-```bash
-pnpm wallet:create          # prints address + key once; writes .env.local + config/agent-wallet.json
-pnpm memory:seed            # loads seeds/demo-seed.json into Sibyl
-pnpm memory:reset           # wipes Sibyl to 0 actions
-```
-
-Hard cap: `MAX_TX_AMOUNT_USDC` (default 25). Amounts above it are `ceiling_blocked` — not a Hold — and never go to risk scoring or broadcast.
-
-The agent signs with `AGENT_PRIVATE_KEY`. There is no Connect Wallet. Token field: `ETH`, `USDC`, or an ERC-20 address.
+| Variable | Role |
+|---|---|
+| `AGENT_PRIVATE_KEY` | Agent signer. From `pnpm wallet:create`. |
+| `BASE_EXECUTE` | `1` to broadcast; otherwise Sibyl only |
+| `BASE_CHAIN_ID` | `84532` Base Sepolia, `8453` Base |
+| `MAX_TX_AMOUNT_USDC` | Hard cap (default 25) |
+| `XAI_API_KEY` | Optional. Alex still decides without it. |
 
 ## API
 
-`POST /api/decide` — 503 if Sibyl Memory is down (fail closed).
-
-`POST /api/log/resolve` — `{ "id", "resolution": "approved" | "rejected" }`. Approval is a user override **written back to Sibyl**.
-
-`GET /api/memory` · `GET /api/log` — include `sibyl` health.
+- `POST /api/decide` — 503 if Sibyl is down
+- `POST /api/log/resolve` — `{ "id", "resolution": "approved" \| "rejected" }`
+- `GET /api/memory` · `GET /api/log` · `GET /api/preview`
 
 ## MCP
 
@@ -99,7 +173,3 @@ Tools: `alex_decide` · `alex_memory` · `alex_log` · `alex_resolve`
 ## License
 
 MIT. See [LICENSE](./LICENSE).
-
-## Principle
-
-Memory decides. Alex reports. Sibyl remembers.
