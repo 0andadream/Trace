@@ -17,6 +17,7 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("http://localhost:3002"),
   title: "Trace — Alex",
   description: "Autonomous treasury agent. Decision, reasoning, risk — grounded in Sibyl Memory.",
   icons: {
