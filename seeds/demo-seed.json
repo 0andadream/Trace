@@ -14,7 +14,8 @@
       "counterpartyLabel": "Known desk",
       "outcome": "success",
       "decision": "Proceed",
-      "riskScore": 0.08
+      "riskScore": 0.08,
+      "verification": "verified"
     },
     {
       "seed": true,
@@ -30,7 +31,8 @@
       "counterpartyLabel": "Known desk",
       "outcome": "success",
       "decision": "Proceed",
-      "riskScore": 0.08
+      "riskScore": 0.08,
+      "verification": "verified"
     },
     {
       "seed": true,
@@ -46,7 +48,8 @@
       "counterpartyLabel": "Known desk",
       "outcome": "success",
       "decision": "Proceed",
-      "riskScore": 0.08
+      "riskScore": 0.08,
+      "verification": "verified"
     },
     {
       "seed": true,
@@ -62,7 +65,8 @@
       "counterpartyLabel": "Known desk",
       "outcome": "success",
       "decision": "Proceed",
-      "riskScore": 0.08
+      "riskScore": 0.08,
+      "verification": "verified"
     },
     {
       "seed": true,
@@ -78,7 +82,8 @@
       "counterpartyLabel": "Known desk",
       "outcome": "success",
       "decision": "Proceed",
-      "riskScore": 0.08
+      "riskScore": 0.08,
+      "verification": "verified"
     },
     {
       "seed": true,
@@ -94,7 +99,8 @@
       "counterpartyLabel": "Known desk",
       "outcome": "success",
       "decision": "Proceed",
-      "riskScore": 0.08
+      "riskScore": 0.08,
+      "verification": "verified"
     },
     {
       "seed": true,
@@ -110,7 +116,8 @@
       "counterpartyLabel": "Known desk",
       "outcome": "success",
       "decision": "Proceed",
-      "riskScore": 0.08
+      "riskScore": 0.08,
+      "verification": "verified"
     },
     {
       "seed": true,
@@ -126,7 +133,8 @@
       "counterpartyLabel": "Known desk",
       "outcome": "success",
       "decision": "Proceed",
-      "riskScore": 0.08
+      "riskScore": 0.08,
+      "verification": "verified"
     },
     {
       "seed": true,
@@ -142,7 +150,8 @@
       "counterpartyLabel": "Known desk",
       "outcome": "success",
       "decision": "Proceed",
-      "riskScore": 0.08
+      "riskScore": 0.08,
+      "verification": "verified"
     },
     {
       "seed": true,
@@ -158,7 +167,8 @@
       "counterpartyLabel": "Known desk",
       "outcome": "success",
       "decision": "Proceed",
-      "riskScore": 0.08
+      "riskScore": 0.08,
+      "verification": "verified"
     },
     {
       "seed": true,
@@ -177,7 +187,8 @@
       "counterpartyLabel": "Failed verification",
       "outcome": "rejected",
       "decision": "Hold for approval",
-      "riskScore": 0.72
+      "riskScore": 0.72,
+      "verification": "rejected"
     },
     {
       "seed": true,
@@ -196,7 +207,8 @@
       "counterpartyLabel": "Failed verification",
       "outcome": "rejected",
       "decision": "Hold for approval",
-      "riskScore": 0.72
+      "riskScore": 0.72,
+      "verification": "rejected"
     },
     {
       "seed": true,

@@ -12,7 +12,7 @@ const TONE: Record<Decision, string> = {
 };
 
 export function Alex() {
-  const [action, setAction] = useState<TxAction>("transfer");
+  const action: TxAction = "transfer";
   const [token, setToken] = useState("");
   const [amount, setAmount] = useState("");
   const [recipient, setRecipient] = useState("");
@@ -121,12 +121,10 @@ export function Alex() {
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-xs text-paper-500">
               Action
-              <select className="field" value={action} onChange={(e) => setAction(e.target.value as TxAction)}>
-                <option value="transfer">transfer</option>
-                <option value="approve">approve</option>
-                <option value="swap">swap</option>
-                <option value="contract">contract</option>
-              </select>
+              <input className="field" value="transfer" readOnly />
+              <span className="mt-1 block text-[10px] text-paper-500">
+                transfer is the only broadcast-supported action. approve / swap / contract are experimental.
+              </span>
             </label>
             <label className="text-xs text-paper-500">
               Token
@@ -189,7 +187,11 @@ export function Alex() {
               <p className="mt-2 text-sm text-hold">No prior interactions with this counterparty.</p>
             ) : (
               <p className="mt-2 text-sm text-paper-300">
-                {blocks.COUNTERPARTY_PROFILE.label} · {shortAddress(blocks.COUNTERPARTY_PROFILE.address)} ·{" "}
+                {blocks.COUNTERPARTY_PROFILE.label}
+                {blocks.COUNTERPARTY_PROFILE.verification
+                  ? ` · ${blocks.COUNTERPARTY_PROFILE.verification}`
+                  : ""}{" "}
+                · {shortAddress(blocks.COUNTERPARTY_PROFILE.address)} ·{" "}
                 {blocks.COUNTERPARTY_PROFILE.interactionCount} interactions ·{" "}
                 {blocks.COUNTERPARTY_PROFILE.successful} successful · avg{" "}
                 {formatAmount(blocks.COUNTERPARTY_PROFILE.avgAmount, token)}

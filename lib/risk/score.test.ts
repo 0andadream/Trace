@@ -206,3 +206,31 @@ describe("alex output enforcement", () => {
     assert.ok(verdict.reasoning.some((l) => /0 recorded/.test(l) || /Thin operating history: 0/.test(l) || l === EMPTY_CP));
   });
 });
+
+describe("verification status", () => {
+  it("does not change address-only counterparties", () => {
+    const without = scoreFor(typical);
+    assert.equal(without.profile?.verification, undefined);
+    assert.ok(!without.assessment.factors.some((f) => f.id.startsWith("verification_")));
+  });
+
+  it("applies a modest penalty when verification is rejected", () => {
+    const actions: ActionRecord[] = SEED_ACTIONS.map((row, i) =>
+      i === 0
+        ? { ...row, recipient: TREASURY_VAULT, verification: "rejected" as const, counterpartyLabel: "Vault" }
+        : row,
+    );
+    // stamp verification on all vault rows so the profile picks it up
+    const stamped = actions.map((row) =>
+      row.recipient.toLowerCase() === TREASURY_VAULT.toLowerCase()
+        ? { ...row, verification: "rejected" as const }
+        : row,
+    );
+    const base = scoreFor(typical);
+    const marked = scoreFor(typical, stamped);
+    assert.equal(marked.profile?.verification, "rejected");
+    assert.ok(marked.assessment.score > base.assessment.score);
+    assert.ok(marked.assessment.factors.some((f) => f.id === "verification_rejected"));
+    assert.equal(decideFromScore(marked.assessment.score), base.decision);
+  });
+});

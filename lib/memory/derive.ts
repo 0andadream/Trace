@@ -1,3 +1,7 @@
+/**
+ * Trace reputation constructors. Pure functions over action records.
+ * Alex does not own this file — it reads the structs these return.
+ */
 import { AGENT_NAME } from "@/lib/counterparties";
 import { labelAddress, normalizeAddress } from "@/lib/format";
 import type {
@@ -6,6 +10,7 @@ import type {
   AgentReputation,
   CounterpartyProfile,
   TxAction,
+  VerificationStatus,
 } from "@/types";
 
 const ACTIONS: TxAction[] = ["transfer", "approve", "swap", "contract"];
@@ -118,10 +123,12 @@ export function buildCounterpartyProfile(
   const amounts = rows.map((r) => r.amount);
   const actionTypes = [...new Set(rows.map((r) => r.action))];
   const last = [...rows].sort((a, b) => (a.at < b.at ? 1 : -1))[0];
+  const verification = latestVerification(rows);
 
   return {
     address: key,
     label: last.counterpartyLabel || labelAddress(address),
+    ...(verification ? { verification } : {}),
     interactionCount: rows.length,
     successful: rows.filter((r) => r.outcome === "success").length,
     rejected: rows.filter((r) => r.outcome === "rejected").length,
@@ -146,4 +153,12 @@ export function listCounterparties(actions: ActionRecord[]): CounterpartyProfile
     if (profile) out.push(profile);
   }
   return out.sort((a, b) => b.interactionCount - a.interactionCount);
+}
+
+function latestVerification(rows: ActionRecord[]): VerificationStatus | undefined {
+  const dated = [...rows].sort((a, b) => (a.at < b.at ? -1 : 1));
+  for (let i = dated.length - 1; i >= 0; i--) {
+    if (dated[i].verification) return dated[i].verification;
+  }
+  return undefined;
 }

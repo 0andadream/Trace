@@ -1,4 +1,12 @@
+/**
+ * transfer — fully supported (decide + broadcast).
+ * approve / swap / contract — experimental: scored and stored, not broadcast.
+ */
 export type TxAction = "transfer" | "approve" | "swap" | "contract";
+export const BROADCAST_ACTIONS: TxAction[] = ["transfer"];
+export const EXPERIMENTAL_ACTIONS: TxAction[] = ["approve", "swap", "contract"];
+
+export type VerificationStatus = "verified" | "unverified" | "rejected";
 export type ActionOutcome = "success" | "rejected" | "incident" | "pending" | "ceiling_blocked";
 export type Decision = "Proceed" | "Proceed with flag" | "Hold for approval" | "Ceiling blocked";
 export type ReasoningSource = "deterministic" | "grok-4.6";
@@ -19,6 +27,8 @@ export type ActionRecord = {
   amount: number;
   recipient: string;
   counterpartyLabel: string;
+  /** Optional. Absent = address-only counterparty (no verification nudge). */
+  verification?: VerificationStatus;
   outcome: ActionOutcome;
   decision: Decision;
   riskScore: number;
@@ -61,6 +71,8 @@ export type AgentReputation = {
 export type CounterpartyProfile = {
   address: string;
   label: string;
+  /** Present only when stored on the record. Address-only profiles omit this. */
+  verification?: VerificationStatus;
   interactionCount: number;
   successful: number;
   rejected: number;

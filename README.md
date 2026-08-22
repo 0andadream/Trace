@@ -1,14 +1,44 @@
 # Trace
 
-**Alex — autonomous treasury agent.**
+Trace is the persistent reputation layer. Alex is the treasury agent that uses it.
 
-Alex decides whether a payment can go out. It reads operating history from [Sibyl Memory](https://github.com/Sibyl-Labs/Sibyl-Memory), then answers **Proceed**, **Proceed with flag**, **Hold for approval**, or **Ceiling blocked**. It does not chat. It does not connect a wallet. It signs with its own key.
+Autonomous agents should not send value from a blank slate. Trace stores who was paid, what failed, and what a human overrode; Alex reads those blocks and answers Proceed, Flag, or Hold. Delete Trace’s Sibyl store and Alex forgets.
 
 ```
-REQUEST → SIBYL MEMORY → CEILING → RISK → DECIDE → RECORD → (optional) BROADCAST
+REQUEST → TRACE (Sibyl memory + risk) → CEILING → DECIDE → RECORD → (optional) BROADCAST
 ```
 
-Built so memory is **load-bearing**: delete Sibyl and the agent forgets. That is the [Sibyl Labs Hackathon](https://hack.sibyllabs.org/) eligibility gate.
+Memory is **load-bearing** — the [Sibyl Labs Hackathon](https://hack.sibyllabs.org/) gate.
+
+## Demo in 90 seconds
+
+Needs the app running (`pnpm dev` → http://localhost:3002).
+
+1. **Seed** (local CLI, not a URL): `pnpm memory:seed`  
+   Expect 40 actions, 4 counterparties, 2 rejections, 5% overrides.
+
+2. Open `/alex`. Transfer **10 USDC** to Known desk  
+   `0xc0ffee254729296a45a3885639ac7e10f9d54979`  
+   Expect **Proceed** (or a low Flag) — verified label, clean history.
+
+3. Same amount to Failed verification  
+   `0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb`  
+   Expect **Hold** — prior rejections + verification status `rejected`.
+
+4. Submit a **new** `0x` address. Expect **Hold** (*No prior interactions with this counterparty.*). Click **Approve**.
+
+5. Restart `pnpm dev` (new process). Submit that same new address again.  
+   Expect the decision to **change** — Sibyl still has the approval. Then `pnpm memory:reset` and it Holds again.
+
+Amount **26+ USDC** anywhere is **Ceiling blocked**, not Hold. Scoring is skipped.
+
+## Architecture
+
+Trace (`lib/trace`, `lib/memory`, `lib/risk`, `lib/policy`) is the reusable layer: action log, counterparty profiles, risk score, 0.30 / 0.60 cutoffs.
+
+Alex (`lib/agent`, `lib/desk`, `lib/base`, `/alex`) is the first consumer: ceiling, broadcast from `AGENT_PRIVATE_KEY`, Grok-written reasoning that cannot change the score.
+
+Sibyl Memory is how Trace persists. Another agent could call the same constructors without using Alex.
 
 ## Use Alex
 
@@ -25,7 +55,7 @@ pnpm dev                 # http://localhost:3002
 
 On `/alex` fill in:
 
-- **Action** — `transfer` is the only action that can broadcast
+- **Action** — `transfer` only (broadcast-supported). `approve` / `swap` / `contract` are experimental and not offered in the UI.
 - **Token** — `ETH`, `USDC`, or an ERC-20 address
 - **Amount**
 - **Recipient** — `0x…`
@@ -107,8 +137,8 @@ pnpm memory:reset    # 0 actions, no counterparties
 - 4 counterparties
 - 2 rejections
 - 2 overrides (5%)
-- **Known desk** `0xc0ffee254729296a45a3885639ac7e10f9d54979` — 10 clean transfers
-- **Failed verification** `0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb` — 2 rejections
+- **Known desk** `0xc0ffee254729296a45a3885639ac7e10f9d54979` — verified, 10 clean transfers
+- **Failed verification** `0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb` — rejected, 2 rejections
 
 After seeding, a small USDC transfer to Known desk should score low; the same amount to Failed verification should **Hold**. An amount above `MAX_TX_AMOUNT_USDC` (default **25**) is **Ceiling blocked**.
 
@@ -130,6 +160,17 @@ Load-bearing check:
 
 Code maps the score. Grok (optional `XAI_API_KEY`) only writes reasoning from the memory blocks. The model cannot change `decision` or `RISK_SCORE`.
 
+Scoring philosophy lives at the top of `lib/risk/score.ts`. Each factor’s weight is commented there.
+
+## Actions
+
+| Action | Decide | Broadcast | UI |
+|---|---|---|---|
+| `transfer` | yes | yes | `/alex` |
+| `approve`, `swap`, `contract` | experimental (scored if submitted via API) | no | not offered |
+
+Reasoning calls out when this action type has little or no history.
+
 ## Sibyl Memory
 
 Alex always receives three blocks, recalled from Sibyl — not from a parallel app log:
@@ -137,12 +178,14 @@ Alex always receives three blocks, recalled from Sibyl — not from a parallel a
 | Block | Sibyl tier | Contents |
 |---|---|---|
 | AGENT_REPUTATION | WARM `agent/Alex` + derived from `action/*` | totals, success / reject / override rates |
-| COUNTERPARTY_PROFILE | WARM `counterparty/<address>` | prior interactions with that wallet (may be empty) |
+| COUNTERPARTY_PROFILE | WARM `counterparty/<address>` | label, optional verification, prior interactions (may be empty) |
 | RISK_SCORE | computed in code | 0.0–1.0 deviation from history |
 
 Each decision is also a COLD journal event and a WARM `action/<id>` entity. Policy lives in REFERENCE `policy`. If Sibyl is down, `POST /api/decide` returns **503**.
 
 Engine: [`sibyl-memory-client`](https://github.com/Sibyl-Labs/Sibyl-Memory) · local SQLite + FTS5 · no vector DB.
+
+Counterparties may be address-only. Optional `verification`: `verified` · `unverified` · `rejected` — modest score nudge, surfaced in the profile and in reasoning.
 
 ## Env
 

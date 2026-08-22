@@ -90,6 +90,7 @@ export default async function MemoryPage() {
               <thead className="font-mono text-[10px] uppercase tracking-[0.14em] text-paper-500">
                 <tr>
                   <th className="px-4 py-3">Label</th>
+                  <th className="px-4 py-3">Verification</th>
                   <th className="px-4 py-3">Address</th>
                   <th className="px-4 py-3">n</th>
                   <th className="px-4 py-3">Ok / rej</th>
@@ -101,6 +102,7 @@ export default async function MemoryPage() {
                 {snap.counterparties.map((c) => (
                   <tr key={c.address} className="border-t border-white/[0.06]">
                     <td className="px-4 py-3">{c.label}</td>
+                    <td className="px-4 py-3">{c.verification ?? "—"}</td>
                     <td className="px-4 py-3 font-mono text-xs text-paper-500">{shortAddress(c.address)}</td>
                     <td className="px-4 py-3">{c.interactionCount}</td>
                     <td className="px-4 py-3">

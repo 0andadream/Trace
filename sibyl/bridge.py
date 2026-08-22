@@ -52,10 +52,8 @@ def rebuild_warm(mem: MemoryClient, actions: list[dict]) -> None:
     for addr, rows in by_addr.items():
         amounts = [float(r.get("amount") or 0) for r in rows]
         last = max(rows, key=lambda r: r.get("at") or "")
-        mem.set_entity(
-            "counterparty",
-            addr,
-            {
+        statuses = [r.get("verification") for r in rows if r.get("verification")]
+        body_cp = {
                 "address": addr,
                 "label": last.get("counterpartyLabel") or "Unlabeled",
                 "interactionCount": len(rows),
@@ -65,7 +63,13 @@ def rebuild_warm(mem: MemoryClient, actions: list[dict]) -> None:
                 "overrides": sum(1 for r in rows if r.get("userOverride")),
                 "avgAmount": sum(amounts) / len(amounts) if amounts else 0,
                 "lastAt": last.get("at"),
-            },
+        }
+        if statuses:
+            body_cp["verification"] = statuses[-1]
+        mem.set_entity(
+            "counterparty",
+            addr,
+            body_cp,
         )
 
     mem.set_entity(

@@ -1,3 +1,4 @@
+/** Alex — first agent on the Trace reputation layer (see lib/trace). */
 import { askAlex } from "@/lib/agent/alex";
 import { formatVerdict } from "@/lib/agent/reason";
 import { sendTransfer, skipped } from "@/lib/base/send";

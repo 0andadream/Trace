@@ -51,6 +51,18 @@ export function deterministicReasoning(input: {
 
   if (!input.profile) {
     facts.push(EMPTY_CP);
+  } else if (input.profile.verification || (input.profile.label && input.profile.label !== "Unlabeled")) {
+    const status = input.profile.verification ? `, ${input.profile.verification}` : "";
+    facts.push(`Counterparty ${input.profile.label}${status}.`);
+  }
+
+  const typeCount = input.reputation.byActionType?.[input.request.action]?.count ?? 0;
+  if (typeCount < 3) {
+    facts.push(
+      typeCount === 0
+        ? `No prior ${input.request.action} actions in agent history.`
+        : `Only ${typeCount} prior ${input.request.action} action${typeCount === 1 ? "" : "s"} in agent history — too few to treat as a reliable pattern.`,
+    );
   }
 
   for (const factor of topFactors(input.assessment, 4)) {
