@@ -1,6 +1,7 @@
-import { createPublicClient, formatEther, formatUnits, http, type Address, type Hex } from "viem";
+import { createPublicClient, formatEther, formatUnits, http, isAddress, type Address, type Hex } from "viem";
 import { privateKeyToAccount, type PrivateKeyAccount } from "viem/accounts";
 import { baseSepolia } from "viem/chains";
+import { readAgentWalletFile } from "@/lib/agent-wallet-file";
 
 const ERC20_BALANCE = [
   {
@@ -32,25 +33,40 @@ export function getAgentAccount(): PrivateKeyAccount {
   return privateKeyToAccount(agentKey());
 }
 
+/** Public address for reads. Does not need the private key. */
+export function getAgentAddress(): Address {
+  try {
+    return getAgentAccount().address;
+  } catch {
+    const file = readAgentWalletFile()?.address?.trim();
+    const envAddr = process.env.AGENT_ADDRESS?.trim();
+    const raw = file || envAddr || "";
+    if (raw && isAddress(raw, { strict: false })) return raw as Address;
+    throw new Error(
+      "Agent address is missing. Set AGENT_PRIVATE_KEY, AGENT_ADDRESS, or config/agent-wallet.json.",
+    );
+  }
+}
+
 export async function getAgentBalance() {
-  const account = getAgentAccount();
+  const address = getAgentAddress();
   const rpc = process.env.SEPOLIA_RPC_URL || process.env.BASE_RPC_URL || "https://sepolia.base.org";
   const client = createPublicClient({ chain: baseSepolia, transport: http(rpc) });
   const chainId = await client.getChainId();
-  const ethWei = await client.getBalance({ address: account.address });
-  const usdc = USDC[chainId];
+  const ethWei = await client.getBalance({ address });
+  const usdc = USDC[chainId] || USDC[84532];
   let usdcFormatted = "0";
   if (usdc) {
     const raw = await client.readContract({
       address: usdc.address,
       abi: ERC20_BALANCE,
       functionName: "balanceOf",
-      args: [account.address],
+      args: [address],
     });
     usdcFormatted = formatUnits(raw, usdc.decimals);
   }
   return {
-    address: account.address,
+    address,
     chainId,
     eth: formatEther(ethWei),
     usdc: usdcFormatted,

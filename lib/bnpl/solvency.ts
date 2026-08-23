@@ -131,6 +131,13 @@ export async function loadSolvencySnapshot(exposure: number): Promise<SolvencySn
       address: bal.address,
     };
   } catch {
+    let address: string | undefined;
+    try {
+      const { getAgentAddress } = await import("@/lib/wallet");
+      address = getAgentAddress();
+    } catch {
+      address = undefined;
+    }
     return {
       wallet_usdc: fallbackUsd,
       wallet_eth: 0,
@@ -139,6 +146,7 @@ export async function loadSolvencySnapshot(exposure: number): Promise<SolvencySn
       reserve,
       execute: false,
       simulated_balance: true,
+      address,
     };
   }
 }
