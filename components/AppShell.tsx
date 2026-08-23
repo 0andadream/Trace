@@ -13,11 +13,13 @@ const NAV: { href: string; label: string; ownerOnly?: boolean }[] = [
   { href: "/buy", label: "Buy" },
   { href: "/history", label: "My History", ownerOnly: true },
   { href: "/log", label: "Agent Log" },
+  { href: "/docs", label: "Docs" },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const isLanding = path === "/";
+  const isDocs = path === "/docs";
   const wallet = useInjectedWallet();
   const [status, setStatus] = useState<AgentStatus | null>(null);
 
@@ -84,7 +86,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </header>
 
       <div className="mx-auto w-full max-w-7xl px-4 pb-16 pt-28 sm:px-6">
-        {!isLanding ? (
+        {!isLanding && !isDocs ? (
           <div className="relative z-10">
             <div className="glass-panel stats-float overflow-hidden">
               <div className="grid grid-cols-2 divide-y divide-[#E8E7EC] md:grid-cols-4 md:divide-x md:divide-y-0">
@@ -111,7 +113,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         ) : null}
-        <div className={!isLanding ? "relative z-20 -mt-4 pt-2 md:-mt-5" : undefined}>{children}</div>
+        <div className={!isLanding && !isDocs ? "relative z-20 -mt-4 pt-2 md:-mt-5" : undefined}>{children}</div>
       </div>
       <SiteFooter
         explorerHref={
