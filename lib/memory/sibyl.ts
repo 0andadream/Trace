@@ -1,5 +1,7 @@
 import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import path from "node:path";
+import { handleSibylMessage } from "@/lib/memory/engine";
 import { currentTenant } from "@/lib/user/session";
 
 export class SibylUnavailable extends Error {
@@ -24,19 +26,28 @@ export type SibylHealth = {
 };
 
 function pythonBin() {
-  return process.env.SIBYL_PYTHON || path.join(process.cwd(), ".venv/bin/python");
+  const env = process.env.SIBYL_PYTHON?.trim();
+  if (env && existsSync(env)) return env;
+  const venv = path.join(process.cwd(), ".venv/bin/python");
+  if (existsSync(venv)) return venv;
+  return null;
 }
 
 function bridgePath() {
   return path.join(process.cwd(), "sibyl/bridge.py");
 }
 
-export function callSibyl<T = Record<string, unknown>>(
+function useNodeEngine() {
+  return process.env.SIBYL_FORCE_NODE === "1" || !pythonBin();
+}
+
+function spawnPython<T>(
   op: string,
-  payload: Record<string, unknown> = {},
+  payload: Record<string, unknown>,
+  bin: string,
 ): Promise<T & { ok: boolean; error?: string; health?: SibylHealth }> {
   return new Promise((resolve, reject) => {
-    const child = spawn(pythonBin(), [bridgePath()], {
+    const child = spawn(bin, [bridgePath()], {
       env: { ...process.env },
     });
     let out = "";
@@ -80,4 +91,17 @@ export function callSibyl<T = Record<string, unknown>>(
     child.stdin.write(JSON.stringify({ op, tenant: payload.tenant ?? currentTenant(), ...payload }));
     child.stdin.end();
   });
+}
+
+export async function callSibyl<T = Record<string, unknown>>(
+  op: string,
+  payload: Record<string, unknown> = {},
+): Promise<T & { ok: boolean; error?: string; health?: SibylHealth }> {
+  const msg = { op, tenant: payload.tenant ?? currentTenant(), ...payload };
+  if (useNodeEngine()) {
+    const parsed = (await handleSibylMessage(msg)) as T & { ok: boolean; error?: string; health?: SibylHealth };
+    if (!parsed.ok) throw new SibylUnavailable(parsed.error || "Sibyl Memory returned an error.");
+    return parsed;
+  }
+  return spawnPython<T>(op, payload, pythonBin()!);
 }

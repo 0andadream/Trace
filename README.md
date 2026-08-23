@@ -211,7 +211,7 @@ A single default is asymmetric: volume does not save you. That is why the penali
 
 ## Setup
 
-Python 3.10+ (3.12 recommended) and Node 20+.
+Python 3.10+ (3.12 recommended) and Node 20+ **on your laptop**. Vercel’s Node runtime cannot spawn `.venv/bin/python`. There the same Sibyl ops run in Node and persist to `/tmp` (and to Vercel KV / Upstash if `KV_REST_API_URL` + `KV_REST_API_TOKEN` are set, so purchases survive cold starts).
 
 ```bash
 cd Trace
