@@ -23,6 +23,7 @@ const STEPS = [
 
 type Visitor = "first" | "returning";
 type PayMark = "on_time" | "late";
+type StepN = 1 | 2 | 3;
 
 const SCHEDULE: { id: 1 | 2 | 3 | 4; date: string; amount: string; locked?: "Paid" | "Due" }[] = [
   { id: 1, date: "Sep 1", amount: "$37.50", locked: "Paid" },
@@ -47,14 +48,14 @@ function statusChip(label: "Paid" | "Due" | "Late" | "On time") {
   return `rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ring-1 ${tone}`;
 }
 
-function StepPanel({
+function StepVisual({
   step,
   visitor,
   setVisitor,
   mark,
   setMark,
 }: {
-  step: 1 | 2 | 3;
+  step: StepN;
   visitor: Visitor;
   setVisitor: (v: Visitor) => void;
   mark: PayMark;
@@ -65,14 +66,7 @@ function StepPanel({
   const nextUp = mark === "on_time";
 
   return (
-    <aside className="glass-panel rounded-2xl p-5 md:p-6">
-      <div className="mb-4 flex items-center justify-between">
-        <span className="rounded-full bg-black/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-500">
-          Example
-        </span>
-        <span className="text-[11px] text-neutral-400">Preview</span>
-      </div>
-
+    <>
       {step === 1 ? (
         <div>
           <div className="space-y-1">
@@ -186,58 +180,141 @@ Limit: $300 (3/3 on-time payments)`}
               $300 → ${nextLimit}
             </p>
             <p className={`mt-1 text-[13px] ${nextUp ? "text-emerald-800" : "text-red-800"}`}>
-              {nextUp
-                ? "On-time payment raised the next offer."
-                : "Late payment cut the next offer."}
+              {nextUp ? "On-time payment raised the next offer." : "Late payment cut the next offer."}
             </p>
           </div>
         </div>
       ) : null}
+    </>
+  );
+}
+
+function ExampleFrame({ children }: { children: React.ReactNode }) {
+  return (
+    <aside className="glass-panel standing-hero p-5 md:p-7">
+      <div className="mb-5 flex items-center justify-between">
+        <span className="rounded-full bg-black/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-500">
+          Example
+        </span>
+        <span className="text-[11px] text-neutral-400">Preview</span>
+      </div>
+      {children}
     </aside>
   );
 }
 
+function StepCopy({
+  s,
+  n,
+  on,
+  onSelect,
+}: {
+  s: (typeof STEPS)[number];
+  n: StepN;
+  on: boolean;
+  onSelect: (n: StepN) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(n)}
+      aria-pressed={on}
+      className={`w-full rounded-2xl p-5 text-left transition-[opacity,background-color] duration-[280ms] ease-out ${
+        on ? "bg-black/[0.03]" : "opacity-40 hover:opacity-70"
+      }`}
+    >
+      <p className="text-[11px] font-semibold text-[#7828E8]">{s.n}</p>
+      <h3 className="mt-2 text-xl font-semibold tracking-tight text-neutral-900">{s.title}</h3>
+      <p className="mt-3 text-[16px] leading-7 text-neutral-600">{s.body}</p>
+    </button>
+  );
+}
+
 export function HowItWorks() {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [step, setStep] = useState<StepN>(1);
   const [visitor, setVisitor] = useState<Visitor>("first");
   const [mark, setMark] = useState<PayMark>("on_time");
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
+  const ticking = useRef(false);
 
   useEffect(() => {
-    const nodes = itemRefs.current.filter((el): el is HTMLLIElement => Boolean(el));
-    if (!nodes.length) return;
-    const visible = new Map<number, number>();
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          const n = Number((entry.target as HTMLElement).dataset.step);
-          if (entry.isIntersecting) visible.set(n, entry.intersectionRatio);
-          else visible.delete(n);
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const pick = () => {
+      if (!desktop.matches) return;
+      const trigger = window.innerHeight * 0.38;
+      let best: StepN = 1;
+      let bestDist = Infinity;
+      itemRefs.current.forEach((el, i) => {
+        if (!el) return;
+        const dist = Math.abs(el.getBoundingClientRect().top - trigger);
+        if (dist < bestDist) {
+          bestDist = dist;
+          best = (i + 1) as StepN;
         }
-        const ranked = [...visible.entries()].sort((a, b) => b[1] - a[1] || a[0] - b[0]);
-        const next = ranked[0]?.[0];
-        if (next === 1 || next === 2 || next === 3) setStep(next);
-      },
-      { root: null, rootMargin: "-28% 0px -48% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] },
-    );
-    for (const node of nodes) observer.observe(node);
-    return () => observer.disconnect();
+      });
+      setStep((cur) => (cur === best ? cur : best));
+    };
+    const onScroll = () => {
+      if (ticking.current) return;
+      ticking.current = true;
+      requestAnimationFrame(() => {
+        ticking.current = false;
+        pick();
+      });
+    };
+    pick();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    desktop.addEventListener("change", pick);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      desktop.removeEventListener("change", pick);
+    };
   }, []);
 
-  function goTo(n: 1 | 2 | 3) {
+  function goTo(n: StepN) {
     setStep(n);
     itemRefs.current[n - 1]?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
+
+  const panel = (
+    <ExampleFrame>
+      <div className="relative">
+        {([1, 2, 3] as const).map((n) => (
+          <div
+            key={n}
+            className={`how-visual ${step === n ? "how-visual-on relative" : "how-visual-off absolute inset-x-0 top-0"}`}
+            aria-hidden={step !== n}
+          >
+            <StepVisual step={n} visitor={visitor} setVisitor={setVisitor} mark={mark} setMark={setMark} />
+          </div>
+        ))}
+      </div>
+    </ExampleFrame>
+  );
 
   return (
     <section id="how-it-works" className="mx-auto mt-24 max-w-5xl scroll-mt-28">
       <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">How it works</h2>
       <TraceArc className="mt-3 w-40" />
-      <div className="mt-8 grid items-start gap-8 lg:grid-cols-2">
+
+      <ol className="mt-10 space-y-12 lg:hidden">
+        {STEPS.map((s, i) => {
+          const n = (i + 1) as StepN;
+          return (
+            <li key={s.n} className="space-y-4">
+              <StepCopy s={s} n={n} on onSelect={goTo} />
+              <ExampleFrame>
+                <StepVisual step={n} visitor={visitor} setVisitor={setVisitor} mark={mark} setMark={setMark} />
+              </ExampleFrame>
+            </li>
+          );
+        })}
+      </ol>
+
+      <div className="mt-10 hidden lg:grid lg:grid-cols-2 lg:items-start lg:gap-14">
         <ol>
           {STEPS.map((s, i) => {
-            const n = (i + 1) as 1 | 2 | 3;
-            const on = step === n;
+            const n = (i + 1) as StepN;
             return (
               <li
                 key={s.n}
@@ -245,33 +322,14 @@ export function HowItWorks() {
                   itemRefs.current[i] = el;
                 }}
                 data-step={n}
-                className={n < 3 ? "min-h-[70vh] lg:min-h-[75vh]" : "pb-8"}
+                className={n < 3 ? "min-h-[90vh]" : "min-h-[70vh] pb-16"}
               >
-                <button
-                  type="button"
-                  onClick={() => goTo(n)}
-                  aria-pressed={on}
-                  className={`w-full rounded-2xl p-4 text-left transition ${
-                    on ? "bg-black/[0.03] ring-1 ring-black/5" : "hover:bg-black/[0.02]"
-                  }`}
-                >
-                  <p className="text-[11px] font-semibold text-[#7828E8]">{s.n}</p>
-                  <h3 className="mt-1 text-base font-semibold text-neutral-900">{s.title}</h3>
-                  <p className="mt-2 text-[15px] leading-relaxed text-neutral-600">{s.body}</p>
-                </button>
+                <StepCopy s={s} n={n} on={step === n} onSelect={goTo} />
               </li>
             );
           })}
         </ol>
-        <div className="order-first lg:order-last sticky top-28 z-10">
-          <StepPanel
-            step={step}
-            visitor={visitor}
-            setVisitor={setVisitor}
-            mark={mark}
-            setMark={setMark}
-          />
-        </div>
+        <div className="sticky top-28 self-start">{panel}</div>
       </div>
     </section>
   );
