@@ -56,3 +56,34 @@ body {
 .scanline {
   background-image: radial-gradient(ellipse at 50% 120%, rgba(120, 40, 232, 0.12), transparent 70%);
 }
+
+html:has(.app-light) {
+  background: #f9f8fb;
+}
+
+.app-light {
+  --page: #f9f8fb;
+  --panel: #ffffff;
+  --line: #e8e7ec;
+  color-scheme: light;
+  min-height: 100vh;
+  color: #17171c;
+  background: var(--page);
+}
+
+.app-light .glass-nav {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 8px 32px rgba(15, 15, 30, 0.06);
+}
+
+.app-light .glass-panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 2px rgba(15, 15, 30, 0.04);
+}
+
+.app-light .field-light {
+  @apply mt-1 w-full rounded-xl border border-[#E8E7EC] bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none transition focus:border-[#7828E8];
+}

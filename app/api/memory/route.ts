@@ -1,11 +1,11 @@
+import { bnplSnapshot } from "@/lib/bnpl/run";
 import { memorySnapshot } from "@/lib/desk/run";
-import { lendingSnapshot } from "@/lib/lending/run";
 import { SibylUnavailable } from "@/lib/memory/sibyl";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const lending = await lendingSnapshot();
+    const bnpl = await bnplSnapshot();
     let treasury: Awaited<ReturnType<typeof memorySnapshot>> | null = null;
     try {
       treasury = await memorySnapshot();
@@ -13,10 +13,10 @@ export async function GET() {
       treasury = null;
     }
     return NextResponse.json({
-      relationships: lending.relationships,
+      relationships: bnpl.relationships,
       AGENT_REPUTATION: treasury?.reputation ?? null,
       counterparties: treasury?.counterparties ?? [],
-      sibyl: lending.sibyl,
+      sibyl: bnpl.sibyl,
     });
   } catch (err) {
     const status = err instanceof SibylUnavailable ? 503 : 400;

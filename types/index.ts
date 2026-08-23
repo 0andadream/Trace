@@ -1,17 +1,14 @@
 export type {
-  CollateralPosition,
-  LendingDecision,
-  LendingVerdict,
-  LoanOutcome,
-  LoanRecord,
+  ApprovalTerms,
+  BnplDecision,
+  BnplVerdict,
   OnchainSignal,
-  QuoteRecord,
-  QuoteRequest,
-  QuoteResult,
-  RateQuote,
-  RatePrimary,
+  PurchaseOutcome,
+  PurchaseRecord,
+  PurchaseRequest,
+  PurchaseResult,
   UserRelationship,
-} from "./lending";
+} from "./bnpl";
 
 /**
  * transfer — fully supported (decide + broadcast).

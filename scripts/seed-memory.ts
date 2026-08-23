@@ -1,43 +1,42 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { CLEAN_BORROWER, PENALIZED_BORROWER } from "@/lib/lending/demo-wallets";
-import { recomputeRelationship, standingFromHistory } from "@/lib/lending/relationship";
-import { computeRateQuote } from "@/lib/lending/rate";
-import { emptyOnchainSignal } from "@/lib/lending/onchain";
+import { CLEAN_BUYER, PENALIZED_BUYER } from "@/lib/bnpl/demo-wallets";
+import { emptyOnchainSignal } from "@/lib/bnpl/onchain";
+import { computeApproval } from "@/lib/bnpl/policy";
+import { recomputeRelationship, standingFromHistory } from "@/lib/bnpl/relationship";
 import { buildCounterpartyProfile, buildReputation, listCounterparties } from "@/lib/memory/derive";
 import type { ActionRecord } from "@/types";
-import type { UserRelationship } from "@/types/lending";
+import type { UserRelationship } from "@/types/bnpl";
 import { loadEnvLocal } from "./env";
 import { callSibylCli } from "./sibyl-cli";
 
-async function seedLending(file: string, relationships: UserRelationship[]) {
+async function seedBnpl(file: string, relationships: UserRelationship[]) {
   const result = await callSibylCli<{ relationships: UserRelationship[] }>("replace_relationships", {
     relationships,
   });
   const stored = (result.relationships || []).map((row) => recomputeRelationship(row));
-  console.log(`Seeded lending from ${file}`);
+  console.log(`Seeded BNPL from ${file}`);
   console.log(`Sibyl tenant:        ${result.health?.tenant}`);
   console.log(`Sibyl db:            ${result.health?.db}`);
   console.log(`Relationships:       ${stored.length}`);
   for (const rel of stored) {
     const standing = standingFromHistory(rel);
-    const quote = computeRateQuote({
-      amount: 8,
-      asset: "USDC",
+    const quote = computeApproval({
+      amount: 12,
       relationship: rel,
       onchain: emptyOnchainSignal(rel.wallet_address, { wallet_age_days: 2000, tx_count: 50_000 }),
     });
     const tag =
-      rel.wallet_address === CLEAN_BORROWER
+      rel.wallet_address === CLEAN_BUYER
         ? "clean repeat"
-        : rel.wallet_address === PENALIZED_BORROWER
+        : rel.wallet_address === PENALIZED_BUYER
           ? "default in book"
           : "seeded";
     console.log(
-      `  ${tag} ${rel.wallet_address.slice(0, 10)}…  loans=${rel.total_loans} on_time=${rel.on_time_count} late=${rel.late_count} default=${rel.default_count} standing=${standing.toFixed(2)} quote=${quote.decision} ${(quote.apr * 100).toFixed(1)}% APR used_onchain=${quote.used_onchain}`,
+      `  ${tag} ${rel.wallet_address.slice(0, 10)}…  purchases=${rel.total_purchases} on_time=${rel.on_time_count} late=${rel.late_count} default=${rel.default_count} standing=${standing.toFixed(2)} quote=${quote.decision} limit=${quote.available} n=${quote.installments} used_onchain=${quote.used_onchain}`,
     );
   }
-  console.log("Brand-new wallet:    any address not listed above → ONCHAIN_SIGNAL only, conservative APR");
+  console.log("Brand-new wallet:    any address not listed above → ONCHAIN_SIGNAL only, short plan");
 }
 
 async function seedTreasury(file: string, actions: ActionRecord[]) {
@@ -67,7 +66,7 @@ async function seedTreasury(file: string, actions: ActionRecord[]) {
 async function main() {
   loadEnvLocal();
 
-  const file = path.resolve(process.argv[2] || "seeds/lending-demo-seed.json");
+  const file = path.resolve(process.argv[2] || "seeds/bnpl-demo-seed.json");
   const raw = JSON.parse(readFileSync(file, "utf8")) as {
     kind?: string;
     relationships?: UserRelationship[];
@@ -75,7 +74,7 @@ async function main() {
   };
 
   if (raw.relationships) {
-    await seedLending(file, raw.relationships);
+    await seedBnpl(file, raw.relationships);
     return;
   }
   await seedTreasury(file, raw.actions || []);

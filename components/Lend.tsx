@@ -147,10 +147,10 @@ export function Lend() {
             Use connected
           </button>
           <button type="button" className="btn-ghost h-8 px-3 text-[11px]" onClick={() => setWallet(CLEAN_BORROWER)}>
-            Demo: clean book
+            Sample: clean book
           </button>
           <button type="button" className="btn-ghost h-8 px-3 text-[11px]" onClick={() => setWallet(PENALIZED_BORROWER)}>
-            Demo: defaulted
+            Sample: defaulted
           </button>
         </div>
 
@@ -239,7 +239,7 @@ export function Lend() {
               </p>
             ) : (
               <p className="mt-2 text-sm text-paper-500">
-                Not used. This wallet has relationship history — on-chain data does not enter the rate function.
+                Not used. This wallet has relationship history, on-chain data does not enter the rate function.
               </p>
             )}
           </article>

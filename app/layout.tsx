@@ -18,15 +18,15 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("http://localhost:3002"),
-  title: "Trace — Alex",
-  description: "Reputation-weighted lending agent. Decision, reasoning, score — grounded in Sibyl Memory.",
+  title: "Trace, buy now, pay later",
+  description: "Alex sends you ETH today (shown as USDC). You pay Alex back in parts. Pay on time, and the next deal gets easier.",
   icons: {
     icon: "/icon.jpg",
     apple: "/icon.jpg",
   },
   openGraph: {
     title: "Trace",
-    description: "Alex, reputation-weighted lending agent.",
+    description: "Buy now, pay later. Alex remembers if you paid on time.",
     images: ["/logo.jpg"],
   },
 };

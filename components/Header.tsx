@@ -6,9 +6,8 @@ import { ConnectWallet } from "@/components/ConnectWallet";
 import { Logo } from "@/components/Logo";
 
 const NAV = [
-  { href: "/lend", label: "Lend" },
-  { href: "/memory", label: "Memory" },
-  { href: "/log", label: "Log" },
+  { href: "/buy", label: "App" },
+  { href: "/", label: "About" },
   { href: "/alex", label: "Treasury" },
 ];
 
@@ -19,14 +18,18 @@ export function Header() {
     <header className="border-b border-white/[0.06]">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3">
         <Link href="/" className="flex items-center py-1" aria-label="Trace home">
-          <Logo variant="compact" />
+          <Logo variant="compact" tone="dark" />
         </Link>
         <div className="flex items-center gap-6">
           <nav className="flex items-center gap-6 text-sm text-paper-500">
             {NAV.map((n) => {
-              const active = path === n.href || path?.startsWith(`${n.href}/`);
+              const active = n.href === "/" ? path === "/" : path === n.href || path?.startsWith(`${n.href}/`);
               return (
-                <Link key={n.href} href={n.href} className={active ? "text-white" : "hover:text-paper"}>
+                <Link
+                  key={n.href}
+                  href={n.href}
+                  className={active ? "text-white" : "hover:text-paper"}
+                >
                   {n.label}
                 </Link>
               );

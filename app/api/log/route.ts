@@ -1,13 +1,16 @@
+import { bnplSnapshot } from "@/lib/bnpl/run";
 import { memorySnapshot } from "@/lib/desk/run";
-import { lendingSnapshot } from "@/lib/lending/run";
 import { SibylUnavailable } from "@/lib/memory/sibyl";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const lending = await lendingSnapshot();
-    const loans = lending.relationships.flatMap((rel) =>
-      rel.loans.map((loan) => ({ ...loan, wallet_address: rel.wallet_address })),
+    const bnpl = await bnplSnapshot();
+    const purchases = bnpl.relationships.flatMap((rel) =>
+      rel.purchases.map((p) => ({ ...p, wallet_address: rel.wallet_address })),
+    );
+    const quotes = bnpl.relationships.flatMap((rel) =>
+      (rel.quotes || []).map((q) => ({ ...q, wallet_address: rel.wallet_address })),
     );
     let actions: Awaited<ReturnType<typeof memorySnapshot>>["actions"] = [];
     try {
@@ -17,12 +20,13 @@ export async function GET() {
       actions = [];
     }
     return NextResponse.json({
-      total: loans.length,
-      active: loans.filter((l) => l.outcome === "active").length,
-      loans,
+      total: purchases.length,
+      active: purchases.filter((p) => p.outcome === "active").length,
+      purchases,
+      quotes,
       items: actions,
       pending: actions.filter((a) => a.outcome === "pending").length,
-      sibyl: lending.sibyl,
+      sibyl: bnpl.sibyl,
     });
   } catch (err) {
     const status = err instanceof SibylUnavailable ? 503 : 400;

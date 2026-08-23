@@ -3,7 +3,7 @@
 
 Reads one JSON object from stdin, writes one JSON object to stdout.
 The Next.js app does not keep a parallel JSON log. If this database is
-deleted, USER_RELATIONSHIP (loans this agent originated) disappears.
+deleted, USER_RELATIONSHIP (purchases this agent approved) disappears.
 On-chain wallet history is never written here.
 """
 
@@ -102,7 +102,7 @@ def list_actions(mem: MemoryClient) -> list[dict]:
 
 
 def wipe(mem: MemoryClient) -> None:
-    for category in ("action", "counterparty", "agent", "relationship", "loan", "collateral", "quote"):
+    for category in ("action", "counterparty", "agent", "relationship", "loan", "collateral", "quote", "purchase"):
         for row in mem.list_entities(category, limit=1000):
             name = row.get("name")
             if name:
@@ -115,6 +115,7 @@ def wipe(mem: MemoryClient) -> None:
 def body_rel(row: dict) -> dict:
     payload = body(row)
     payload.pop("current_standing_score", None)
+    payload.pop("current_limit", None)
     return payload
 
 
@@ -131,13 +132,22 @@ def persist_relationship(mem: MemoryClient, rel: dict) -> dict:
         raise ValueError("relationship.wallet_address required")
     rel = {**rel, "wallet_address": addr}
     rel.pop("current_standing_score", None)
+    rel.pop("current_limit", None)
     mem.set_entity("relationship", addr, rel)
     mem.write_event(
-        acted=[f"relationship {addr} loans={rel.get('total_loans')} last={rel.get('last_seen')}"],
-        extra={"wallet": addr, "total_loans": rel.get("total_loans")},
+        acted=[
+            f"relationship {addr} purchases={rel.get('total_purchases', rel.get('total_loans'))} last={rel.get('last_seen')}"
+        ],
+        extra={
+            "wallet": addr,
+            "total_purchases": rel.get("total_purchases", rel.get("total_loans")),
+        },
         ts=rel.get("last_seen"),
     )
-    mem.set_state("last_relationship", {"wallet": addr, "total_loans": rel.get("total_loans")})
+    mem.set_state(
+        "last_relationship",
+        {"wallet": addr, "total_purchases": rel.get("total_purchases", rel.get("total_loans"))},
+    )
     return rel
 
 
@@ -254,16 +264,16 @@ def handle(msg: dict) -> dict:
         stored = []
         for rel in rows:
             stored.append(persist_relationship(mem, rel))
-        mem.set_state("seeded", {"ok": True, "kind": "lending", "count": len(stored)})
+        mem.set_state("seeded", {"ok": True, "kind": "bnpl", "count": len(stored)})
         mem.set_reference(
-            "lending_policy",
+            "bnpl_policy",
             {
                 "primary": "USER_RELATIONSHIP",
-                "secondary": "ONCHAIN_SIGNAL only when total_loans == 0",
-                "note": "Code computes APR and decision. Alex cannot change the numbers.",
+                "secondary": "ONCHAIN_SIGNAL only when total_purchases == 0",
+                "note": "Code computes limit, installments, and decision. Alex cannot change the numbers.",
             },
         )
-        mem.write_event(acted=[f"replaced Sibyl memory with {len(stored)} lending relationships"])
+        mem.write_event(acted=[f"replaced Sibyl memory with {len(stored)} BNPL relationships"])
         return {"ok": True, "health": health(mem), "relationships": list_relationships(mem)}
 
     if op == "wipe":

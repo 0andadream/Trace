@@ -9,10 +9,14 @@ type Eth = {
   removeListener?: (event: string, handler: (...args: unknown[]) => void) => void;
 };
 
-function ethereum(): Eth | null {
+export function getInjectedEthereum(): Eth | null {
   if (typeof window === "undefined") return null;
   const e = (window as unknown as { ethereum?: Eth }).ethereum;
   return e ?? null;
+}
+
+function ethereum(): Eth | null {
+  return getInjectedEthereum();
 }
 
 export function useInjectedWallet() {
@@ -109,20 +113,35 @@ export function useInjectedWallet() {
   };
 }
 
-export function ConnectWallet() {
+export function ConnectWallet({ variant = "dark" }: { variant?: "dark" | "light" }) {
   const wallet = useInjectedWallet();
+  const light = variant === "light";
 
   if (wallet.connected && wallet.address) {
     return (
       <div className="flex items-center gap-2">
         {wallet.wrongNetwork ? (
-          <button className="btn-hold h-8 px-3 text-xs" onClick={wallet.switchBaseSepolia} type="button">
+          <button
+            className={light ? "rounded-full bg-red-50 px-3 py-2 text-xs font-medium text-red-700" : "btn-hold h-8 px-3 text-xs"}
+            onClick={wallet.switchBaseSepolia}
+            type="button"
+          >
             Switch to Base Sepolia
           </button>
         ) : (
-          <span className="font-mono text-[11px] text-paper-300">{shortAddress(wallet.address)}</span>
+          <span className={light ? "font-mono text-[11px] text-neutral-600" : "font-mono text-[11px] text-paper-300"}>
+            {shortAddress(wallet.address)}
+          </span>
         )}
-        <button className="btn-ghost h-8 px-3 text-xs" onClick={wallet.disconnect} type="button">
+        <button
+          className={
+            light
+              ? "rounded-full px-3 py-2 text-xs font-medium text-neutral-500 hover:bg-black/5"
+              : "btn-ghost h-8 px-3 text-xs"
+          }
+          onClick={wallet.disconnect}
+          type="button"
+        >
           Disconnect
         </button>
       </div>
@@ -131,10 +150,21 @@ export function ConnectWallet() {
 
   return (
     <div className="flex flex-col items-end">
-      <button className="btn-trace h-8 px-3 text-xs" disabled={wallet.busy} onClick={wallet.connect} type="button">
-        {wallet.busy ? "Connecting…" : "Connect wallet"}
+      <button
+        className={
+          light
+            ? "inline-flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-xs font-medium text-neutral-500 ring-1 ring-black/10 hover:bg-black/5 hover:text-neutral-900"
+            : "btn-trace h-8 px-3 text-xs"
+        }
+        disabled={wallet.busy}
+        onClick={wallet.connect}
+        type="button"
+      >
+        {wallet.busy ? "Connecting…" : "Connect Wallet"}
       </button>
-      {wallet.error ? <p className="mt-1 max-w-[14rem] text-right text-[10px] text-hold">{wallet.error}</p> : null}
+      {wallet.error ? (
+        <p className={`mt-1 max-w-[14rem] text-right text-[10px] ${light ? "text-red-600" : "text-hold"}`}>{wallet.error}</p>
+      ) : null}
     </div>
   );
 }

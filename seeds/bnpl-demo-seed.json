@@ -1,0 +1,152 @@
+{
+  "kind": "bnpl",
+  "note": "USER_RELATIONSHIP only — purchases this agent approved. Standing and current_limit are recomputed on read. A third wallet (any unlisted address) is the on-chain-only baseline.",
+  "relationships": [
+    {
+      "wallet_address": "0x111111111111111111111111111111111111c1ea",
+      "first_seen": "2026-04-01T12:00:00.000Z",
+      "last_seen": "2026-07-14T16:00:00.000Z",
+      "purchases": [
+        {
+          "purchase_id": "buy-clean-1",
+          "amount": 12,
+          "merchant": "Northwind",
+          "installments": 2,
+          "approved_date": "2026-04-01T12:00:00.000Z",
+          "schedule": [
+            { "amount": 6, "due_date": "2026-04-15T12:00:00.000Z", "paid_date": "2026-04-14T09:00:00.000Z", "status": "on_time" },
+            { "amount": 6, "due_date": "2026-04-29T12:00:00.000Z", "paid_date": "2026-04-28T11:00:00.000Z", "status": "on_time" }
+          ],
+          "outcome": "completed_on_time"
+        },
+        {
+          "purchase_id": "buy-clean-2",
+          "amount": 18,
+          "merchant": "Acme Market",
+          "installments": 3,
+          "approved_date": "2026-05-01T12:00:00.000Z",
+          "schedule": [
+            { "amount": 6, "due_date": "2026-05-15T12:00:00.000Z", "paid_date": "2026-05-14T10:00:00.000Z", "status": "on_time" },
+            { "amount": 6, "due_date": "2026-05-29T12:00:00.000Z", "paid_date": "2026-05-28T10:00:00.000Z", "status": "on_time" },
+            { "amount": 6, "due_date": "2026-06-12T12:00:00.000Z", "paid_date": "2026-06-10T10:00:00.000Z", "status": "on_time" }
+          ],
+          "outcome": "completed_on_time"
+        },
+        {
+          "purchase_id": "buy-clean-3",
+          "amount": 24,
+          "merchant": "Base Supply",
+          "installments": 4,
+          "approved_date": "2026-06-15T12:00:00.000Z",
+          "schedule": [
+            { "amount": 6, "due_date": "2026-06-29T12:00:00.000Z", "paid_date": "2026-06-28T10:00:00.000Z", "status": "on_time" },
+            { "amount": 6, "due_date": "2026-07-13T12:00:00.000Z", "paid_date": "2026-07-12T10:00:00.000Z", "status": "on_time" },
+            { "amount": 6, "due_date": "2026-07-27T12:00:00.000Z", "paid_date": "2026-07-26T10:00:00.000Z", "status": "on_time" },
+            { "amount": 6, "due_date": "2026-08-10T12:00:00.000Z", "paid_date": "2026-08-09T10:00:00.000Z", "status": "on_time" }
+          ],
+          "outcome": "completed_on_time"
+        }
+      ],
+      "quotes": [
+        {
+          "quote_id": "quote-clean-last",
+          "at": "2026-06-15T11:50:00.000Z",
+          "amount": 24,
+          "merchant": "Base Supply",
+          "limit": 60,
+          "installments": 4,
+          "due_dates": ["2026-06-29T12:00:00.000Z", "2026-07-13T12:00:00.000Z", "2026-07-27T12:00:00.000Z", "2026-08-10T12:00:00.000Z"],
+          "decision": "Approve",
+          "standing_score": 0.78,
+          "primary_signal": "USER_RELATIONSHIP",
+          "reasoning": [
+            "2 purchases this agent approved (2 completed_on_time, 0 completed_late, 0 defaulted). ONCHAIN_SIGNAL not used.",
+            "Purchase buy-clean-2: 18 at Acme Market on 2026-05-01, outcome completed_on_time (last paid 2026-06-10).",
+            "Limit $60 available of $60 gross · 4 installments (standing 0.78)."
+          ]
+        }
+      ],
+      "total_purchases": 3,
+      "on_time_count": 3,
+      "late_count": 0,
+      "default_count": 0,
+      "active_count": 0,
+      "total_purchased": 54,
+      "total_repaid": 54,
+      "override_count": 0,
+      "override_outcomes": []
+    },
+    {
+      "wallet_address": "0x222222222222222222222222222222222222d00d",
+      "first_seen": "2026-04-01T12:00:00.000Z",
+      "last_seen": "2026-06-20T12:00:00.000Z",
+      "purchases": [
+        {
+          "purchase_id": "buy-pen-1",
+          "amount": 20,
+          "merchant": "Northwind",
+          "installments": 2,
+          "approved_date": "2026-04-01T12:00:00.000Z",
+          "schedule": [
+            { "amount": 10, "due_date": "2026-04-15T12:00:00.000Z", "paid_date": "2026-04-14T12:00:00.000Z", "status": "on_time" },
+            { "amount": 10, "due_date": "2026-04-29T12:00:00.000Z", "paid_date": "2026-04-28T12:00:00.000Z", "status": "on_time" }
+          ],
+          "outcome": "completed_on_time"
+        },
+        {
+          "purchase_id": "buy-pen-2",
+          "amount": 24,
+          "merchant": "Acme Market",
+          "installments": 2,
+          "approved_date": "2026-05-01T12:00:00.000Z",
+          "schedule": [
+            { "amount": 12, "due_date": "2026-05-15T12:00:00.000Z", "paid_date": "2026-05-14T12:00:00.000Z", "status": "on_time" },
+            { "amount": 12, "due_date": "2026-05-29T12:00:00.000Z", "paid_date": "2026-05-28T12:00:00.000Z", "status": "on_time" }
+          ],
+          "outcome": "completed_on_time"
+        },
+        {
+          "purchase_id": "buy-pen-3",
+          "amount": 30,
+          "merchant": "Base Supply",
+          "installments": 3,
+          "approved_date": "2026-06-01T12:00:00.000Z",
+          "schedule": [
+            { "amount": 10, "due_date": "2026-06-15T12:00:00.000Z", "paid_date": "2026-06-14T12:00:00.000Z", "status": "on_time" },
+            { "amount": 10, "due_date": "2026-06-29T12:00:00.000Z", "paid_date": null, "status": "pending" },
+            { "amount": 10, "due_date": "2026-07-13T12:00:00.000Z", "paid_date": null, "status": "pending" }
+          ],
+          "outcome": "defaulted"
+        }
+      ],
+      "quotes": [
+        {
+          "quote_id": "quote-pen-last",
+          "at": "2026-06-20T12:00:00.000Z",
+          "amount": 12,
+          "merchant": "Demo Shop",
+          "limit": 0,
+          "installments": 0,
+          "due_dates": [],
+          "decision": "Decline",
+          "standing_score": 0.12,
+          "primary_signal": "USER_RELATIONSHIP",
+          "reasoning": [
+            "3 purchases this agent approved (2 completed_on_time, 0 completed_late, 1 defaulted). ONCHAIN_SIGNAL not used.",
+            "Purchase buy-pen-3: 30 at Base Supply on 2026-06-01, outcome defaulted.",
+            "Standing 0.12 after default history. Limit cut — declined."
+          ]
+        }
+      ],
+      "total_purchases": 3,
+      "on_time_count": 2,
+      "late_count": 0,
+      "default_count": 1,
+      "active_count": 0,
+      "total_purchased": 74,
+      "total_repaid": 44,
+      "override_count": 0,
+      "override_outcomes": []
+    }
+  ]
+}
