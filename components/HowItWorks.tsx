@@ -231,7 +231,7 @@ export function HowItWorks() {
 
   return (
     <section id="how-it-works" className="mx-auto mt-16 max-w-5xl scroll-mt-28">
-      <h2 className="text-xl font-semibold tracking-tight text-neutral-900">How it works</h2>
+      <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">How it works</h2>
       <TraceArc className="mt-3 w-40" />
       <div className="mt-8 grid items-start gap-8 lg:grid-cols-2">
         <ol>

@@ -98,8 +98,10 @@ export default async function HomePage() {
           Built on Sibyl
         </span>
       </div>
-      <section className="overflow-hidden rounded-t-[min(50%,11rem)] bg-[#0A0219] lg:grid lg:grid-cols-2 lg:items-center">
-        <div className="flex items-center justify-center px-8 pt-10 lg:px-12 lg:py-14">
+      <div className="relative">
+        <div className="arch-seam pointer-events-none absolute inset-x-0 -top-10 z-[1] h-16" aria-hidden />
+      <section className="relative overflow-hidden rounded-t-[min(50%,12rem)] bg-[#0A0219] lg:grid lg:grid-cols-2 lg:items-center">
+        <div className="flex items-center justify-center px-8 pt-10 lg:px-12 lg:py-16">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.jpg"
@@ -107,14 +109,14 @@ export default async function HomePage() {
             className="h-auto w-full max-h-[min(52vh,28rem)] object-contain"
           />
         </div>
-        <div className="px-8 pb-12 pt-2 lg:px-12 lg:py-14">
+        <div className="px-8 pb-14 pt-2 lg:px-12 lg:py-16">
           <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#C4B5A0]">
             Base Sepolia · Reputation weighted
           </p>
-          <h1 className="mt-4 text-[1.65rem] font-medium leading-snug tracking-tight text-[#F4EFE4] sm:text-[1.9rem]">
+          <h1 className="mt-5 text-[1.85rem] font-medium leading-[1.25] tracking-tight text-[#F4EFE4] sm:text-[2.15rem]">
             Pay on time, and the next deal gets easier.
           </h1>
-          <p className="mt-4 max-w-md text-[15px] leading-relaxed text-[#9B96AB]">
+          <p className="mt-5 max-w-md text-[16px] leading-7 text-[#9B96AB]">
             Alex sends you ETH today (shown as USDC). You pay Alex back in a few parts. Pay on time
             and the next offer gets bigger. Miss a payment and it gets harder.
           </p>
@@ -152,9 +154,10 @@ export default async function HomePage() {
           ) : null}
         </div>
       </section>
+      </div>
 
       <article className="mx-auto mt-16 max-w-3xl">
-        <section className="glass-panel rounded-2xl p-8" aria-label="What Alex can still spend">
+        <section className="glass-panel p-8 md:p-10" aria-label="What Alex can still spend">
           <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-500">
             What Alex can still spend
           </p>
@@ -163,7 +166,7 @@ export default async function HomePage() {
               <p className="mt-3 text-5xl font-semibold tabular-nums tracking-tight text-neutral-900 sm:text-6xl">
                 {formatUsd(status.deployable)}
               </p>
-              <p className="mt-3 text-sm leading-relaxed text-neutral-600">
+              <p className="mt-4 text-[15px] leading-7 text-neutral-600">
                 After keeping a little cash ({formatUsd(status.reserve)}) so it is not emptied.
                 {status.simulated_balance
                   ? " We could not check Alex’s account just now, so this cash number is a stand-in."
@@ -192,11 +195,11 @@ export default async function HomePage() {
 
       <article className="mx-auto mt-16 max-w-3xl">
         <section id="status" className="scroll-mt-28">
-          <h2 className="text-xl font-semibold tracking-tight text-neutral-900">What is live, and what is not</h2>
-          <p className="mt-3 text-[15px] leading-relaxed text-neutral-600">
+          <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">What is live, and what is not</h2>
+          <p className="mt-3 text-[16px] leading-7 text-neutral-600">
             Live means it really happens. Not live means it is simulated or not built here yet.
           </p>
-          <div className="glass-panel mt-6 overflow-x-auto rounded-2xl">
+          <div className="glass-panel mt-8 overflow-x-auto">
             <table className="w-full min-w-[36rem] text-left text-sm">
               <thead>
                 <tr className="bg-black/[0.04] text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-500">
@@ -221,12 +224,12 @@ export default async function HomePage() {
         </section>
 
         <section id="agent-status" className="mt-16 scroll-mt-28">
-          <h2 className="text-xl font-semibold tracking-tight text-neutral-900">Alex’s cash, right now</h2>
-          <p className="mt-3 text-[15px] leading-relaxed text-neutral-600">
+          <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">Alex’s cash, right now</h2>
+          <p className="mt-3 text-[16px] leading-7 text-neutral-600">
             These numbers are from this testnet, not a made-up dashboard.
           </p>
           {status ? (
-            <dl className="glass-panel mt-6 divide-y divide-black/5 rounded-2xl px-5">
+            <dl className="glass-panel mt-8 divide-y divide-[#E8E7EC] px-6">
               {(
                 [
                   ["Alex’s account", status.address || "—"],
@@ -250,8 +253,8 @@ export default async function HomePage() {
         </section>
 
         <section className="mt-16">
-          <h2 className="text-xl font-semibold tracking-tight text-neutral-900">If we delete Alex’s notes</h2>
-          <p className="mt-4 text-[15px] leading-relaxed text-neutral-600">
+          <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">If we delete Alex’s notes</h2>
+          <p className="mt-4 text-[16px] leading-7 text-neutral-600">
             Say you paid on time ten times. If we then delete Alex’s notes, the next time you ask you
             look brand new: smaller limit, fewer payments. Nothing else about you changed. Alex just
             forgot. That is the point of this testnet, the deal lives in Alex’s memory of you, not in a

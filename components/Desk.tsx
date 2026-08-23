@@ -268,10 +268,10 @@ export function Desk() {
   }, [injected.connected, busy, deciding, quote]);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
-      <section className="glass-panel rounded-2xl p-6 md:p-8">
-        <h2 className="text-sm font-semibold tracking-tight text-neutral-900">Your standing</h2>
-        <div className="mt-6 flex flex-col gap-8 sm:flex-row sm:items-start">
+    <div className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
+      <section className="glass-panel standing-hero p-8 md:p-10">
+        <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Your standing</h2>
+        <div className="mt-8 flex flex-col gap-10 sm:flex-row sm:items-start">
           <div className="flex shrink-0 flex-col items-center gap-3">
             <ScoreRing score={injected.connected ? score : null} />
             <span className={`rounded-full border px-5 py-1.5 text-sm font-medium shadow-sm ${tag.cls}`}>
@@ -279,7 +279,7 @@ export function Desk() {
             </span>
           </div>
           <div className="min-w-0 flex-1 space-y-5">
-            <p className="text-sm leading-relaxed text-neutral-600">
+            <p className="text-[15px] leading-7 text-neutral-600">
               {injected.connected
                 ? standingCopy(rel, quote)
                 : "Connect a wallet to load this agent’s memory of you. If it has never approved a purchase for that address, it will say so and use a conservative on-chain baseline."}
@@ -293,8 +293,8 @@ export function Desk() {
                 ] as const
               ).map(([k, v]) => (
                 <div key={k}>
-                  <p className="text-[11px] font-medium text-neutral-500">{k}</p>
-                  <p className="mt-1 text-sm font-semibold text-neutral-900">{v}</p>
+                  <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">{k}</p>
+                  <p className="mt-1.5 text-base font-semibold tabular-nums text-neutral-900">{v}</p>
                 </div>
               ))}
             </div>
@@ -418,14 +418,21 @@ export function Desk() {
         </div>
       </section>
 
-      <aside className="glass-panel rounded-2xl p-5 md:p-6">
+      <aside className="glass-panel p-6 md:p-7">
         <div className="mb-4">
-          <span className="rounded-full bg-black/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-500">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-black/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-500">
+            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden className="text-neutral-400">
+              <circle cx="3.2" cy="5" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.2" />
+              <circle cx="6.8" cy="5" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.2" />
+            </svg>
             Base Sepolia
           </span>
         </div>
         <div className="mb-4 flex w-fit items-center gap-2 rounded-full bg-black/5 p-1">
-          <span className="rounded-full bg-[#7828E8] px-4 py-1.5 text-xs font-semibold text-white shadow-sm">Testnet</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#7828E8] px-4 py-1.5 text-xs font-semibold text-white shadow-sm">
+            <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden />
+            Testnet
+          </span>
           <span className="inline-flex cursor-not-allowed items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-neutral-400">
             Mainnet
             <span className="rounded-full bg-black/10 px-1.5 py-0.5 text-[9px] font-bold uppercase">Soon</span>
@@ -433,7 +440,7 @@ export function Desk() {
         </div>
 
         <div className="space-y-1">
-          <div className="rounded-2xl bg-black/[0.03] p-4">
+          <div className="rounded-well bg-black/[0.03] p-4">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-[11px] font-medium text-neutral-500">Pay</span>
               <span className="text-sm font-semibold text-neutral-900">USDC</span>
@@ -455,7 +462,7 @@ export function Desk() {
             </span>
           </div>
 
-          <div className="rounded-2xl bg-black/[0.03] p-4">
+          <div className="rounded-well bg-black/[0.03] p-4">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-[11px] font-medium text-neutral-500">Merchant</span>
             </div>
@@ -479,7 +486,7 @@ export function Desk() {
             </span>
           </div>
 
-          <div className="rounded-2xl bg-black/[0.03] p-4">
+          <div className="rounded-well bg-black/[0.03] p-4">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-[11px] font-medium text-neutral-500">You&apos;ll pay back</span>
               <span className="text-sm font-semibold text-neutral-900">{instN ? `${instN}×` : "—"}</span>

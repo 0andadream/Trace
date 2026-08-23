@@ -65,7 +65,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             ) : null}
           </div>
           <div className="flex items-center gap-3">
-            <span className="hidden rounded-full bg-[#7828E8] px-3 py-1 text-[11px] font-semibold text-white shadow-sm sm:inline-flex">
+            <span className="hidden items-center gap-1.5 rounded-full bg-[#7828E8] px-3 py-1 text-[11px] font-semibold text-white shadow-sm sm:inline-flex">
+              <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden />
               Testnet
             </span>
             {isLanding ? (
@@ -84,7 +85,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="mx-auto w-full max-w-7xl px-4 pb-16 pt-28 sm:px-6">
         {!isLanding ? (
-          <div className="glass-panel mb-6 grid grid-cols-2 divide-y divide-[#E8E7EC] rounded-2xl md:grid-cols-4 md:divide-x md:divide-y-0">
+          <div className="glass-panel mb-8 grid grid-cols-2 divide-y divide-[#E8E7EC] md:grid-cols-4 md:divide-x md:divide-y-0">
             {(
               [
                 ["Alex’s cash", status ? formatAmount(status.spendable_usd) : "—"],
@@ -93,9 +94,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 ["People on file", status ? String(status.wallets_with_history) : "—"],
               ] as const
             ).map(([label, value]) => (
-              <div key={label} className="flex flex-col justify-center gap-1 p-6 md:p-8">
-                <p className="text-xs font-medium text-neutral-500">{label}</p>
-                <p className="text-3xl font-semibold tracking-tight text-neutral-900">{value}</p>
+              <div key={label} className="flex flex-col justify-center gap-1.5 p-6 md:p-8">
+                <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">{label}</p>
+                <p className="text-3xl font-semibold tracking-tight text-neutral-900 md:text-4xl">{value}</p>
               </div>
             ))}
           </div>

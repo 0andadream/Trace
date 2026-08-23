@@ -30,7 +30,8 @@ const config: Config = {
         mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
       borderRadius: {
-        panel: "1.1rem",
+        panel: "1.75rem",
+        well: "1rem",
       },
     },
   },
