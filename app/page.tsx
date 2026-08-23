@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { HeroPhone } from "@/components/HeroPhone";
 import { HowItWorks } from "@/components/HowItWorks";
 import { getAgentStatus, grokConfigured, payoutIsLive } from "@/lib/bnpl/status";
-import { formatAmount, shortAddress } from "@/lib/format";
+import { formatAmount } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -102,14 +102,14 @@ export default async function HomePage() {
       </div>
       <section className="grid items-center gap-14 py-2 lg:min-h-[72vh] lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:py-6">
         <div className="max-w-xl">
-          <p className="inline-flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.18em] text-neutral-500">
-            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden>
+          <p className="inline-flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.16em] text-neutral-500">
+            <svg width="8" height="8" viewBox="0 0 10 10" aria-hidden>
               <circle cx="3.2" cy="5" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.2" />
               <circle cx="6.8" cy="5" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.2" />
             </svg>
             Base Sepolia · Reputation weighted
           </p>
-          <h1 className="mt-5 text-[2.4rem] font-semibold leading-[1.08] tracking-tight text-neutral-900 sm:text-6xl">
+          <h1 className="mt-4 text-[2.75rem] font-semibold leading-[1.05] tracking-tight text-[#7828E8] sm:text-7xl lg:text-[5.25rem]">
             Pay on time, and the next deal gets easier.
           </h1>
           <p className="mt-6 max-w-md text-[17px] leading-8 text-neutral-600">
@@ -125,7 +125,7 @@ export default async function HomePage() {
               href="/buy"
               className="inline-flex h-12 items-center rounded-full bg-[#7828E8] px-7 text-sm font-semibold text-white shadow-[0_12px_32px_rgba(120,40,232,0.28)] hover:bg-[#6a1fd4]"
             >
-              Try a purchase
+              Launch App
             </Link>
             <a
               href="#how-it-works"
@@ -133,21 +133,7 @@ export default async function HomePage() {
             >
               How it works
             </a>
-            <a
-              href="#agent-status"
-              className="inline-flex h-12 items-center rounded-full border border-black/10 px-6 text-sm font-medium text-neutral-900 hover:bg-black/5"
-            >
-              See Alex’s cash
-            </a>
           </div>
-          {status ? (
-            <p className="mt-8 text-sm text-neutral-500">
-              Alex can still spend {formatUsd(status.deployable)}
-              {status.address ? ` · ${shortAddress(status.address)}` : ""}
-            </p>
-          ) : statusError ? (
-            <p className="mt-8 text-sm text-red-600">{statusError}</p>
-          ) : null}
         </div>
 
         <HeroPhone
