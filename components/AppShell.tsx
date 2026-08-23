@@ -13,7 +13,6 @@ const NAV: { href: string; label: string; ownerOnly?: boolean }[] = [
   { href: "/buy", label: "Buy" },
   { href: "/history", label: "My History", ownerOnly: true },
   { href: "/log", label: "Agent Log" },
-  { href: "/docs", label: "Docs" },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -67,6 +66,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             ) : null}
           </div>
           <div className="flex items-center gap-3">
+            {isLanding ? (
+              <Link
+                href="/docs"
+                className="px-3 py-2 text-xs font-medium text-neutral-500 hover:text-neutral-900"
+              >
+                Docs
+              </Link>
+            ) : null}
             <span className="hidden items-center gap-1.5 rounded-full bg-[#7828E8] px-3 py-1 text-[11px] font-semibold text-white shadow-sm sm:inline-flex">
               <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden />
               Testnet
