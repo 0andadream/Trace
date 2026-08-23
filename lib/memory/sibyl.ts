@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { handleSibylMessage } from "@/lib/memory/engine";
+import { StoreUnavailable } from "@/lib/memory/persist";
 import { currentTenant } from "@/lib/user/session";
 
 export class SibylUnavailable extends Error {
@@ -98,10 +99,16 @@ export async function callSibyl<T = Record<string, unknown>>(
   payload: Record<string, unknown> = {},
 ): Promise<T & { ok: boolean; error?: string; health?: SibylHealth }> {
   const msg = { op, tenant: payload.tenant ?? currentTenant(), ...payload };
-  if (useNodeEngine()) {
-    const parsed = (await handleSibylMessage(msg)) as T & { ok: boolean; error?: string; health?: SibylHealth };
-    if (!parsed.ok) throw new SibylUnavailable(parsed.error || "Sibyl Memory returned an error.");
-    return parsed;
+  try {
+    if (useNodeEngine()) {
+      const parsed = (await handleSibylMessage(msg)) as T & { ok: boolean; error?: string; health?: SibylHealth };
+      if (!parsed.ok) throw new SibylUnavailable(parsed.error || "Sibyl Memory returned an error.");
+      return parsed;
+    }
+    return await spawnPython<T>(op, payload, pythonBin()!);
+  } catch (err) {
+    if (err instanceof SibylUnavailable) throw err;
+    if (err instanceof StoreUnavailable) throw new SibylUnavailable(err.message);
+    throw err;
   }
-  return spawnPython<T>(op, payload, pythonBin()!);
 }

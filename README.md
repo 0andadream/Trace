@@ -269,9 +269,9 @@ Code maps the quote. Grok (optional `XAI_API_KEY`) only writes reasoning. The mo
 | ONCHAIN_SIGNAL | **never** | age, tx count, fetched per quote, used only if `total_purchases == 0` |
 | standing / current_limit | **computed** | recomputed from the purchase book on every read |
 
-If Sibyl is down, `POST /api/purchase` and `POST /api/repay` return **503**.
+If Sibyl is down, `POST /api/purchase`, `POST /api/repay`, `GET /api/health`, and `GET /api/agent-status` return **503**. The landing page shows **Sibyl unavailable**.
 
-Engine: [`sibyl-memory-client`](https://github.com/Sibyl-Labs/Sibyl-Memory) · local SQLite + FTS5 · no vector DB.
+Laptop: [`sibyl-memory-client`](https://github.com/Sibyl-Labs/Sibyl-Memory) · SQLite. Vercel: same ops in Node on Redis (per-wallet keys, no TTL). See `docs/sibyl-parity.md`. Backup: `pnpm memory:export`.
 
 ## Env
 
@@ -288,13 +288,16 @@ See `.env.example`. Important:
 | `AGENT_SIMULATED_USDC` | Fallback spendable when the agent key/balance cannot be read |
 | `ETH_USD` | USDC display → ETH settlement rate (default 2000) |
 | `XAI_API_KEY` | Optional. Alex still quotes without it. |
+| `KV_REST_API_URL` / `KV_REST_API_TOKEN` | Vercel Redis (injected when Storage → Redis is connected). Required in production. |
+| `AGENT_ADDRESS` | Optional public agent address if the private key is unset. |
 
 ## API
 
 - `POST /api/purchase` — `{ wallet, amount, merchant? }` quotes terms; `{ accept: true }` originates a plan
 - `POST /api/repay` — `{ wallet, purchase_id, tx_hash }` records the next installment after verifying the ETH transfer to Alex. `{ mark_default: true }` still attested.
 - `GET /api/relationship/:wallet` — relationship + computed standing/limit; on-chain only if the book is empty
-- `GET /api/agent-status` — agent cash, reserve, deployable, execute flag
+- `GET /api/agent-status` — agent cash, reserve, deployable, execute flag; **503** if Sibyl/Redis is down
+- `GET /api/health` — Redis/Sibyl ping; **503** if the store is unreachable
 - `GET /api/memory` · `GET /api/log` — public agent log (quotes + purchases)
 - `POST /api/decide` — legacy treasury
 

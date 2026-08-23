@@ -179,7 +179,10 @@ export default async function HomePage() {
               </p>
             </>
           ) : (
-            <p className="mt-3 text-sm text-red-600">{statusError}</p>
+            <p className="mt-3 text-sm text-red-600">
+              {/sibyl|redis|memory/i.test(statusError || "") ? "Sibyl unavailable. " : ""}
+              {statusError}
+            </p>
           )}
         </section>
       </article>

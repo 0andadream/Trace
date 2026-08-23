@@ -1,7 +1,22 @@
-import { emptyBucket, loadRoot, persistLabel, saveRoot, type TenantBucket } from "@/lib/memory/persist";
+import {
+  appendEvent,
+  emptyBucket,
+  getEntity,
+  getRel,
+  listCategory,
+  listRels,
+  patchState,
+  persistLabel,
+  pingStore,
+  putRel,
+  readEvents,
+  setEntity,
+  setReference,
+  wipeTenant,
+  type Body,
+} from "@/lib/memory/persist";
 
 type Msg = Record<string, unknown>;
-type Body = Record<string, unknown>;
 
 function asBody(row: unknown): Body {
   if (!row || typeof row !== "object") return {};
@@ -15,30 +30,6 @@ function scrubLabels(row: Body): Body {
   return row;
 }
 
-function listCategory(bucket: TenantBucket, category: string, limit = 400): Body[] {
-  const table = bucket.entities[category] || {};
-  return Object.values(table).slice(0, limit);
-}
-
-function getEntity(bucket: TenantBucket, category: string, name: string): Body | null {
-  const row = bucket.entities[category]?.[name];
-  return row ? { ...row } : null;
-}
-
-function setEntity(bucket: TenantBucket, category: string, name: string, body: Body) {
-  if (!bucket.entities[category]) bucket.entities[category] = {};
-  bucket.entities[category][name] = { ...body };
-}
-
-function deleteEntity(bucket: TenantBucket, category: string, name: string) {
-  if (bucket.entities[category]) delete bucket.entities[category][name];
-}
-
-function writeEvent(bucket: TenantBucket, event: Body) {
-  bucket.events.unshift({ ...event, ts: event.ts || new Date().toISOString() });
-  bucket.events = bucket.events.slice(0, 100);
-}
-
 function bodyRel(row: Body): Body {
   const payload = { ...asBody(row) };
   delete payload.current_standing_score;
@@ -46,7 +37,7 @@ function bodyRel(row: Body): Body {
   return payload;
 }
 
-function rebuildWarm(bucket: TenantBucket, actions: Body[]) {
+async function rebuildWarm(tenant: string, actions: Body[]) {
   const byAddr: Record<string, Body[]> = {};
   for (const row of actions) {
     const addr = String(row.recipient || "").toLowerCase();
@@ -69,9 +60,9 @@ function rebuildWarm(bucket: TenantBucket, actions: Body[]) {
       lastAt: last.at,
     };
     if (statuses.length) body.verification = statuses[statuses.length - 1];
-    setEntity(bucket, "counterparty", addr, body);
+    await setEntity(tenant, "counterparty", addr, body);
   }
-  setEntity(bucket, "agent", "Alex", {
+  await setEntity(tenant, "agent", "Alex", {
     totalActions: actions.length,
     successful: actions.filter((r) => r.outcome === "success").length,
     rejected: actions.filter((r) => r.outcome === "rejected").length,
@@ -80,196 +71,194 @@ function rebuildWarm(bucket: TenantBucket, actions: Body[]) {
   });
 }
 
-function listActions(bucket: TenantBucket): Body[] {
-  const rows = listCategory(bucket, "action", 400).map(scrubLabels);
-  rows.sort((a, b) => String(b.at || "").localeCompare(String(a.at || "")));
-  return rows;
+async function listActions(tenant: string): Promise<Body[]> {
+  const rows = await listCategory(tenant, "action", 400);
+  const actions = rows.map((r) => scrubLabels(asBody(r)));
+  let rewritten = false;
+  for (const row of actions) {
+    if (row.counterpartyLabel === "Swap Router") {
+      const raw = rows.find((r) => asBody(r).id === row.id);
+      if (raw && asBody(raw).counterpartyLabel === "OKX DEX Router") {
+        await setEntity(tenant, "action", String(row.id), row);
+        rewritten = true;
+      }
+    }
+  }
+  if (rewritten) await rebuildWarm(tenant, actions);
+  actions.sort((a, b) => String(b.at || "").localeCompare(String(a.at || "")));
+  return actions;
 }
 
-function listRelationships(bucket: TenantBucket): Body[] {
-  const rels = listCategory(bucket, "relationship", 400).map(bodyRel);
-  rels.sort((a, b) => String(b.last_seen || "").localeCompare(String(a.last_seen || "")));
-  return rels;
-}
-
-function persistRelationship(bucket: TenantBucket, rel: Body): Body {
+async function persistRelationship(tenant: string, rel: Body): Promise<Body> {
   const addr = String(rel.wallet_address || "").trim().toLowerCase();
   if (!addr) throw new Error("relationship.wallet_address required");
   const stored = bodyRel({ ...rel, wallet_address: addr });
-  setEntity(bucket, "relationship", addr, stored);
-  writeEvent(bucket, {
+  await putRel(tenant, stored);
+  await appendEvent(tenant, {
     acted: [`relationship ${addr} purchases=${stored.total_purchases ?? stored.total_loans} last=${stored.last_seen}`],
     extra: { wallet: addr, total_purchases: stored.total_purchases ?? stored.total_loans },
     ts: stored.last_seen,
   });
-  bucket.state.last_relationship = { wallet: addr, total_purchases: stored.total_purchases ?? stored.total_loans };
+  await patchState(tenant, "last_relationship", {
+    wallet: addr,
+    total_purchases: stored.total_purchases ?? stored.total_loans,
+  });
   return stored;
 }
 
-function persistAction(bucket: TenantBucket, row: Body, acted: string) {
-  setEntity(bucket, "action", String(row.id), row);
-  writeEvent(bucket, {
+async function persistAction(tenant: string, row: Body, acted: string) {
+  await setEntity(tenant, "action", String(row.id), row);
+  await appendEvent(tenant, {
     acted: [acted],
     evaluated: { decision: row.decision, riskScore: row.riskScore },
     extra: { id: row.id, recipient: row.recipient, outcome: row.outcome },
     ts: row.at,
   });
-  rebuildWarm(bucket, listActions(bucket));
-  bucket.state.last_decision = { id: row.id, decision: row.decision };
+  const actions = await listActions(tenant);
+  await rebuildWarm(tenant, actions);
+  await patchState(tenant, "last_decision", { id: row.id, decision: row.decision });
 }
 
-function wipe(bucket: TenantBucket) {
-  const cats = ["action", "counterparty", "agent", "relationship", "loan", "collateral", "quote", "purchase"];
-  for (const c of cats) bucket.entities[c] = {};
-  bucket.events = [];
-  bucket.state = {};
-  bucket.references = {};
-}
-
-function health(bucket: TenantBucket, tenant: string) {
-  const actions = listCategory(bucket, "action", 400);
-  const counterparties = listCategory(bucket, "counterparty", 400);
-  const relationships = listCategory(bucket, "relationship", 400);
+async function health(tenant: string) {
+  const store = await pingStore();
+  const actions = await listCategory(tenant, "action", 400);
+  const counterparties = await listCategory(tenant, "counterparty", 400);
+  const relationships = await listRels(tenant);
+  const events = await readEvents(tenant, 20);
   return {
-    engine: "sibyl-memory-node",
+    engine: store.backend === "kv" ? "sibyl-memory-node" : "sibyl-memory-node",
     db: persistLabel(),
     tenant,
-    tier: "node",
+    tier: store.backend,
     actionCount: actions.length,
     counterpartyCount: counterparties.length,
     relationshipCount: relationships.length,
-    recentEvents: bucket.events.length,
-    lastEvent: bucket.events[0] || null,
-    freeTier: { mode: "node" },
+    recentEvents: events.length,
+    lastEvent: events[0] || null,
+    freeTier: { mode: "node", persistence: store.backend === "kv" ? "redis-no-ttl" : "file" },
     loadBearing: true,
+    store: store.backend,
   };
 }
 
 export async function handleSibylMessage(msg: Msg) {
   const op = msg.op;
   const tenant = String(msg.tenant || process.env.SIBYL_TENANT || "trace-alex");
-  const root = await loadRoot();
-  if (!root.tenants[tenant]) root.tenants[tenant] = emptyBucket();
-  const bucket = root.tenants[tenant];
-  let dirty = false;
-  const mark = () => {
-    dirty = true;
-  };
-  const done = async (payload: Record<string, unknown>) => {
-    if (dirty) await saveRoot(root);
-    return payload;
-  };
 
-  if (op === "health") return done({ ok: true, health: health(bucket, tenant) });
+  if (op === "health") {
+    await pingStore();
+    return { ok: true, health: await health(tenant) };
+  }
 
   if (op === "list") {
-    let actions = listActions(bucket);
+    let actions = await listActions(tenant);
     if (!actions.length && Array.isArray(msg.seed)) {
-      mark();
-      for (const row of msg.seed as Body[]) setEntity(bucket, "action", String(row.id), row);
-      rebuildWarm(bucket, listActions(bucket));
-      bucket.state.seeded = { ok: true, count: (msg.seed as Body[]).length };
-      bucket.references.policy = {
+      for (const row of msg.seed as Body[]) await setEntity(tenant, "action", String(row.id), row);
+      await rebuildWarm(tenant, await listActions(tenant));
+      await patchState(tenant, "seeded", { ok: true, count: (msg.seed as Body[]).length });
+      await setReference(tenant, "policy", {
         proceed: "<0.30",
         flag: "0.30-0.60",
         hold: ">0.60",
         note: "Code maps RISK_SCORE. Alex cannot change the decision.",
-      };
-      writeEvent(bucket, { acted: ["seeded treasury operating history into Sibyl Memory"] });
-      actions = listActions(bucket);
+      });
+      await appendEvent(tenant, { acted: ["seeded treasury operating history into Sibyl Memory"] });
+      actions = await listActions(tenant);
     }
-    return done({ ok: true, actions, health: health(bucket, tenant) });
+    return { ok: true, actions, health: await health(tenant) };
   }
 
   if (op === "append") {
-    mark();
     const row = msg.row as Body;
-    persistAction(
-      bucket,
+    await persistAction(
+      tenant,
       row,
       `${row.decision} ${row.action} ${row.amount} ${row.token} -> ${row.counterpartyLabel}`,
     );
-    return done({ ok: true, row, health: health(bucket, tenant) });
+    return { ok: true, row, health: await health(tenant) };
   }
 
   if (op === "update") {
     const actionId = String(msg.id);
-    const current = getEntity(bucket, "action", actionId);
-    if (!current) return done({ ok: true, row: null });
-    mark();
+    const current = await getEntity(tenant, "action", actionId);
+    if (!current) return { ok: true, row: null };
     const updated: Body = { ...current, ...((msg.patch as Body) || {}), id: actionId };
-    persistAction(bucket, updated, `resolve ${updated.id} -> ${updated.outcome} override=${updated.userOverride}`);
-    return done({ ok: true, row: updated, health: health(bucket, tenant) });
+    await persistAction(
+      tenant,
+      updated,
+      `resolve ${updated.id} -> ${updated.outcome} override=${updated.userOverride}`,
+    );
+    return { ok: true, row: updated, health: await health(tenant) };
   }
 
   if (op === "get") {
-    const entity = getEntity(bucket, String(msg.category), String(msg.name));
-    return done({ ok: true, entity });
+    const entity = await getEntity(tenant, String(msg.category), String(msg.name));
+    return { ok: true, entity };
   }
 
   if (op === "list_relationships") {
-    return done({ ok: true, relationships: listRelationships(bucket), health: health(bucket, tenant) });
+    const rels = (await listRels(tenant)).map(bodyRel);
+    rels.sort((a, b) => String(b.last_seen || "").localeCompare(String(a.last_seen || "")));
+    return { ok: true, relationships: rels, health: await health(tenant) };
   }
 
   if (op === "get_relationship") {
     const addr = String(msg.wallet || "").trim().toLowerCase();
-    const row = getEntity(bucket, "relationship", addr);
-    return done({
+    const row = await getRel(tenant, addr);
+    return {
       ok: true,
       relationship: row ? bodyRel(row) : null,
-      health: health(bucket, tenant),
-    });
+      health: await health(tenant),
+    };
   }
 
   if (op === "upsert_relationship") {
-    mark();
-    const rel = persistRelationship(bucket, msg.relationship as Body);
-    return done({ ok: true, relationship: rel, health: health(bucket, tenant) });
+    const rel = await persistRelationship(tenant, msg.relationship as Body);
+    return { ok: true, relationship: rel, health: await health(tenant) };
   }
 
   if (op === "replace_relationships") {
-    mark();
-    wipe(bucket);
+    await wipeTenant(tenant);
     const rows = (msg.relationships as Body[]) || [];
-    const stored = rows.map((rel) => persistRelationship(bucket, rel));
-    bucket.state.seeded = { ok: true, kind: "bnpl", count: stored.length };
-    bucket.references.bnpl_policy = {
+    for (const rel of rows) await persistRelationship(tenant, rel);
+    await patchState(tenant, "seeded", { ok: true, kind: "bnpl", count: rows.length });
+    await setReference(tenant, "bnpl_policy", {
       primary: "USER_RELATIONSHIP",
       secondary: "ONCHAIN_SIGNAL only when total_purchases == 0",
       note: "Code computes limit, installments, and decision. Alex cannot change the numbers.",
-    };
-    writeEvent(bucket, { acted: [`replaced Sibyl memory with ${stored.length} BNPL relationships`] });
-    return done({ ok: true, health: health(bucket, tenant), relationships: listRelationships(bucket) });
+    });
+    await appendEvent(tenant, { acted: [`replaced Sibyl memory with ${rows.length} BNPL relationships`] });
+    const rels = (await listRels(tenant)).map(bodyRel);
+    rels.sort((a, b) => String(b.last_seen || "").localeCompare(String(a.last_seen || "")));
+    return { ok: true, health: await health(tenant), relationships: rels };
   }
 
   if (op === "wipe") {
-    mark();
-    wipe(bucket);
-    return done({
+    await wipeTenant(tenant);
+    return {
       ok: true,
-      health: health(bucket, tenant),
+      health: await health(tenant),
       actions: [],
       counterparties: 0,
       relationships: [],
-    });
+    };
   }
 
   if (op === "replace") {
-    mark();
-    wipe(bucket);
+    await wipeTenant(tenant);
     const rows = (msg.actions as Body[]) || [];
-    for (const row of rows) setEntity(bucket, "action", String(row.id), row);
-    const rebuilt = listActions(bucket);
-    rebuildWarm(bucket, rebuilt);
-    bucket.state.seeded = { ok: true, count: rows.length };
-    bucket.references.policy = {
+    for (const row of rows) await setEntity(tenant, "action", String(row.id), row);
+    const rebuilt = await listActions(tenant);
+    await rebuildWarm(tenant, rebuilt);
+    await patchState(tenant, "seeded", { ok: true, count: rows.length });
+    await setReference(tenant, "policy", {
       proceed: "<0.30",
       flag: "0.30-0.60",
       hold: ">0.60",
       note: "Code maps RISK_SCORE. Alex cannot change the decision.",
-    };
-    writeEvent(bucket, { acted: [`replaced Sibyl memory with ${rows.length} seed actions`] });
-    return done({ ok: true, health: health(bucket, tenant), actions: rebuilt });
+    });
+    await appendEvent(tenant, { acted: [`replaced Sibyl memory with ${rows.length} seed actions`] });
+    return { ok: true, health: await health(tenant), actions: rebuilt };
   }
 
   return { ok: false, error: `unknown op ${op}` };

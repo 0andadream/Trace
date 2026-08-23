@@ -40,13 +40,8 @@ export async function getAgentStatus(): Promise<AgentStatus> {
   const snap = await loadSolvencySnapshot(exposure);
   const activePlans = relationships.reduce((n, r) => n + (r.active_count || 0), 0);
   const book = bookFromSnapshot(snap, activePlans);
-  let sibyl_load_bearing = false;
-  try {
-    const health = await sibylHealth();
-    sibyl_load_bearing = Boolean(health.loadBearing);
-  } catch {
-    sibyl_load_bearing = false;
-  }
+  const health = await sibylHealth();
+  const sibyl_load_bearing = Boolean(health.loadBearing);
   let block: string | undefined;
   try {
     const rpc = process.env.BASE_RPC_URL || process.env.SEPOLIA_RPC_URL || "https://sepolia.base.org";

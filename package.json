@@ -12,7 +12,8 @@
     "sibyl:health": ".venv/bin/python sibyl/bridge.py <<< '{\"op\":\"health\"}'",
     "wallet:create": "npx tsx scripts/create-wallet.ts",
     "memory:seed": "npx tsx scripts/seed-memory.ts",
-    "memory:reset": "npx tsx scripts/reset-memory-empty.ts"
+    "memory:reset": "npx tsx scripts/reset-memory-empty.ts",
+    "memory:export": "npx tsx scripts/export-memory.ts"
   },
   "engines": {
     "node": "20.x"
