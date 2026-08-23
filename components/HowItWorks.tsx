@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { PhoneFrame } from "@/components/PhoneFrame";
 import { TraceArc } from "@/components/TraceArc";
 
 const STEPS = [
@@ -173,7 +174,7 @@ Limit: $300 (3/3 on-time payments)`}
             <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">Your next limit</p>
             <p
               key={nextLimit}
-              className={`mt-1 text-4xl font-semibold tabular-nums tracking-tight ${
+              className={`mt-1 text-3xl font-semibold tabular-nums tracking-tight ${
                 nextUp ? "text-emerald-800" : "text-red-800"
               }`}
             >
@@ -189,17 +190,22 @@ Limit: $300 (3/3 on-time payments)`}
   );
 }
 
-function ExampleFrame({ children }: { children: React.ReactNode }) {
+function PhoneExample({ children }: { children: React.ReactNode }) {
   return (
-    <aside className="glass-panel standing-hero p-5 md:p-7">
-      <div className="mb-5 flex items-center justify-between">
-        <span className="rounded-full bg-black/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-500">
-          Example
-        </span>
-        <span className="text-[11px] text-neutral-400">Preview</span>
+    <PhoneFrame className="w-full max-w-[19.75rem]">
+      <div className="flex h-full flex-col bg-[#F9F8FB]">
+        <div className="flex items-center justify-between px-4 pb-2 pt-11">
+          <span className="rounded-full bg-black/5 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wide text-neutral-500">
+            Example
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#7828E8] px-2 py-0.5 text-[8px] font-semibold text-white">
+            <span className="h-1 w-1 rounded-full bg-white" aria-hidden />
+            Testnet
+          </span>
+        </div>
+        <div className="min-h-0 flex-1 overflow-hidden px-3.5 pb-8">{children}</div>
       </div>
-      {children}
-    </aside>
+    </PhoneFrame>
   );
 }
 
@@ -219,7 +225,7 @@ function StepCopy({
       type="button"
       onClick={() => onSelect(n)}
       aria-pressed={on}
-      className={`w-full rounded-2xl p-5 text-left transition-[opacity,background-color] duration-[280ms] ease-out ${
+      className={`w-full rounded-2xl p-5 text-left transition-[opacity,background-color] duration-[420ms] ease-out ${
         on ? "bg-black/[0.03]" : "opacity-40 hover:opacity-70"
       }`}
     >
@@ -277,19 +283,21 @@ export function HowItWorks() {
   }
 
   const panel = (
-    <ExampleFrame>
-      <div className="relative">
+    <PhoneExample>
+      <div className="relative h-full">
         {([1, 2, 3] as const).map((n) => (
           <div
             key={n}
-            className={`how-visual ${step === n ? "how-visual-on relative" : "how-visual-off absolute inset-x-0 top-0"}`}
+            className={`how-visual absolute inset-0 overflow-y-auto pr-0.5 ${
+              step === n ? "how-visual-on" : "how-visual-off"
+            }`}
             aria-hidden={step !== n}
           >
             <StepVisual step={n} visitor={visitor} setVisitor={setVisitor} mark={mark} setMark={setMark} />
           </div>
         ))}
       </div>
-    </ExampleFrame>
+    </PhoneExample>
   );
 
   return (
@@ -303,9 +311,11 @@ export function HowItWorks() {
           return (
             <li key={s.n} className="space-y-4">
               <StepCopy s={s} n={n} on onSelect={goTo} />
-              <ExampleFrame>
-                <StepVisual step={n} visitor={visitor} setVisitor={setVisitor} mark={mark} setMark={setMark} />
-              </ExampleFrame>
+              <PhoneExample>
+                <div className="h-full overflow-y-auto">
+                  <StepVisual step={n} visitor={visitor} setVisitor={setVisitor} mark={mark} setMark={setMark} />
+                </div>
+              </PhoneExample>
             </li>
           );
         })}
@@ -329,7 +339,7 @@ export function HowItWorks() {
             );
           })}
         </ol>
-        <div className="sticky top-28 self-start">{panel}</div>
+        <div className="sticky top-28 self-start pt-2">{panel}</div>
       </div>
     </section>
   );

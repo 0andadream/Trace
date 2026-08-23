@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
+import { HeroPhone } from "@/components/HeroPhone";
 import { HowItWorks } from "@/components/HowItWorks";
 import { getAgentStatus, grokConfigured, payoutIsLive } from "@/lib/bnpl/status";
 import { formatAmount, shortAddress } from "@/lib/format";
@@ -147,46 +148,20 @@ export default async function HomePage() {
           ) : null}
         </div>
 
-        <div className="relative mx-auto w-full max-w-md pb-28 lg:max-w-none lg:pb-24">
-          <div className="flex aspect-[4/5] items-center justify-center overflow-hidden rounded-[2.25rem] bg-[#0A0219] px-8 shadow-[0_28px_80px_rgba(15,15,30,0.16)] sm:px-12">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.jpg" alt="Trace" className="h-auto w-full max-h-[70%] object-contain" />
-          </div>
-          <div className="absolute -bottom-2 left-4 right-6 z-10 sm:left-[-1.25rem] sm:right-10">
-            <section className="glass-panel standing-hero p-6 sm:p-8" aria-label="What Alex can still spend">
-              <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-500">
-                What Alex can still spend
-              </p>
-              {status ? (
-                <>
-                  <p className="mt-3 text-4xl font-semibold tabular-nums tracking-tight text-neutral-900 sm:text-5xl">
-                    {formatUsd(status.deployable)}
-                  </p>
-                  <p className="mt-3 text-[14px] leading-6 text-neutral-600">
-                    After keeping a little cash ({formatUsd(status.reserve)}) so it is not emptied.
-                    {status.simulated_balance
-                      ? " We could not check Alex’s account just now, so this cash number is a stand-in."
-                      : ""}
-                    {status.execute ? "" : " Paying the shop is simulated on this testnet, the yes or no is still real."}{" "}
-                    {status.address ? (
-                      <>
-                        Alex’s account{" "}
-                        <span className="font-mono text-neutral-900">{shortAddress(status.address)}</span>.
-                      </>
-                    ) : (
-                      "Alex’s account is not shown here."
-                    )}
-                  </p>
-                </>
-              ) : (
-                <p className="mt-3 text-sm text-red-600">
-                  {/sibyl|redis|memory/i.test(statusError || "") ? "Sibyl unavailable. " : ""}
-                  {statusError}
-                </p>
-              )}
-            </section>
-          </div>
-        </div>
+        <HeroPhone
+          live={{
+            spendable: status?.spendable_usd ?? null,
+            owed: status?.outstanding_exposure ?? null,
+            purchases: status?.total_purchases ?? null,
+            people: status?.wallets_with_history ?? null,
+            deployable: status?.deployable ?? null,
+            reserve: status?.reserve ?? null,
+            address: status?.address ?? null,
+            execute: Boolean(status?.execute),
+            simulated: Boolean(status?.simulated_balance),
+            error: statusError,
+          }}
+        />
       </section>
 
       <HowItWorks />
