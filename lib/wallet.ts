@@ -1,7 +1,7 @@
 import { createPublicClient, formatEther, formatUnits, http, isAddress, type Address, type Hex } from "viem";
 import { privateKeyToAccount, type PrivateKeyAccount } from "viem/accounts";
 import { baseSepolia } from "viem/chains";
-import { readAgentWalletFile } from "@/lib/agent-wallet-file";
+import agentWallet from "@/config/agent-wallet.json";
 
 const ERC20_BALANCE = [
   {
@@ -38,9 +38,9 @@ export function getAgentAddress(): Address {
   try {
     return getAgentAccount().address;
   } catch {
-    const file = readAgentWalletFile()?.address?.trim();
     const envAddr = process.env.AGENT_ADDRESS?.trim();
-    const raw = file || envAddr || "";
+    const published = typeof agentWallet.address === "string" ? agentWallet.address.trim() : "";
+    const raw = envAddr || published;
     if (raw && isAddress(raw, { strict: false })) return raw as Address;
     throw new Error(
       "Agent address is missing. Set AGENT_PRIVATE_KEY, AGENT_ADDRESS, or config/agent-wallet.json.",
