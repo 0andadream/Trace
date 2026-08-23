@@ -2,22 +2,25 @@
 
 import { useEffect, useRef, useState } from "react";
 import { PhoneFrame } from "@/components/PhoneFrame";
-import { TraceArc } from "@/components/TraceArc";
+import { buildHowStory } from "@/components/howStory";
 
 const STEPS = [
   {
     n: "01",
     title: "You ask to buy something",
+    line: ["You ask to", "buy something"],
     body: "You connect, that is your login. Alex checks if you have bought here before. First time? You start small. Been here? Alex looks at whether you paid it back on time. It does not pull a credit score from Equifax or anyone else.",
   },
   {
     n: "02",
     title: "Alex says yes or no, then sends you ETH",
+    line: ["Alex says yes", "or no, then sends you ETH"],
     body: "You see how much you can spend, how many payments, and when they are due. If yes, Alex sends ETH to your wallet (shown as USDC). If Alex is short, or you asked for too much, it says no.",
   },
   {
     n: "03",
     title: "You pay Alex back in parts",
+    line: ["You pay Alex", "back in parts"],
     body: "Each payment is on time, late, or missed. That is what the next deal is based on. Pay on time and the next offer can get better. Miss a payment and it gets harder, fast.",
   },
 ] as const;
@@ -190,9 +193,15 @@ Limit: $300 (3/3 on-time payments)`}
   );
 }
 
-function PhoneExample({ children }: { children: React.ReactNode }) {
+function PhoneScreen({
+  children,
+  layers,
+}: {
+  children?: React.ReactNode;
+  layers?: React.ReactNode;
+}) {
   return (
-    <PhoneFrame className="w-full max-w-[19.75rem]">
+    <PhoneFrame className="w-full">
       <div className="flex h-full flex-col bg-[#F9F8FB]">
         <div className="flex items-center justify-between px-4 pb-2 pt-11">
           <span className="rounded-full bg-black/5 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wide text-neutral-500">
@@ -203,143 +212,122 @@ function PhoneExample({ children }: { children: React.ReactNode }) {
             Testnet
           </span>
         </div>
-        <div className="min-h-0 flex-1 overflow-hidden px-3.5 pb-8">{children}</div>
+        <div className="relative min-h-0 flex-1 overflow-hidden px-3.5 pb-8">
+          {layers ?? <div className="h-full overflow-y-auto">{children}</div>}
+        </div>
       </div>
     </PhoneFrame>
   );
 }
 
-function StepCopy({
-  s,
-  n,
-  on,
-  onSelect,
-}: {
-  s: (typeof STEPS)[number];
-  n: StepN;
-  on: boolean;
-  onSelect: (n: StepN) => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={() => onSelect(n)}
-      aria-pressed={on}
-      className={`w-full rounded-2xl p-5 text-left transition-[opacity,background-color] duration-[420ms] ease-out ${
-        on ? "bg-black/[0.03]" : "opacity-40 hover:opacity-70"
-      }`}
-    >
-      <p className="text-[11px] font-semibold text-[#7828E8]">{s.n}</p>
-      <h3 className="mt-2 text-xl font-semibold tracking-tight text-neutral-900">{s.title}</h3>
-      <p className="mt-3 text-[16px] leading-7 text-neutral-600">{s.body}</p>
-    </button>
-  );
-}
-
 export function HowItWorks() {
-  const [step, setStep] = useState<StepN>(1);
+  const rootRef = useRef<HTMLElement | null>(null);
   const [visitor, setVisitor] = useState<Visitor>("first");
   const [mark, setMark] = useState<PayMark>("on_time");
-  const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
-  const ticking = useRef(false);
 
   useEffect(() => {
-    const desktop = window.matchMedia("(min-width: 1024px)");
-    const pick = () => {
-      if (!desktop.matches) return;
-      const trigger = window.innerHeight * 0.38;
-      let best: StepN = 1;
-      let bestDist = Infinity;
-      itemRefs.current.forEach((el, i) => {
-        if (!el) return;
-        const dist = Math.abs(el.getBoundingClientRect().top - trigger);
-        if (dist < bestDist) {
-          bestDist = dist;
-          best = (i + 1) as StepN;
-        }
-      });
-      setStep((cur) => (cur === best ? cur : best));
+    const el = rootRef.current;
+    if (!el) return;
+    let revert = buildHowStory(el);
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const rm = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const rebuild = () => {
+      revert();
+      revert = buildHowStory(el);
     };
-    const onScroll = () => {
-      if (ticking.current) return;
-      ticking.current = true;
-      requestAnimationFrame(() => {
-        ticking.current = false;
-        pick();
-      });
-    };
-    pick();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    desktop.addEventListener("change", pick);
+    mq.addEventListener("change", rebuild);
+    rm.addEventListener("change", rebuild);
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      desktop.removeEventListener("change", pick);
+      mq.removeEventListener("change", rebuild);
+      rm.removeEventListener("change", rebuild);
+      revert();
     };
   }, []);
 
-  function goTo(n: StepN) {
-    setStep(n);
-    itemRefs.current[n - 1]?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }
-
-  const panel = (
-    <PhoneExample>
-      <div className="relative h-full">
-        {([1, 2, 3] as const).map((n) => (
-          <div
-            key={n}
-            className={`how-visual absolute inset-0 overflow-y-auto pr-0.5 ${
-              step === n ? "how-visual-on" : "how-visual-off"
-            }`}
-            aria-hidden={step !== n}
-          >
-            <StepVisual step={n} visitor={visitor} setVisitor={setVisitor} mark={mark} setMark={setMark} />
-          </div>
-        ))}
-      </div>
-    </PhoneExample>
-  );
+  const visuals = {
+    visitor,
+    setVisitor,
+    mark,
+    setMark,
+  };
 
   return (
-    <section id="how-it-works" className="mx-auto mt-24 max-w-5xl scroll-mt-28">
-      <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">How it works</h2>
-      <TraceArc className="mt-3 w-40" />
+    <section
+      id="how-it-works"
+      ref={rootRef}
+      className="how-reveal mt-24 scroll-mt-28"
+    >
+      <h2 className="sr-only">How it works</h2>
 
-      <ol className="mt-10 space-y-12 lg:hidden">
-        {STEPS.map((s, i) => {
-          const n = (i + 1) as StepN;
-          return (
-            <li key={s.n} className="space-y-4">
-              <StepCopy s={s} n={n} on onSelect={goTo} />
-              <PhoneExample>
-                <div className="h-full overflow-y-auto">
-                  <StepVisual step={n} visitor={visitor} setVisitor={setVisitor} mark={mark} setMark={setMark} />
-                </div>
-              </PhoneExample>
-            </li>
-          );
-        })}
-      </ol>
+      <div className="how-title-wrap">
+        <p className="how-title">
+          <span className="how-line how-line-1">
+            How it
+            <span className="how-slot" aria-hidden />
+          </span>
+          <span className="how-line how-line-2">works</span>
+        </p>
+      </div>
 
-      <div className="mt-10 hidden lg:grid lg:grid-cols-2 lg:items-start lg:gap-14">
-        <ol>
-          {STEPS.map((s, i) => {
-            const n = (i + 1) as StepN;
-            return (
-              <li
-                key={s.n}
-                ref={(el) => {
-                  itemRefs.current[i] = el;
-                }}
-                data-step={n}
-                className={n < 3 ? "min-h-[90vh]" : "min-h-[70vh] pb-16"}
-              >
-                <StepCopy s={s} n={n} on={step === n} onSelect={goTo} />
-              </li>
-            );
-          })}
-        </ol>
-        <div className="sticky top-28 self-start pt-2">{panel}</div>
+      <div className="how-mask">
+        <div className="how-mask-content">
+          <div className="how-mask-copy">
+            <p className="how-kicker">How it works</p>
+            <p className="how-name">Alex</p>
+            <p className="how-sub">
+              You connect. Alex remembers if you paid on time.
+              <br />
+              The next deal is based on that, not a credit file.
+            </p>
+          </div>
+
+          <div className="how-mask-phone">
+            <div className="how-phone-lean">
+              <div className="how-phone-float">
+                <PhoneScreen
+                  layers={
+                    <div className="how-screen relative h-full">
+                      {([1, 2, 3] as const).map((n) => (
+                        <div key={n} className="how-screen-layer" data-screen={n}>
+                          <StepVisual step={n} {...visuals} />
+                        </div>
+                      ))}
+                      <div className="how-screen-dim" aria-hidden />
+                    </div>
+                  }
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="how-copy-lines">
+            <p>
+              <span className="how-t">{STEPS[0].line[0]}</span>
+              <span className="how-t">{STEPS[0].line[1]}</span>
+              <span className="how-note">{STEPS[0].body}</span>
+            </p>
+            <div className="how-stack-phone">
+              <PhoneScreen>
+                <StepVisual step={2} {...visuals} />
+              </PhoneScreen>
+            </div>
+            <p className="how-step-2">
+              <span className="how-t">{STEPS[1].line[0]}</span>
+              <span className="how-t">{STEPS[1].line[1]}</span>
+              <span className="how-note">{STEPS[1].body}</span>
+            </p>
+            <div className="how-stack-phone">
+              <PhoneScreen>
+                <StepVisual step={3} {...visuals} />
+              </PhoneScreen>
+            </div>
+            <p>
+              <span className="how-t">{STEPS[2].line[0]}</span>
+              <span className="how-t">{STEPS[2].line[1]}</span>
+              <span className="how-note">{STEPS[2].body}</span>
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   );
