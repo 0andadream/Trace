@@ -94,14 +94,15 @@ export default async function HomePage() {
   return (
     <AppShell>
       <div className="mb-6 flex justify-center">
-        <span className="inline-flex items-center rounded-full bg-[#17171c] px-5 py-2.5 text-sm font-medium text-white shadow-sm">
+        <span className="inline-flex items-center gap-2 rounded-full bg-[#17171c] px-5 py-2.5 text-sm font-medium text-white shadow-sm">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#7828E8]" aria-hidden />
           Built on Sibyl
         </span>
       </div>
       <div className="relative">
         <div className="arch-seam pointer-events-none absolute inset-x-0 -top-10 z-[1] h-16" aria-hidden />
       <section className="relative overflow-hidden rounded-t-[min(50%,12rem)] bg-[#0A0219] lg:grid lg:grid-cols-2 lg:items-center">
-        <div className="flex items-center justify-center px-8 pt-10 lg:px-12 lg:py-16">
+        <div className="flex items-center justify-center px-8 pt-12 lg:px-14 lg:py-20">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.jpg"
@@ -109,11 +110,15 @@ export default async function HomePage() {
             className="h-auto w-full max-h-[min(52vh,28rem)] object-contain"
           />
         </div>
-        <div className="px-8 pb-14 pt-2 lg:px-12 lg:py-16">
-          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#C4B5A0]">
+        <div className="px-8 pb-16 pt-2 lg:px-14 lg:py-20">
+          <p className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-[#C4B5A0]">
+            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden className="text-[#C4B5A0]">
+              <circle cx="3.2" cy="5" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.2" />
+              <circle cx="6.8" cy="5" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.2" />
+            </svg>
             Base Sepolia · Reputation weighted
           </p>
-          <h1 className="mt-5 text-[1.85rem] font-medium leading-[1.25] tracking-tight text-[#F4EFE4] sm:text-[2.15rem]">
+          <h1 className="mt-6 text-[2rem] font-medium leading-[1.2] tracking-tight text-[#F4EFE4] sm:text-[2.45rem]">
             Pay on time, and the next deal gets easier.
           </h1>
           <p className="mt-5 max-w-md text-[16px] leading-7 text-[#9B96AB]">
@@ -156,14 +161,14 @@ export default async function HomePage() {
       </section>
       </div>
 
-      <article className="mx-auto mt-16 max-w-3xl">
-        <section className="glass-panel p-8 md:p-10" aria-label="What Alex can still spend">
+      <article className="mx-auto mt-20 max-w-3xl">
+        <section className="glass-panel standing-hero p-8 md:p-12" aria-label="What Alex can still spend">
           <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-500">
             What Alex can still spend
           </p>
           {status ? (
             <>
-              <p className="mt-3 text-5xl font-semibold tabular-nums tracking-tight text-neutral-900 sm:text-6xl">
+              <p className="mt-4 text-5xl font-semibold tabular-nums tracking-tight text-neutral-900 sm:text-7xl">
                 {formatUsd(status.deployable)}
               </p>
               <p className="mt-4 text-[15px] leading-7 text-neutral-600">
@@ -193,7 +198,7 @@ export default async function HomePage() {
 
       <HowItWorks />
 
-      <article className="mx-auto mt-16 max-w-3xl">
+      <article className="mx-auto mt-24 max-w-3xl">
         <section id="status" className="scroll-mt-28">
           <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">What is live, and what is not</h2>
           <p className="mt-3 text-[16px] leading-7 text-neutral-600">
@@ -211,11 +216,11 @@ export default async function HomePage() {
               <tbody>
                 {table.map((row) => (
                   <tr key={row.capability} className="border-t border-black/[0.08] align-middle">
-                    <td className="px-5 py-4 font-medium text-neutral-900">{row.capability}</td>
-                    <td className="px-5 py-4">
+                    <td className="px-6 py-5 font-medium text-neutral-900">{row.capability}</td>
+                    <td className="px-6 py-5">
                       <StatusPill live={row.status === "Live"} />
                     </td>
-                    <td className="px-5 py-4 leading-relaxed text-neutral-600">{row.detail}</td>
+                    <td className="px-6 py-5 leading-relaxed text-neutral-600">{row.detail}</td>
                   </tr>
                 ))}
               </tbody>
