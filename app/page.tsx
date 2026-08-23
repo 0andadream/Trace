@@ -109,7 +109,7 @@ export default async function HomePage() {
             </svg>
             Base Sepolia · Reputation weighted
           </p>
-          <h1 className="mt-4 text-[2.75rem] font-semibold leading-[1.05] tracking-tight text-[#0A0219] sm:text-7xl lg:text-[5.25rem]">
+          <h1 className="mt-4 text-[2.75rem] font-semibold uppercase leading-[1.05] tracking-tight text-[#0A0219] sm:text-7xl lg:text-[5.25rem]">
             Pay on time, and the next deal gets easier.
           </h1>
           <p className="mt-6 max-w-md text-[17px] leading-8 text-neutral-600">
