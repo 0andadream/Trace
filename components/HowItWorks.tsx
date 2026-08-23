@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TraceArc } from "@/components/TraceArc";
 
 const STEPS = [
@@ -65,7 +65,7 @@ function StepPanel({
   const nextUp = mark === "on_time";
 
   return (
-    <aside className="glass-panel lg:sticky lg:top-28 rounded-2xl p-5 md:p-6">
+    <aside className="glass-panel rounded-2xl p-5 md:p-6">
       <div className="mb-4 flex items-center justify-between">
         <span className="rounded-full bg-black/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-500">
           Example
@@ -201,21 +201,55 @@ export function HowItWorks() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [visitor, setVisitor] = useState<Visitor>("first");
   const [mark, setMark] = useState<PayMark>("on_time");
+  const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
+
+  useEffect(() => {
+    const nodes = itemRefs.current.filter((el): el is HTMLLIElement => Boolean(el));
+    if (!nodes.length) return;
+    const visible = new Map<number, number>();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const n = Number((entry.target as HTMLElement).dataset.step);
+          if (entry.isIntersecting) visible.set(n, entry.intersectionRatio);
+          else visible.delete(n);
+        }
+        const ranked = [...visible.entries()].sort((a, b) => b[1] - a[1] || a[0] - b[0]);
+        const next = ranked[0]?.[0];
+        if (next === 1 || next === 2 || next === 3) setStep(next);
+      },
+      { root: null, rootMargin: "-28% 0px -48% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] },
+    );
+    for (const node of nodes) observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  function goTo(n: 1 | 2 | 3) {
+    setStep(n);
+    itemRefs.current[n - 1]?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 
   return (
     <section id="how-it-works" className="mx-auto mt-16 max-w-5xl scroll-mt-28">
       <h2 className="text-xl font-semibold tracking-tight text-neutral-900">How it works</h2>
       <TraceArc className="mt-3 w-40" />
       <div className="mt-8 grid items-start gap-8 lg:grid-cols-2">
-        <ol className="space-y-3">
+        <ol>
           {STEPS.map((s, i) => {
             const n = (i + 1) as 1 | 2 | 3;
             const on = step === n;
             return (
-              <li key={s.n}>
+              <li
+                key={s.n}
+                ref={(el) => {
+                  itemRefs.current[i] = el;
+                }}
+                data-step={n}
+                className={n < 3 ? "min-h-[70vh] lg:min-h-[75vh]" : "pb-8"}
+              >
                 <button
                   type="button"
-                  onClick={() => setStep(n)}
+                  onClick={() => goTo(n)}
                   aria-pressed={on}
                   className={`w-full rounded-2xl p-4 text-left transition ${
                     on ? "bg-black/[0.03] ring-1 ring-black/5" : "hover:bg-black/[0.02]"
@@ -229,13 +263,15 @@ export function HowItWorks() {
             );
           })}
         </ol>
-        <StepPanel
-          step={step}
-          visitor={visitor}
-          setVisitor={setVisitor}
-          mark={mark}
-          setMark={setMark}
-        />
+        <div className="order-first lg:order-last sticky top-28 z-10">
+          <StepPanel
+            step={step}
+            visitor={visitor}
+            setVisitor={setVisitor}
+            mark={mark}
+            setMark={setMark}
+          />
+        </div>
       </div>
     </section>
   );

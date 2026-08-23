@@ -84,9 +84,10 @@ export default async function HomePage() {
         : "You still get a yes or no. The reason is a short stock sentence, not a chat.",
     },
     {
-      capability: "Real money",
+      capability: "Mainnet",
       status: "Not live",
-      detail: "This is pretend money. You cannot lose real dollars here.",
+      detail:
+        "This site is Base Sepolia. On Base mainnet the same rules would apply, but the ETH Alex sends and the ETH you repay would be real. A missed payment would still sit in Alex’s notes. Mainnet is not turned on here, so you cannot lose real dollars on this site.",
     },
   ];
 
