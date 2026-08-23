@@ -94,13 +94,15 @@ export default async function HomePage() {
 
   return (
     <AppShell>
-      <section className="grid items-center gap-14 py-6 lg:min-h-[78vh] lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:py-10">
+      <div className="flex justify-center pt-1 pb-6 lg:pt-2 lg:pb-4">
+        <span className="inline-flex items-center gap-2 rounded-full bg-[#17171c] px-4 py-2 text-[13px] font-medium text-white">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#7828E8]" aria-hidden />
+          Built on Sibyl
+        </span>
+      </div>
+      <section className="grid items-center gap-14 py-2 lg:min-h-[72vh] lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:py-6">
         <div className="max-w-xl">
-          <span className="inline-flex items-center gap-2 rounded-full bg-[#17171c] px-4 py-2 text-[13px] font-medium text-white">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#7828E8]" aria-hidden />
-            Built on Sibyl
-          </span>
-          <p className="mt-8 inline-flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.18em] text-neutral-500">
+          <p className="inline-flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.18em] text-neutral-500">
             <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden>
               <circle cx="3.2" cy="5" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.2" />
               <circle cx="6.8" cy="5" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.2" />
