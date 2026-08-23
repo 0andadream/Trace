@@ -93,108 +93,101 @@ export default async function HomePage() {
 
   return (
     <AppShell>
-      <div className="mb-6 flex justify-center">
-        <span className="inline-flex items-center gap-2 rounded-full bg-[#17171c] px-5 py-2.5 text-sm font-medium text-white shadow-sm">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#7828E8]" aria-hidden />
-          Built on Sibyl
-        </span>
-      </div>
-      <div className="relative">
-        <div className="arch-seam pointer-events-none absolute inset-x-0 -top-10 z-[1] h-16" aria-hidden />
-      <section className="relative overflow-hidden rounded-t-[min(50%,12rem)] bg-[#0A0219] lg:grid lg:grid-cols-2 lg:items-center">
-        <div className="flex items-center justify-center px-8 pt-12 lg:px-14 lg:py-20">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo.jpg"
-            alt="Trace"
-            className="h-auto w-full max-h-[min(52vh,28rem)] object-contain"
-          />
-        </div>
-        <div className="px-8 pb-16 pt-2 lg:px-14 lg:py-20">
-          <p className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-[#C4B5A0]">
-            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden className="text-[#C4B5A0]">
+      <section className="grid items-center gap-14 py-6 lg:min-h-[78vh] lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:py-10">
+        <div className="max-w-xl">
+          <span className="inline-flex items-center gap-2 rounded-full bg-[#17171c] px-4 py-2 text-[13px] font-medium text-white">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#7828E8]" aria-hidden />
+            Built on Sibyl
+          </span>
+          <p className="mt-8 inline-flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.18em] text-neutral-500">
+            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden>
               <circle cx="3.2" cy="5" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.2" />
               <circle cx="6.8" cy="5" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.2" />
             </svg>
             Base Sepolia · Reputation weighted
           </p>
-          <h1 className="mt-6 text-[2rem] font-medium leading-[1.2] tracking-tight text-[#F4EFE4] sm:text-[2.45rem]">
+          <h1 className="mt-5 text-[2.4rem] font-semibold leading-[1.08] tracking-tight text-neutral-900 sm:text-6xl">
             Pay on time, and the next deal gets easier.
           </h1>
-          <p className="mt-5 max-w-md text-[16px] leading-7 text-[#9B96AB]">
+          <p className="mt-6 max-w-md text-[17px] leading-8 text-neutral-600">
             Alex sends you ETH today (shown as USDC). You pay Alex back in a few parts. Pay on time
             and the next offer gets bigger. Miss a payment and it gets harder.
           </p>
-          <p className="mt-3 max-w-md text-[13px] leading-relaxed text-[#7A7588]">
+          <p className="mt-4 max-w-md text-[15px] leading-7 text-neutral-500">
             New here? Alex has no history with you yet, so it starts cautious. A small first
             purchase, based only on your wallet&apos;s onchain activity.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-10 flex flex-wrap gap-3">
             <Link
               href="/buy"
-              className="inline-flex h-11 items-center rounded-full bg-[#7828E8] px-6 text-sm font-semibold text-white shadow-md hover:bg-[#6a1fd4]"
+              className="inline-flex h-12 items-center rounded-full bg-[#7828E8] px-7 text-sm font-semibold text-white shadow-[0_12px_32px_rgba(120,40,232,0.28)] hover:bg-[#6a1fd4]"
             >
               Try a purchase
             </Link>
             <a
               href="#how-it-works"
-              className="inline-flex h-11 items-center rounded-full border border-white/15 px-6 text-sm font-medium text-[#F4EFE4] hover:bg-white/5"
+              className="inline-flex h-12 items-center rounded-full border border-black/10 px-6 text-sm font-medium text-neutral-900 hover:bg-black/5"
             >
               How it works
             </a>
             <a
               href="#agent-status"
-              className="inline-flex h-11 items-center rounded-full border border-white/15 px-6 text-sm font-medium text-[#F4EFE4] hover:bg-white/5"
+              className="inline-flex h-12 items-center rounded-full border border-black/10 px-6 text-sm font-medium text-neutral-900 hover:bg-black/5"
             >
               See Alex’s cash
             </a>
           </div>
           {status ? (
-            <p className="mt-8 text-sm text-[#C4B5A0]">
+            <p className="mt-8 text-sm text-neutral-500">
               Alex can still spend {formatUsd(status.deployable)}
               {status.address ? ` · ${shortAddress(status.address)}` : ""}
             </p>
           ) : statusError ? (
-            <p className="mt-8 text-sm text-red-400">{statusError}</p>
+            <p className="mt-8 text-sm text-red-600">{statusError}</p>
           ) : null}
         </div>
-      </section>
-      </div>
 
-      <article className="mx-auto mt-20 max-w-3xl">
-        <section className="glass-panel standing-hero p-8 md:p-12" aria-label="What Alex can still spend">
-          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-500">
-            What Alex can still spend
-          </p>
-          {status ? (
-            <>
-              <p className="mt-4 text-5xl font-semibold tabular-nums tracking-tight text-neutral-900 sm:text-7xl">
-                {formatUsd(status.deployable)}
+        <div className="relative mx-auto w-full max-w-md pb-28 lg:max-w-none lg:pb-24">
+          <div className="flex aspect-[4/5] items-center justify-center overflow-hidden rounded-[2.25rem] bg-[#0A0219] px-8 shadow-[0_28px_80px_rgba(15,15,30,0.16)] sm:px-12">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.jpg" alt="Trace" className="h-auto w-full max-h-[70%] object-contain" />
+          </div>
+          <div className="absolute -bottom-2 left-4 right-6 z-10 sm:left-[-1.25rem] sm:right-10">
+            <section className="glass-panel standing-hero p-6 sm:p-8" aria-label="What Alex can still spend">
+              <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-500">
+                What Alex can still spend
               </p>
-              <p className="mt-4 text-[15px] leading-7 text-neutral-600">
-                After keeping a little cash ({formatUsd(status.reserve)}) so it is not emptied.
-                {status.simulated_balance
-                  ? " We could not check Alex’s account just now, so this cash number is a stand-in."
-                  : ""}
-                {status.execute ? "" : " Paying the shop is simulated on this testnet, the yes or no is still real."}{" "}
-                {status.address ? (
-                  <>
-                    Alex’s account{" "}
-                    <span className="font-mono text-neutral-900">{shortAddress(status.address)}</span>.
-                  </>
-                ) : (
-                  "Alex’s account is not shown here."
-                )}
-              </p>
-            </>
-          ) : (
-            <p className="mt-3 text-sm text-red-600">
-              {/sibyl|redis|memory/i.test(statusError || "") ? "Sibyl unavailable. " : ""}
-              {statusError}
-            </p>
-          )}
-        </section>
-      </article>
+              {status ? (
+                <>
+                  <p className="mt-3 text-4xl font-semibold tabular-nums tracking-tight text-neutral-900 sm:text-5xl">
+                    {formatUsd(status.deployable)}
+                  </p>
+                  <p className="mt-3 text-[14px] leading-6 text-neutral-600">
+                    After keeping a little cash ({formatUsd(status.reserve)}) so it is not emptied.
+                    {status.simulated_balance
+                      ? " We could not check Alex’s account just now, so this cash number is a stand-in."
+                      : ""}
+                    {status.execute ? "" : " Paying the shop is simulated on this testnet, the yes or no is still real."}{" "}
+                    {status.address ? (
+                      <>
+                        Alex’s account{" "}
+                        <span className="font-mono text-neutral-900">{shortAddress(status.address)}</span>.
+                      </>
+                    ) : (
+                      "Alex’s account is not shown here."
+                    )}
+                  </p>
+                </>
+              ) : (
+                <p className="mt-3 text-sm text-red-600">
+                  {/sibyl|redis|memory/i.test(statusError || "") ? "Sibyl unavailable. " : ""}
+                  {statusError}
+                </p>
+              )}
+            </section>
+          </div>
+        </div>
+      </section>
 
       <HowItWorks />
 
