@@ -85,29 +85,33 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="mx-auto w-full max-w-7xl px-4 pb-16 pt-28 sm:px-6">
         {!isLanding ? (
-          <div className="glass-panel mb-8 grid grid-cols-2 divide-y divide-[#E8E7EC] md:grid-cols-4 md:divide-x md:divide-y-0">
-            {(
-              [
-                ["Alex’s cash", status ? formatAmount(status.spendable_usd) : "—"],
-                ["Still owed", status ? formatAmount(status.outstanding_exposure) : "—"],
-                ["Purchases", status ? String(status.total_purchases) : "—"],
-                ["People on file", status ? String(status.wallets_with_history) : "—"],
-              ] as const
-            ).map(([label, value]) => (
-              <div key={label} className="flex flex-col justify-center gap-1.5 p-6 md:p-8">
-                <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">{label}</p>
-                <p className="text-3xl font-semibold tracking-tight text-neutral-900 md:text-4xl">{value}</p>
+          <div className="relative z-10">
+            <div className="glass-panel stats-float overflow-hidden">
+              <div className="grid grid-cols-2 divide-y divide-[#E8E7EC] md:grid-cols-4 md:divide-x md:divide-y-0">
+                {(
+                  [
+                    ["Alex’s cash", status ? formatAmount(status.spendable_usd) : "—"],
+                    ["Still owed", status ? formatAmount(status.outstanding_exposure) : "—"],
+                    ["Purchases", status ? String(status.total_purchases) : "—"],
+                    ["People on file", status ? String(status.wallets_with_history) : "—"],
+                  ] as const
+                ).map(([label, value]) => (
+                  <div key={label} className="flex flex-col justify-center gap-1.5 p-6 md:p-8">
+                    <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">{label}</p>
+                    <p className="text-3xl font-semibold tracking-tight text-neutral-900 md:text-4xl">{value}</p>
+                  </div>
+                ))}
               </div>
-            ))}
+              {status?.as_of ? (
+                <p className="border-t border-[#E8E7EC] px-6 py-3 text-[11px] text-neutral-400">
+                  as of {new Date(status.as_of).toLocaleString()}
+                  {status.block ? ` · block ${status.block}` : ""}
+                </p>
+              ) : null}
+            </div>
           </div>
         ) : null}
-        {!isLanding && status?.as_of ? (
-          <p className="-mt-4 mb-6 text-[11px] text-neutral-400">
-            as of {new Date(status.as_of).toLocaleString()}
-            {status.block ? ` · block ${status.block}` : ""}
-          </p>
-        ) : null}
-        {children}
+        <div className={!isLanding ? "relative z-20 -mt-4 pt-2 md:-mt-5" : undefined}>{children}</div>
       </div>
       <SiteFooter
         explorerHref={

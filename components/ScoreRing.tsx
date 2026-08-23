@@ -1,9 +1,12 @@
 export function ScoreRing({ score }: { score: number | null }) {
   const r = 56;
   const pct = score == null ? 0 : Math.max(0, Math.min(100, score));
+  const live = score != null;
 
   return (
-    <div className="relative inline-flex h-32 w-32 items-center justify-center">
+    <div
+      className={`score-object relative inline-flex h-32 w-32 items-center justify-center ${live ? "score-object-live" : ""}`}
+    >
       <svg className="h-32 w-32 -rotate-90 transform" viewBox="0 0 128 128" aria-hidden>
         <circle
           cx="64"

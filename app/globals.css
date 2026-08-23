@@ -87,8 +87,42 @@ html:has(.app-light) {
   box-shadow: 0 10px 32px rgba(15, 15, 30, 0.05);
 }
 
+.app-light .stats-float {
+  box-shadow: 0 12px 40px rgba(15, 15, 30, 0.05);
+}
+
 .app-light .standing-hero {
-  box-shadow: 0 22px 60px rgba(15, 15, 30, 0.08);
+  border-radius: 2rem;
+  box-shadow: 0 20px 60px rgba(15, 15, 30, 0.08);
+}
+
+.app-light .score-object {
+  border-radius: 9999px;
+  background: #fff;
+  box-shadow:
+    0 18px 40px rgba(120, 40, 232, 0.12),
+    0 6px 18px rgba(15, 15, 30, 0.06);
+}
+
+.app-light .score-object-live {
+  animation: score-arrive 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes score-arrive {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-light .score-object-live {
+    animation: none;
+  }
 }
 
 .app-light .field-light {

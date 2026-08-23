@@ -269,9 +269,9 @@ export function Desk() {
 
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
-      <section className="glass-panel standing-hero p-8 md:p-10">
+      <section className="glass-panel standing-hero p-8 md:p-12">
         <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Your standing</h2>
-        <div className="mt-8 flex flex-col gap-10 sm:flex-row sm:items-start">
+        <div className="mt-10 flex flex-col gap-10 sm:flex-row sm:items-start">
           <div className="flex shrink-0 flex-col items-center gap-3">
             <ScoreRing score={injected.connected ? score : null} />
             <span className={`rounded-full border px-5 py-1.5 text-sm font-medium shadow-sm ${tag.cls}`}>
