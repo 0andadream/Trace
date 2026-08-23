@@ -151,16 +151,21 @@ export async function handleSibylMessage(msg: Msg) {
   const root = await loadRoot();
   if (!root.tenants[tenant]) root.tenants[tenant] = emptyBucket();
   const bucket = root.tenants[tenant];
-  const save = async (payload: Record<string, unknown>) => {
-    await saveRoot(root);
+  let dirty = false;
+  const mark = () => {
+    dirty = true;
+  };
+  const done = async (payload: Record<string, unknown>) => {
+    if (dirty) await saveRoot(root);
     return payload;
   };
 
-  if (op === "health") return save({ ok: true, health: health(bucket, tenant) });
+  if (op === "health") return done({ ok: true, health: health(bucket, tenant) });
 
   if (op === "list") {
     let actions = listActions(bucket);
     if (!actions.length && Array.isArray(msg.seed)) {
+      mark();
       for (const row of msg.seed as Body[]) setEntity(bucket, "action", String(row.id), row);
       rebuildWarm(bucket, listActions(bucket));
       bucket.state.seeded = { ok: true, count: (msg.seed as Body[]).length };
@@ -173,41 +178,43 @@ export async function handleSibylMessage(msg: Msg) {
       writeEvent(bucket, { acted: ["seeded treasury operating history into Sibyl Memory"] });
       actions = listActions(bucket);
     }
-    return save({ ok: true, actions, health: health(bucket, tenant) });
+    return done({ ok: true, actions, health: health(bucket, tenant) });
   }
 
   if (op === "append") {
+    mark();
     const row = msg.row as Body;
     persistAction(
       bucket,
       row,
       `${row.decision} ${row.action} ${row.amount} ${row.token} -> ${row.counterpartyLabel}`,
     );
-    return save({ ok: true, row, health: health(bucket, tenant) });
+    return done({ ok: true, row, health: health(bucket, tenant) });
   }
 
   if (op === "update") {
     const actionId = String(msg.id);
     const current = getEntity(bucket, "action", actionId);
-    if (!current) return save({ ok: true, row: null });
+    if (!current) return done({ ok: true, row: null });
+    mark();
     const updated: Body = { ...current, ...((msg.patch as Body) || {}), id: actionId };
     persistAction(bucket, updated, `resolve ${updated.id} -> ${updated.outcome} override=${updated.userOverride}`);
-    return save({ ok: true, row: updated, health: health(bucket, tenant) });
+    return done({ ok: true, row: updated, health: health(bucket, tenant) });
   }
 
   if (op === "get") {
     const entity = getEntity(bucket, String(msg.category), String(msg.name));
-    return save({ ok: true, entity });
+    return done({ ok: true, entity });
   }
 
   if (op === "list_relationships") {
-    return save({ ok: true, relationships: listRelationships(bucket), health: health(bucket, tenant) });
+    return done({ ok: true, relationships: listRelationships(bucket), health: health(bucket, tenant) });
   }
 
   if (op === "get_relationship") {
     const addr = String(msg.wallet || "").trim().toLowerCase();
     const row = getEntity(bucket, "relationship", addr);
-    return save({
+    return done({
       ok: true,
       relationship: row ? bodyRel(row) : null,
       health: health(bucket, tenant),
@@ -215,11 +222,13 @@ export async function handleSibylMessage(msg: Msg) {
   }
 
   if (op === "upsert_relationship") {
+    mark();
     const rel = persistRelationship(bucket, msg.relationship as Body);
-    return save({ ok: true, relationship: rel, health: health(bucket, tenant) });
+    return done({ ok: true, relationship: rel, health: health(bucket, tenant) });
   }
 
   if (op === "replace_relationships") {
+    mark();
     wipe(bucket);
     const rows = (msg.relationships as Body[]) || [];
     const stored = rows.map((rel) => persistRelationship(bucket, rel));
@@ -230,12 +239,13 @@ export async function handleSibylMessage(msg: Msg) {
       note: "Code computes limit, installments, and decision. Alex cannot change the numbers.",
     };
     writeEvent(bucket, { acted: [`replaced Sibyl memory with ${stored.length} BNPL relationships`] });
-    return save({ ok: true, health: health(bucket, tenant), relationships: listRelationships(bucket) });
+    return done({ ok: true, health: health(bucket, tenant), relationships: listRelationships(bucket) });
   }
 
   if (op === "wipe") {
+    mark();
     wipe(bucket);
-    return save({
+    return done({
       ok: true,
       health: health(bucket, tenant),
       actions: [],
@@ -245,6 +255,7 @@ export async function handleSibylMessage(msg: Msg) {
   }
 
   if (op === "replace") {
+    mark();
     wipe(bucket);
     const rows = (msg.actions as Body[]) || [];
     for (const row of rows) setEntity(bucket, "action", String(row.id), row);
@@ -258,7 +269,7 @@ export async function handleSibylMessage(msg: Msg) {
       note: "Code maps RISK_SCORE. Alex cannot change the decision.",
     };
     writeEvent(bucket, { acted: [`replaced Sibyl memory with ${rows.length} seed actions`] });
-    return save({ ok: true, health: health(bucket, tenant), actions: rebuilt });
+    return done({ ok: true, health: health(bucket, tenant), actions: rebuilt });
   }
 
   return { ok: false, error: `unknown op ${op}` };

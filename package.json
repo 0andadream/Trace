@@ -19,9 +19,13 @@
   },
   "packageManager": "pnpm@10.34.5",
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "sharp"]
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp"
+    ]
   },
   "dependencies": {
+    "@upstash/redis": "^1.38.2",
     "next": "^15.4.6",
     "openai": "^5.12.2",
     "react": "^19.1.1",

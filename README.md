@@ -211,7 +211,13 @@ A single default is asymmetric: volume does not save you. That is why the penali
 
 ## Setup
 
-Python 3.10+ (3.12 recommended) and Node 20+ **on your laptop**. Vercel’s Node runtime cannot spawn `.venv/bin/python`. There the same Sibyl ops run in Node and persist to `/tmp` (and to Vercel KV / Upstash if `KV_REST_API_URL` + `KV_REST_API_TOKEN` are set, so purchases survive cold starts).
+Python 3.10+ (3.12 recommended) and Node 20+ **on your laptop**. Vercel’s Node runtime cannot spawn `.venv/bin/python`. There the same Sibyl ops run in Node. **Create a Redis store on the Vercel project** so every visitor shares one durable book:
+
+1. Vercel dashboard → the Trace project → **Storage** → **Create Database** → **Redis** (Upstash)
+2. Connect it to Production (and Preview if you want)
+3. Redeploy. Vercel injects `KV_REST_API_URL` / `KV_REST_API_TOKEN` (or the Upstash `UPSTASH_REDIS_REST_*` pair)
+
+Without that store, Vercel memory is `/tmp` and can reset on a cold start.
 
 ```bash
 cd Trace
