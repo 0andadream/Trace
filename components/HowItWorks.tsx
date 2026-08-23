@@ -203,16 +203,7 @@ function PhoneScreen({
   return (
     <PhoneFrame className="w-full">
       <div className="flex h-full flex-col bg-[#F9F8FB]">
-        <div className="flex items-center justify-between px-4 pb-2 pt-11">
-          <span className="rounded-full bg-black/5 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wide text-neutral-500">
-            Example
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#7828E8] px-2 py-0.5 text-[8px] font-semibold text-white">
-            <span className="h-1 w-1 rounded-full bg-white" aria-hidden />
-            Testnet
-          </span>
-        </div>
-        <div className="relative min-h-0 flex-1 overflow-hidden px-3.5 pb-8">
+        <div className="relative min-h-0 flex-1 overflow-hidden px-3.5 pb-8 pt-11">
           {layers ?? <div className="h-full overflow-y-auto">{children}</div>}
         </div>
       </div>
