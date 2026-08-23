@@ -42,7 +42,7 @@ const KNOWN: Record<number, Record<string, { address: Address; decimals: number 
   84532: {
     ETH: "native",
     WETH: "native",
-    USDC: { address: "0x036CbD53889e08Fb86631BAcC1413aE6097C6Cf6", decimals: 6 },
+    USDC: { address: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", decimals: 6 },
   },
 };
 
@@ -77,9 +77,9 @@ function executeEnabled() {
 }
 
 async function resolveToken(
-  client: ReturnType<typeof createPublicClient>,
   chainId: number,
   token: string,
+  readDecimals: (address: Address) => Promise<number>,
 ): Promise<{ kind: "native" } | { kind: "erc20"; address: Address; decimals: number }> {
   const symbol = token.trim().toUpperCase();
   if (!symbol || symbol === "ETH" || symbol === "NATIVE") return { kind: "native" };
@@ -88,8 +88,7 @@ async function resolveToken(
   if (known) return { kind: "erc20", address: known.address, decimals: known.decimals };
   if (isAddress(token, { strict: false })) {
     const address = token as Address;
-    const decimals = Number(await client.readContract({ address, abi: ERC20_ABI, functionName: "decimals" }));
-    return { kind: "erc20", address, decimals };
+    return { kind: "erc20", address, decimals: await readDecimals(address) };
   }
   throw new Error(`Unknown token "${token}". Use ETH, USDC, or an ERC-20 address.`);
 }
@@ -99,7 +98,10 @@ export function skipped(reason: string): Execution {
   return { chainId: id, chainLabel: label, sent: false, reason };
 }
 
-export async function sendTransfer(request: TreasuryRequest): Promise<Execution> {
+export async function sendTransfer(
+  request: TreasuryRequest,
+  opts: { skipTreasuryCeiling?: boolean } = {},
+): Promise<Execution> {
   const cfg = chainConfig();
   if (request.action !== "transfer") {
     return skipped(`Only transfer is broadcast. Got ${request.action}.`);
@@ -107,9 +109,11 @@ export async function sendTransfer(request: TreasuryRequest): Promise<Execution>
   if (!executeEnabled()) {
     return skipped("BASE_EXECUTE is not set. Decision is in Sibyl only. Set BASE_EXECUTE=1 to broadcast.");
   }
-  const ceil = ceilingCheck(request);
-  if (ceil.blocked) {
-    return skipped(ceil.reason);
+  if (!opts.skipTreasuryCeiling) {
+    const ceil = ceilingCheck(request);
+    if (ceil.blocked) {
+      return skipped(ceil.reason);
+    }
   }
   if (!privateKeyPresent()) {
     return skipped("AGENT_PRIVATE_KEY is missing. Run pnpm wallet:create. The agent signs with an env key — there is no wallet connect.");
@@ -129,7 +133,9 @@ export async function sendTransfer(request: TreasuryRequest): Promise<Execution>
       chain: cfg.chain,
       transport: http(cfg.rpc, { timeout: 30_000 }),
     });
-    const token = await resolveToken(publicClient, cfg.id, request.token);
+    const token = await resolveToken(cfg.id, request.token, async (address) =>
+      Number(await publicClient.readContract({ address, abi: ERC20_ABI, functionName: "decimals" })),
+    );
     const to = request.recipient as Address;
 
     const hash =
@@ -138,7 +144,7 @@ export async function sendTransfer(request: TreasuryRequest): Promise<Execution>
             account,
             chain: cfg.chain,
             to,
-            value: parseEther(String(request.amount)),
+            value: parseEther(Number(request.amount).toFixed(8)),
           })
         : await wallet.writeContract({
             account,
@@ -160,4 +166,17 @@ export async function sendTransfer(request: TreasuryRequest): Promise<Execution>
   } catch (err) {
     return skipped(err instanceof Error ? err.message : "broadcast failed");
   }
+}
+
+/** BNPL merchant payout. Uses MAX_PURCHASE_AMOUNT, not the treasury USDC ceiling. */
+export async function sendMerchantPayout(input: { token: string; amount: number; merchant: string }) {
+  return sendTransfer(
+    {
+      action: "transfer",
+      token: input.token,
+      amount: input.amount,
+      recipient: input.merchant,
+    },
+    { skipTreasuryCeiling: true },
+  );
 }

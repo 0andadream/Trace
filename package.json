@@ -2,7 +2,7 @@
   "name": "trace",
   "private": true,
   "version": "0.1.0",
-  "description": "Alex — reputation-weighted lending agent. Memory-grounded Approve / reduced limit / Decline.",
+  "description": "Alex — BNPL agent. Memory-grounded Approve / reduced limit / Decline installment terms.",
   "scripts": {
     "dev": "next dev --port 3002",
     "build": "next build",
@@ -15,7 +15,11 @@
     "memory:reset": "npx tsx scripts/reset-memory-empty.ts"
   },
   "engines": {
-    "node": ">=20"
+    "node": "20.x"
+  },
+  "packageManager": "pnpm@10.34.5",
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "sharp"]
   },
   "dependencies": {
     "next": "^15.4.6",
