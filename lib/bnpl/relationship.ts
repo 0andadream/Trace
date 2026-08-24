@@ -17,6 +17,35 @@ export const LIMIT_AT_MID_STANDING = 3_000;
 /** After a default, limit is cut to this regardless of prior volume. */
 export const DEFAULT_LIMIT_CAP = 8;
 
+export type StandingLine = {
+  id: string;
+  label: string;
+  /** Display points = standing × 100. */
+  points: number;
+};
+
+export type StandingBreakdown = {
+  standing: number;
+  score: number;
+  lines: StandingLine[];
+  source: "none" | "open_plan" | "relationship" | "onchain";
+};
+
+type HistoryCounts = Pick<
+  UserRelationship,
+  | "total_purchases"
+  | "on_time_count"
+  | "late_count"
+  | "default_count"
+  | "total_purchased"
+  | "total_repaid"
+  | "override_count"
+>;
+
+function pts(standingDelta: number) {
+  return round2(standingDelta * 100);
+}
+
 /**
  * Standing is always recomputed from purchase/override history.
  * Never trusted as a stored field.
@@ -27,23 +56,60 @@ export const DEFAULT_LIMIT_CAP = 8;
  * Limit is gated by score: 0–50 maps up to $3k (50 = $3k, below is lower),
  * then to MAX_PURCHASE_AMOUNT ($10k) at standing 0.95.
  * Asymmetry: one default caps standing at 0.12 regardless of volume.
+ *
+ * The lines on StandingBreakdown are the same additives this function applies,
+ * not a cosmetic rewrite.
  */
-export function standingFromHistory(
-  rel: Pick<
-    UserRelationship,
-    | "total_purchases"
-    | "on_time_count"
-    | "late_count"
-    | "default_count"
-    | "total_purchased"
-    | "total_repaid"
-    | "override_count"
-  >,
-): number {
-  if (rel.total_purchases === 0) return 0;
+export function standingBreakdown(rel: HistoryCounts): StandingBreakdown {
+  if (rel.total_purchases === 0) {
+    return { standing: 0, score: 0, lines: [], source: "none" };
+  }
 
   const completed = rel.on_time_count + rel.late_count + rel.default_count;
-  if (completed === 0) return STARTER_STANDING;
+  if (completed === 0) {
+    return {
+      standing: STARTER_STANDING,
+      score: Math.round(STARTER_STANDING * 100),
+      lines: [{ id: "open_plan", label: "Open plan, not finished yet", points: pts(STARTER_STANDING) }],
+      source: "open_plan",
+    };
+  }
+
+  const lines: StandingLine[] = [
+    { id: "base", label: "Starting standing", points: pts(STARTER_STANDING) },
+  ];
+  if (rel.on_time_count > 0) {
+    lines.push({
+      id: "on_time",
+      label: `On-time repayments (${rel.on_time_count}/${completed})`,
+      points: pts(rel.on_time_count * 0.005),
+    });
+  }
+  if (rel.late_count > 0) {
+    lines.push({
+      id: "late",
+      label: `Late completions (${rel.late_count})`,
+      points: pts(-rel.late_count * 0.25),
+    });
+  }
+  if (rel.total_purchased > 0) {
+    const share = Math.min(1, rel.total_repaid / rel.total_purchased);
+    const delta = 0.008 * share;
+    if (delta !== 0) {
+      lines.push({
+        id: "repaid_share",
+        label: `Share repaid (${Math.round(share * 100)}%)`,
+        points: pts(delta),
+      });
+    }
+  }
+  if (rel.override_count > 0) {
+    lines.push({
+      id: "override",
+      label: `Agent overrides (${rel.override_count})`,
+      points: pts(-rel.override_count * 0.03),
+    });
+  }
 
   let s = STARTER_STANDING;
   s += rel.on_time_count * 0.005;
@@ -52,10 +118,137 @@ export function standingFromHistory(
     s += 0.008 * Math.min(1, rel.total_repaid / rel.total_purchased);
   }
   s -= rel.override_count * 0.03;
+
   if (rel.default_count >= 1) {
+    const before = s;
     s = Math.min(s, 0.12) - (rel.default_count - 1) * 0.06;
+    lines.push({
+      id: "default_cap",
+      label: rel.default_count === 1 ? "Default cap" : `Default cap (${rel.default_count} defaults)`,
+      points: pts(s - before),
+    });
   }
-  return round2(Math.max(0, Math.min(MAX_STANDING, s)));
+
+  const clamped = Math.max(0, Math.min(MAX_STANDING, s));
+  if (round2(clamped) !== round2(s)) {
+    lines.push({
+      id: "clamp",
+      label: clamped <= 0 ? "Floor" : "Ceiling (max 95)",
+      points: pts(clamped - s),
+    });
+  }
+
+  const standing = round2(clamped);
+  return {
+    standing,
+    score: Math.round(standing * 100),
+    lines,
+    source: "relationship",
+  };
+}
+
+export function standingFromHistory(rel: HistoryCounts): number {
+  return standingBreakdown(rel).standing;
+}
+
+export type OnchainBaseline = {
+  id: "thin" | "moderate" | "established";
+  standing: number;
+  limit: number;
+  installments: number;
+  detail: string;
+};
+
+export function onchainBaseline(ageDays: number, txCount: number): OnchainBaseline {
+  const age = ageDays || 0;
+  const txs = txCount || 0;
+  if (age < 7 || txs < 3) {
+    return {
+      id: "thin",
+      standing: 0.22,
+      limit: 12,
+      installments: 1,
+      detail: `Thin on-chain baseline: age ${age}d, ${txs} txs. Short plan only (1 installment).`,
+    };
+  }
+  if (age < 90 || txs < 30) {
+    return {
+      id: "moderate",
+      standing: 0.32,
+      limit: 20,
+      installments: 2,
+      detail: `Moderate on-chain baseline: age ${age}d, ${txs} txs. Conservative — no purchases this agent has approved.`,
+    };
+  }
+  return {
+    id: "established",
+    standing: 0.38,
+    limit: 24,
+    installments: 2,
+    detail: `Established on-chain wallet: age ${age}d, ${txs} txs. On-chain standing is capped below any on-time purchase history.`,
+  };
+}
+
+export function onchainStandingBreakdown(ageDays: number, txCount: number): StandingBreakdown {
+  const tier = onchainBaseline(ageDays, txCount);
+  const label =
+    tier.id === "thin" ? "Thin on-chain baseline" : tier.id === "moderate" ? "Moderate on-chain baseline" : "Established on-chain baseline";
+  return {
+    standing: tier.standing,
+    score: Math.round(tier.standing * 100),
+    source: "onchain",
+    lines: [
+      {
+        id: `onchain_${tier.id}`,
+        label: `${label} (age ${ageDays || 0}d, ${txCount || 0} txs)`,
+        points: pts(tier.standing),
+      },
+    ],
+  };
+}
+
+export type TimelineEvent = {
+  at: string;
+  label: string;
+  kind: "buy" | "repay_on_time" | "repay_late" | "default" | "now";
+};
+
+export function memoryTimeline(rel: UserRelationship): TimelineEvent[] {
+  const events: TimelineEvent[] = [];
+  const purchases = [...(rel.purchases || [])].sort((a, b) => a.approved_date.localeCompare(b.approved_date));
+  for (const p of purchases) {
+    events.push({
+      at: p.approved_date,
+      label: `Bought ${formatUsdPlain(p.amount)}${p.merchant ? ` at ${p.merchant}` : ""}`,
+      kind: "buy",
+    });
+    for (const inst of p.schedule || []) {
+      if (!inst.paid_date || inst.status === "pending") continue;
+      events.push({
+        at: inst.paid_date,
+        label: inst.status === "on_time" ? "Repaid on time" : "Repaid late",
+        kind: inst.status === "on_time" ? "repay_on_time" : "repay_late",
+      });
+    }
+    if (p.outcome === "defaulted") {
+      const last = [...(p.schedule || [])].reverse().find((i) => i.due_date)?.due_date || p.approved_date;
+      events.push({ at: last, label: "Missed — plan defaulted", kind: "default" });
+    }
+  }
+  events.sort((a, b) => a.at.localeCompare(b.at));
+  if (rel.total_purchases > 0) {
+    events.push({
+      at: new Date().toISOString(),
+      label: `Eligible for ${formatUsdPlain(rel.current_limit)}`,
+      kind: "now",
+    });
+  }
+  return events;
+}
+
+function formatUsdPlain(n: number) {
+  const v = Number.isFinite(n) ? n : 0;
+  return `$${v.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
 }
 
 export function outstandingBalance(rel: UserRelationship): number {

@@ -10,5 +10,5 @@ export { computeRiskScore } from "@/lib/risk/score";
 export { decideFromScore } from "@/lib/policy/decide";
 export { ceilingCheck } from "@/lib/policy/ceiling";
 export { computeApproval, selectPolicyInputs } from "@/lib/bnpl/policy";
-export { standingFromHistory, recomputeRelationship } from "@/lib/bnpl/relationship";
+export { standingFromHistory, standingBreakdown, recomputeRelationship } from "@/lib/bnpl/relationship";
 export { purchaseCeilingCheck } from "@/lib/bnpl/ceiling";

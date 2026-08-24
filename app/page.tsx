@@ -45,8 +45,8 @@ export default async function HomePage() {
             and the next offer gets bigger. Miss a payment and it gets harder.
           </p>
           <p className="mt-4 max-w-md text-[15px] leading-7 text-neutral-500">
-            New here? Alex has no history with you yet, so it starts cautious. A small first
-            purchase, based only on your wallet&apos;s onchain activity.
+            New here? Alex hasn&apos;t built up a relationship with you yet, so it starts cautious. A
+            small first purchase, based only on your wallet&apos;s onchain activity.
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
             <Link
@@ -118,7 +118,7 @@ export default async function HomePage() {
             Say you paid on time ten times. If we then delete Alex’s notes, the next time you ask you
             look brand new: smaller limit, fewer payments. Nothing else about you changed. Alex just
             forgot. That is the point of this testnet, the deal lives in Alex’s memory of you, not in a
-            credit file.
+            bureau file.
           </p>
         </section>
       </article>

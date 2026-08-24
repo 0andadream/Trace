@@ -9,7 +9,7 @@ const STEPS = [
     n: "01",
     title: "You ask to buy something",
     line: ["You ask to", "buy something"],
-    body: "You connect, that is your login. Alex checks if you have bought here before. First time? You start small. Been here? Alex looks at whether you paid it back on time. It does not pull a credit score from Equifax or anyone else.",
+    body: "You connect, that is your login. Alex checks if you have bought here before. First time? You start small. Been here? Alex looks at whether you paid it back on time. It does not pull a standing from Equifax or anyone else.",
   },
   {
     n: "02",
@@ -129,7 +129,7 @@ Limit: $75 (based on wallet age only)`
 Reasoning:
 - 3 purchases with this agent
 - 3/3 on-time payments
-- Relationship memory, not a credit file
+- Relationship memory, not a bureau file
 
 Limit: $300 (3/3 on-time payments)`}
           </pre>
@@ -268,7 +268,7 @@ export function HowItWorks() {
             <p className="how-sub">
               You connect. Alex remembers if you paid on time.
               <br />
-              The next deal is based on that, not a credit file.
+              The next deal is based on that, not a bureau file.
             </p>
           </div>
 

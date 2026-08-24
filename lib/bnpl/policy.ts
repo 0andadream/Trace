@@ -19,6 +19,7 @@ import { round2 } from "@/lib/format";
 import { maxActivePlans, maxPurchaseAmount, purchaseCeilingCheck } from "@/lib/bnpl/ceiling";
 import {
   limitFromStanding,
+  onchainBaseline,
   outstandingBalance,
   standingFromHistory,
 } from "@/lib/bnpl/relationship";
@@ -76,33 +77,7 @@ export function splitInstallments(amount: number, n: number) {
 }
 
 function onchainTier(signal: OnchainSignal) {
-  const age = signal.wallet_age_days || 0;
-  const txs = signal.tx_count || 0;
-  if (age < 7 || txs < 3) {
-    return {
-      id: "thin" as const,
-      limit: 12,
-      installments: 1,
-      standing: 0.22,
-      detail: `Thin on-chain baseline: age ${age}d, ${txs} txs. Short plan only (1 installment).`,
-    };
-  }
-  if (age < 90 || txs < 30) {
-    return {
-      id: "moderate" as const,
-      limit: 20,
-      installments: 2,
-      standing: 0.32,
-      detail: `Moderate on-chain baseline: age ${age}d, ${txs} txs. Conservative — no purchases this agent has approved.`,
-    };
-  }
-  return {
-    id: "established" as const,
-    limit: 24,
-    installments: 2,
-    standing: 0.38,
-    detail: `Established on-chain wallet: age ${age}d, ${txs} txs. On-chain standing is capped below any on-time purchase history.`,
-  };
+  return onchainBaseline(signal.wallet_age_days || 0, signal.tx_count || 0);
 }
 
 function planLength(standing: number, late: number, defaults: number) {

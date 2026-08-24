@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { getInjectedEthereum, useInjectedWallet } from "@/components/ConnectWallet";
 import { sendUserRepay } from "@/lib/bnpl/sendUserRepay";
+import { MemoryTimeline } from "@/components/MemoryTimeline";
+import { memoryTimeline } from "@/lib/bnpl/relationship";
 import { formatAmount, shortAddress } from "@/lib/format";
 import { TxLink } from "@/components/TxLink";
 import type { UserRelationship } from "@/types/bnpl";
@@ -99,6 +101,12 @@ export function HistoryView() {
         <p className="font-mono text-[11px] text-neutral-500">{shortAddress(injected.address!)}</p>
       </div>
       {error ? <p className="px-6 pb-3 text-sm text-red-600">{error}</p> : null}
+      {rel && rel.total_purchases > 0 ? (
+        <div className="border-t border-black/5 px-6 py-5">
+          <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">With this agent</p>
+          <MemoryTimeline events={memoryTimeline(rel)} />
+        </div>
+      ) : null}
       <div className="overflow-x-auto">
         <table className="w-full min-w-[40rem] text-left text-sm">
           <thead>

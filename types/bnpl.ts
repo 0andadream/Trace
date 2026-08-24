@@ -145,6 +145,8 @@ export type ApprovalTerms = {
 export type BnplVerdict = {
   decision: BnplDecision;
   reasoning: string[];
+  /** One-line template summary. Not an LLM. */
+  why: string;
   terms: string;
   score: number;
   source: "deterministic" | "grok-4.6";

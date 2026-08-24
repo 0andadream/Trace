@@ -322,6 +322,9 @@ export function Buy() {
         <p className="text-xs uppercase tracking-[0.16em] text-paper-500">Output</p>
         {quote ? (
           <>
+            {quote.verdict.why ? (
+              <p className="mt-4 text-sm leading-relaxed text-paper">{quote.verdict.why}</p>
+            ) : null}
             <pre className="mt-4 flex-1 whitespace-pre-wrap font-mono text-sm leading-relaxed text-paper">
               {`Decision: ${quote.verdict.decision}
 

@@ -2,8 +2,16 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ScoreRing } from "@/components/ScoreRing";
+import { ScoreBreakdown } from "@/components/ScoreBreakdown";
+import { MemoryTimeline } from "@/components/MemoryTimeline";
 import { getInjectedEthereum, useInjectedWallet } from "@/components/ConnectWallet";
 import { sendUserRepay } from "@/lib/bnpl/sendUserRepay";
+import {
+  memoryTimeline,
+  onchainBaseline,
+  onchainStandingBreakdown,
+  standingBreakdown,
+} from "@/lib/bnpl/relationship";
 import { formatAmount, shortAddress } from "@/lib/format";
 import { TxLink } from "@/components/TxLink";
 import type { PurchaseRecord, PurchaseResult, UserRelationship } from "@/types/bnpl";
@@ -39,7 +47,7 @@ function standingCopy(rel: UserRelationship | null, quote: PurchaseResult | null
     const txs = quote?.onchain?.tx_count;
     const chain =
       age != null && txs != null ? ` Wallet age ${age} days, ${txs} transactions.` : "";
-    return `This wallet has no purchase history with this agent. Terms use a conservative on-chain fallback only.${chain} That signal is fetched fresh and is not stored. After one on-time completion here, relationship memory takes over.`;
+    return `Alex hasn't built up a relationship with you yet. Terms use a conservative on-chain fallback only.${chain} That signal is fetched fresh and is not stored. After one on-time completion here, relationship memory takes over.`;
   }
   const completed = rel.on_time_count + rel.late_count + rel.default_count;
   return `This wallet has completed ${completed} purchase${completed === 1 ? "" : "s"} with this agent (${rel.on_time_count} on time, ${rel.late_count} late, ${rel.default_count} defaulted). Current limit is ${formatAmount(rel.current_limit)} across up to 2 active plans. No on-chain fallback was used, this wallet has a relationship history with this agent.`;
@@ -52,6 +60,7 @@ export function Desk() {
   const [amount, setAmount] = useState("12");
   const [rel, setRel] = useState<UserRelationship | null>(null);
   const [onchainStanding, setOnchainStanding] = useState<number | null>(null);
+  const [onchainMeta, setOnchainMeta] = useState<{ age: number; txs: number } | null>(null);
   const [quote, setQuote] = useState<PurchaseResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [deciding, setDeciding] = useState(false);
@@ -86,10 +95,11 @@ export function Desk() {
     if (data.relationship_empty && data.onchain) {
       const age = Number(data.onchain.wallet_age_days) || 0;
       const txs = Number(data.onchain.tx_count) || 0;
-      const standing = age < 7 || txs < 3 ? 0.22 : age < 90 || txs < 30 ? 0.32 : 0.38;
-      setOnchainStanding(standing);
+      setOnchainStanding(onchainBaseline(age, txs).standing);
+      setOnchainMeta({ age, txs });
     } else {
       setOnchainStanding(null);
+      setOnchainMeta(null);
     }
   }, []);
 
@@ -249,6 +259,17 @@ export function Desk() {
   const active = rel?.purchases.filter((p) => p.outcome === "active") ?? [];
   const score =
     quote?.verdict?.score != null ? Math.round(quote.verdict.score * 100) : scoreFromRel(rel, onchainStanding);
+  const breakdown = useMemo(() => {
+    if (!injected.connected) return null;
+    if (!rel || rel.total_purchases === 0) {
+      const age = quote?.onchain?.wallet_age_days ?? onchainMeta?.age;
+      const txs = quote?.onchain?.tx_count ?? onchainMeta?.txs;
+      if (age == null || txs == null) return null;
+      return onchainStandingBreakdown(age, txs);
+    }
+    return standingBreakdown(rel);
+  }, [injected.connected, rel, quote, onchainMeta]);
+  const timeline = useMemo(() => (rel && rel.total_purchases > 0 ? memoryTimeline(rel) : []), [rel]);
   const tag = badge(rel);
   const completed = rel ? rel.on_time_count + rel.late_count + rel.default_count : 0;
   const onTimeRate = completed > 0 && rel ? `${Math.round((rel.on_time_count / completed) * 100)}%` : "—";
@@ -277,13 +298,20 @@ export function Desk() {
             <span className={`rounded-full border px-5 py-1.5 text-sm font-medium shadow-sm ${tag.cls}`}>
               {injected.connected ? tag.label : "CONNECT WALLET"}
             </span>
+            {injected.connected ? <ScoreBreakdown breakdown={breakdown} /> : null}
           </div>
           <div className="min-w-0 flex-1 space-y-5">
             <p className="text-[15px] leading-7 text-neutral-600">
               {injected.connected
                 ? standingCopy(rel, quote)
-                : "Connect a wallet to load this agent’s memory of you. If it has never approved a purchase for that address, it will say so and use a conservative on-chain baseline."}
+                : "Connect a wallet to load this agent’s memory of you. If it has never approved a purchase for that address, Alex hasn't built up a relationship with you yet, so it uses a conservative on-chain baseline."}
             </p>
+            {timeline.length > 0 ? (
+              <div className="border-t border-black/5 pt-4">
+                <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">With this agent</p>
+                <MemoryTimeline events={timeline} compact />
+              </div>
+            ) : null}
             <div className="grid grid-cols-3 gap-4 border-t border-black/5 pt-4">
               {(
                 [
@@ -323,6 +351,9 @@ export function Desk() {
                 </div>
                 <div className="border-t border-black/[0.08] pt-3">
                   <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">Decision</p>
+                  {quote.verdict.why ? (
+                    <p className="mt-2 text-[15px] leading-6 text-neutral-900">{quote.verdict.why}</p>
+                  ) : null}
                   <pre className="mt-2 whitespace-pre-wrap font-mono text-[13px] leading-relaxed text-neutral-800">
                     {`Decision: ${quote.verdict.decision}`}
                   </pre>

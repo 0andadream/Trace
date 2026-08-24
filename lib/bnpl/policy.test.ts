@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { emptyOnchainSignal } from "@/lib/bnpl/onchain";
 import { computeApproval, selectPolicyInputs } from "@/lib/bnpl/policy";
-import { emptyRelationship, recomputeRelationship, standingFromHistory } from "@/lib/bnpl/relationship";
-import { enforceBnplVerdict, parseBnplOutput } from "@/lib/bnpl/reason";
+import { emptyRelationship, recomputeRelationship, standingBreakdown, standingFromHistory } from "@/lib/bnpl/relationship";
+import { enforceBnplVerdict, parseBnplOutput, whyDecisionLine } from "@/lib/bnpl/reason";
 import type { PurchaseRecord, UserRelationship } from "@/types/bnpl";
 
 const CLEAN = "0x111111111111111111111111111111111111c1ea";
@@ -365,5 +365,49 @@ describe("load-bearing sequence a–d (in memory)", () => {
     assert.equal(d.limit, limitNew);
     assert.equal(d.installments, nNew);
     assert.equal(d.used_onchain, true);
+  });
+});
+
+describe("standing breakdown matches standingFromHistory", () => {
+  it("exposes the same additives the score is computed from", () => {
+    const rel = withPurchases(CLEAN, [
+      purchase({ purchase_id: "p1", amount: 12, outcome: "completed_on_time" }),
+      purchase({ purchase_id: "p2", amount: 18, outcome: "completed_on_time" }),
+    ]);
+    const b = standingBreakdown(rel);
+    assert.equal(b.standing, standingFromHistory(rel));
+    assert.equal(b.source, "relationship");
+    assert.ok(b.lines.some((l) => l.id === "base"));
+    assert.ok(b.lines.some((l) => l.id === "on_time" && l.points > 0));
+    const summed = b.lines.reduce((s, l) => s + l.points, 0);
+    assert.ok(
+      Math.abs(summed - b.standing * 100) < 1,
+      `lines ${summed} vs standing ${b.standing * 100}`,
+    );
+  });
+
+  it("open plan is the starter standing only", () => {
+    const open = withPurchases(NEW, [purchase({ purchase_id: "open-1", amount: 12, outcome: "active" })]);
+    const b = standingBreakdown(open);
+    assert.equal(b.standing, 0.38);
+    assert.equal(b.lines.length, 1);
+    assert.equal(b.lines[0].id, "open_plan");
+  });
+});
+
+describe("whyDecisionLine", () => {
+  it("uses a first-relationship template when the book is empty", () => {
+    const rel = emptyRelationship(NEW);
+    const terms = computeApproval({ amount: 12, relationship: rel, onchain: MODERATE });
+    const why = whyDecisionLine({ terms, relationship: rel, amount: 12 });
+    assert.match(why, /hasn't built up a relationship/i);
+  });
+
+  it("cites an on-time last purchase on Approve", () => {
+    const rel = withPurchases(CLEAN, [purchase({ purchase_id: "p1", amount: 12, outcome: "completed_on_time" })]);
+    const terms = computeApproval({ amount: 12, relationship: rel, onchain: WHALE });
+    const why = whyDecisionLine({ terms, relationship: rel, amount: 12 });
+    assert.match(why, /repaid on time/i);
+    assert.match(why, /^Approved/);
   });
 });

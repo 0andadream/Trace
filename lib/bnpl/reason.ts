@@ -2,6 +2,61 @@ import { formatAmount } from "@/lib/format";
 import { citeSpecificPurchase, EMPTY_RELATIONSHIP_LINE } from "@/lib/bnpl/relationship";
 import type { ApprovalTerms, BnplDecision, BnplVerdict, OnchainSignal, UserRelationship } from "@/types/bnpl";
 
+export function whyDecisionLine(input: {
+  terms: ApprovalTerms;
+  relationship: UserRelationship;
+  amount: number;
+}): string {
+  const { terms, relationship, amount } = input;
+  if (terms.outcome === "insolvent_declined") {
+    return "Declined — Alex cannot afford this send and still keep its reserve.";
+  }
+  if (terms.decision === "Ceiling blocked") {
+    return "Blocked — this amount or another open plan hits a hard cap.";
+  }
+  if (terms.relationship_empty) {
+    if (terms.decision === "Approve with reduced limit") {
+      return "Approved with reduced limit — Alex hasn't built up a relationship with you yet, so this stays a small first offer.";
+    }
+    if (terms.decision === "Approve") {
+      return "Approved — Alex hasn't built up a relationship with you yet, so this stays a cautious first purchase.";
+    }
+    return "Declined — Alex hasn't built up a relationship with you yet, and this ask is outside a first offer.";
+  }
+  if (terms.decision === "Decline") {
+    if (relationship.default_count >= 1) {
+      return "Declined — a missed payment with this agent cut your standing.";
+    }
+    if (relationship.late_count >= 1) {
+      return "Declined — a late payment with this agent made the next deal harder.";
+    }
+    if (terms.available <= 0) {
+      return "Declined — you already have as much open with this agent as your standing allows.";
+    }
+    return "Declined — standing with this agent is too low for this purchase.";
+  }
+  const closed = [...(relationship.purchases || [])]
+    .filter((p) => p.outcome !== "active")
+    .sort((a, b) => b.approved_date.localeCompare(a.approved_date));
+  const last = closed[0];
+  if (terms.decision === "Approve with reduced limit") {
+    if (relationship.active_count >= 1) {
+      return "Approved with reduced limit — you still have an open plan with this agent.";
+    }
+    if (amount > terms.available) {
+      return "Approved with reduced limit — this is more than your standing with this agent allows right now.";
+    }
+    return "Approved with reduced limit — this is outside your usual purchase size.";
+  }
+  if (last?.outcome === "completed_on_time") {
+    return "Approved — your last purchase was repaid on time, so your limit went up.";
+  }
+  if (last?.outcome === "completed_late") {
+    return "Approved — you have a relationship with this agent, with a late payment still on file.";
+  }
+  return "Approved — this agent already has a relationship with you.";
+}
+
 export function formatTermsLine(terms: ApprovalTerms) {
   if (terms.outcome === "insolvent_declined") return "Terms: insolvent_declined";
   if (terms.decision === "Ceiling blocked") return "Terms: blocked";
@@ -71,6 +126,7 @@ export function deterministicBnplReasoning(input: {
     return {
       decision: terms.decision,
       reasoning: facts.slice(0, 3),
+      why: whyDecisionLine(input),
       terms: line,
       score: terms.standing_score,
       source: "deterministic",
@@ -85,6 +141,7 @@ export function deterministicBnplReasoning(input: {
     return {
       decision: terms.decision,
       reasoning: facts.slice(0, 3),
+      why: whyDecisionLine(input),
       terms: line,
       score: terms.standing_score,
       source: "deterministic",
@@ -119,6 +176,7 @@ export function deterministicBnplReasoning(input: {
   return {
     decision: terms.decision,
     reasoning: facts.slice(0, 3),
+    why: whyDecisionLine(input),
     terms: line,
     score: terms.standing_score,
     source: "deterministic",
@@ -171,6 +229,7 @@ export function enforceBnplVerdict(input: {
   return {
     decision: input.terms.decision,
     reasoning: cleaned.slice(0, 3),
+    why: whyDecisionLine(input),
     terms: formatTermsLine(input.terms),
     score: input.terms.standing_score,
     source: input.parsed ? input.source : "deterministic",

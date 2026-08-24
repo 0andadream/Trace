@@ -93,7 +93,7 @@ const FAQ = [
   },
   {
     q: "Does Alex pull a credit score?",
-    a: "No. Alex does not call Equifax or anyone else. If you have bought here before, the deal uses that history. If you have not, it uses a conservative read of your wallet’s on-chain activity, fetched fresh and not stored.",
+    a: "No. Standing with this agent is not a bureau score. If you have bought here before, the deal uses that history. If you have not, it uses a conservative read of your wallet’s on-chain activity, fetched fresh and not stored.",
   },
   {
     q: "Where does the ETH go?",
@@ -181,7 +181,7 @@ export function DocsView() {
           </Callout>
           <Sub>What problem does it solve?</Sub>
           <p className="text-sm leading-relaxed text-neutral-600">
-            A credit file does not know whether you paid this agent back. Alex only remembers purchases
+            A bureau file does not know whether you paid this agent back. Alex only remembers purchases
             it approved here, and whether those payments were on time, late, or missed. That memory is
             the product.
           </p>
