@@ -257,8 +257,7 @@ export function Desk() {
 
   const empty = !rel || rel.total_purchases === 0;
   const active = rel?.purchases.filter((p) => p.outcome === "active") ?? [];
-  const score =
-    quote?.verdict?.score != null ? Math.round(quote.verdict.score * 100) : scoreFromRel(rel, onchainStanding);
+  const score = scoreFromRel(rel, onchainStanding);
   const breakdown = useMemo(() => {
     if (!injected.connected) return null;
     if (!rel || rel.total_purchases === 0) {

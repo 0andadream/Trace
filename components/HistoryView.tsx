@@ -12,6 +12,7 @@ import type { UserRelationship } from "@/types/bnpl";
 export function HistoryView() {
   const injected = useInjectedWallet();
   const [rel, setRel] = useState<UserRelationship | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,9 +26,16 @@ export function HistoryView() {
   useEffect(() => {
     if (!injected.address) {
       setRel(null);
+      setLoaded(false);
       return;
     }
-    load(injected.address).catch((e) => setError(e instanceof Error ? e.message : "failed"));
+    setLoaded(false);
+    load(injected.address)
+      .then(() => setLoaded(true))
+      .catch((e) => {
+        setError(e instanceof Error ? e.message : "failed");
+        setLoaded(true);
+      });
   }, [injected.address, load]);
 
   async function repay(id: string, remaining = false) {
@@ -120,7 +128,13 @@ export function HistoryView() {
             </tr>
           </thead>
           <tbody>
-            {rows.length === 0 ? (
+            {!loaded ? (
+              <tr>
+                <td colSpan={6} className="px-6 py-10 text-neutral-500">
+                  Loading this wallet’s notes…
+                </td>
+              </tr>
+            ) : rows.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-10 text-neutral-500">
                   No purchases for this wallet yet. Request one on Buy. After Alex says yes, Repay
