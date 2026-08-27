@@ -30,14 +30,7 @@ export default async function HomePage() {
       </div>
       <section className="grid min-w-0 items-center gap-14 py-2 lg:min-h-[72vh] lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:py-6">
         <div className="min-w-0 max-w-xl">
-          <p className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-neutral-500">
-            <svg width="8" height="8" viewBox="0 0 10 10" aria-hidden>
-              <circle cx="3.2" cy="5" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.2" />
-              <circle cx="6.8" cy="5" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.2" />
-            </svg>
-            TESTNET · BASE SEPOLIA
-          </p>
-          <h1 className="mt-4 max-w-xl text-[2.375rem] font-semibold leading-[1.05] tracking-[-0.035em] text-[#0A0219] [overflow-wrap:anywhere] sm:text-[3rem] lg:text-[3.5rem]">
+          <h1 className="max-w-xl text-[2.375rem] font-semibold leading-[1.05] tracking-[-0.035em] text-[#0A0219] [overflow-wrap:anywhere] sm:text-[3rem] lg:text-[3.5rem]">
             Pay on time, and the next deal gets easier.
           </h1>
           <p className="mt-6 max-w-[38.75rem] text-[18px] font-normal leading-[1.5] text-neutral-600">

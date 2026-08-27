@@ -374,16 +374,11 @@ export function Desk() {
   return (
     <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)]">
       <section className="glass-panel min-w-0 p-5 sm:p-8">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-[1.375rem] font-semibold leading-[1.2] tracking-[-0.02em] text-neutral-900 sm:text-[1.5rem]">Buy with TRACE</h2>
-            <p className="mt-1 text-[14px] font-normal leading-[1.45] text-neutral-500">
-              Pay now or split your purchase into payments.
-            </p>
-          </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-black/5 px-2.5 py-1 text-[12px] font-semibold uppercase tracking-[0.07em] text-neutral-500">
-            TESTNET · BASE SEPOLIA
-          </span>
+        <div>
+          <h2 className="text-[1.375rem] font-semibold leading-[1.2] tracking-[-0.02em] text-neutral-900 sm:text-[1.5rem]">Buy with TRACE</h2>
+          <p className="mt-1 text-[14px] font-normal leading-[1.45] text-neutral-500">
+            Pay now or split your purchase into payments.
+          </p>
         </div>
 
         {step !== "success" ? (
