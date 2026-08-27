@@ -17,7 +17,7 @@ import { PayoutNotice } from "@/components/PayoutNotice";
 import type { PurchaseRecord, PurchaseResult, UserRelationship } from "@/types/bnpl";
 import Link from "next/link";
 
-const THINK_LINES = ["Checking notes…", "Checking cash…", "Writing the decision…"];
+const THINK_LINES = ["Checking your history…", "Checking capacity…", "Writing the decision…"];
 const CUSTOM_MERCHANT = "Test Shop";
 
 const PRODUCTS = [
@@ -30,9 +30,9 @@ type ProductId = (typeof PRODUCTS)[number]["id"] | "custom";
 type Step = "product" | "plan" | "reason" | "confirm" | "success";
 
 const STEPS: { id: Step; n: string; label: string }[] = [
-  { id: "product", n: "1", label: "Test item" },
-  { id: "plan", n: "2", label: "Payment plan" },
-  { id: "reason", n: "3", label: "Why Alex said this" },
+  { id: "product", n: "1", label: "Purchase" },
+  { id: "plan", n: "2", label: "How you'll pay" },
+  { id: "reason", n: "3", label: "Why you're eligible" },
   { id: "confirm", n: "4", label: "Confirm" },
 ];
 
@@ -63,10 +63,10 @@ function standingCopy(rel: UserRelationship | null, quote: PurchaseResult | null
     const txs = quote?.onchain?.tx_count;
     const chain =
       age != null && txs != null ? ` Wallet age ${age} days, ${txs} transactions.` : "";
-    return `Alex hasn't built up a relationship with you yet. Terms use a conservative on-chain fallback only.${chain} That signal is fetched fresh and is not stored. After one on-time completion here, relationship memory takes over.`;
+    return `Sibyl has no financial history for this wallet yet. TRACE starts from a cautious onchain baseline.${chain} That signal is fetched fresh and is not stored. After one on-time repayment, memory takes over.`;
   }
   const completed = rel.on_time_count + rel.late_count + rel.default_count;
-  return `This wallet has completed ${completed} purchase${completed === 1 ? "" : "s"} with this agent (${rel.on_time_count} on time, ${rel.late_count} late, ${rel.default_count} defaulted). Current limit is ${formatAmount(rel.current_limit)} across up to 2 active plans. No on-chain fallback was used, this wallet has a relationship history with this agent.`;
+  return `Sibyl remembers ${completed} purchase${completed === 1 ? "" : "s"} with TRACE (${rel.on_time_count} on time, ${rel.late_count} late, ${rel.default_count} defaulted). Your TRACE limit is ${formatAmount(rel.current_limit)} across up to 2 open plans.`;
 }
 
 function formatDue(iso: string) {
@@ -103,6 +103,7 @@ export function Desk() {
   const [note, setNote] = useState<string | null>(null);
   const [payoutHash, setPayoutHash] = useState<string | null>(null);
   const [payoutLive, setPayoutLive] = useState(false);
+  const [payInFull, setPayInFull] = useState(false);
 
   const product = PRODUCTS.find((p) => p.id === productId) ?? null;
   const itemName = product?.name ?? (productId === "custom" ? "Custom amount" : null);
@@ -161,6 +162,7 @@ export function Desk() {
           amount: Number(amount),
           merchant,
           persist: false,
+          pay_in_full: payInFull,
         }),
       })
         .then(async (r) => {
@@ -172,7 +174,7 @@ export function Desk() {
         .catch((e) => setError(e instanceof Error ? e.message : "quote failed"));
     }, 350);
     return () => window.clearTimeout(t);
-  }, [wallet, amount, merchant]);
+  }, [wallet, amount, merchant, payInFull]);
 
   async function requestPurchase() {
     if (!injected.address) {
@@ -195,6 +197,7 @@ export function Desk() {
           wallet,
           amount: Number(amount),
           merchant,
+          pay_in_full: payInFull,
         }),
       });
       const q = await quoted.json();
@@ -211,6 +214,7 @@ export function Desk() {
             amount: Number(amount),
             merchant,
             accept: true,
+            pay_in_full: payInFull,
           }),
         });
         const data = await acc.json();
@@ -298,10 +302,10 @@ export function Desk() {
     }
   }
 
-  function pickProduct(id: ProductId, price: number, label: string) {
+  function pickProduct(id: ProductId, price: number, _label: string) {
     setProductId(id);
     setAmount(String(price));
-    setMerchant(id === "custom" ? CUSTOM_MERCHANT : label);
+    setMerchant(CUSTOM_MERCHANT);
     setLastPurchase(null);
     setShowOutput(false);
     setStep("plan");
@@ -349,20 +353,20 @@ export function Desk() {
         ? "Working…"
         : blocked
           ? quote?.terms?.decision || "Cannot confirm"
-          : "Confirm and send ETH";
+          : "Confirm purchase";
 
   return (
     <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)]">
       <section className="glass-panel min-w-0 p-5 sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Buy a test item</h2>
+            <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Buy with TRACE</h2>
             <p className="mt-1 text-[13px] text-neutral-500">
-              Test items for this testnet — no real goods are shipped.
+              Pay now or split your purchase into payments.
             </p>
           </div>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-black/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-500">
-            Base Sepolia · Testnet
+            TESTNET · BASE SEPOLIA
           </span>
         </div>
 
@@ -394,7 +398,10 @@ export function Desk() {
 
         {step === "product" || step === "plan" ? (
           <div className="mt-6">
-            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">Pick a test item</p>
+            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">Purchase</p>
+            <p className="mt-1 text-[13px] text-neutral-500">
+              Merchant: {merchant}. Amount sets what you&apos;re asking TRACE to front.
+            </p>
             <div className="mt-3 grid gap-3 sm:grid-cols-3">
               {PRODUCTS.map((p) => {
                 const selected = productId === p.id;
@@ -413,26 +420,23 @@ export function Desk() {
                     <p className="mt-2 text-2xl font-semibold tabular-nums tracking-tight text-neutral-900">
                       {formatAmount(p.price)}
                     </p>
-                    <p className="mt-2 text-[11px] text-neutral-400">Test item · no goods ship</p>
+                    <p className="mt-2 text-[11px] text-neutral-400">Testnet purchase</p>
                   </button>
                 );
               })}
             </div>
-            <p className="mt-3 text-[12px] leading-5 text-neutral-500">
-              Merchant names are labels. ETH is sent to your connected wallet, not to a merchant contract.
-            </p>
             <button
               type="button"
               className="mt-3 text-[12px] font-medium text-[#7828E8] hover:underline"
               onClick={() => setCustomOpen((v) => !v)}
             >
-              {customOpen ? "Hide custom amount" : "Or type an amount"}
+              {customOpen ? "Hide custom amount" : "Or enter an amount"}
             </button>
             {customOpen ? (
               <div className="mt-3 rounded-2xl bg-black/[0.03] p-4 ring-1 ring-black/5">
                 <div className="flex items-end justify-between gap-3">
                   <label className="min-w-0 flex-1">
-                    <span className="text-[11px] font-medium text-neutral-500">Amount (USDC-equivalent)</span>
+                    <span className="text-[11px] font-medium text-neutral-500">Purchase amount</span>
                     <input
                       type="number"
                       min={0}
@@ -460,64 +464,111 @@ export function Desk() {
 
         {step === "plan" ? (
           <div className="mt-8 border-t border-black/5 pt-6">
-            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">Payment plan</p>
+            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">How you&apos;ll pay</p>
             <h3 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">
               {itemName} · {formatAmount(Number(amount) || 0)}
             </h3>
+            <p className="mt-1 text-[13px] text-neutral-500">Merchant: {merchant}</p>
             {!injected.connected ? (
               <p className="mt-4 text-[15px] leading-7 text-neutral-600">
-                Connect a wallet to see how many payments Alex would offer, and your current limit.
+                Connect a wallet to see your TRACE limit and payment options.
               </p>
             ) : !quote ? (
-              <p className="mt-4 text-sm text-neutral-500">Asking Alex for terms…</p>
+              <p className="mt-4 text-sm text-neutral-500">Loading your offer…</p>
             ) : (
               <>
-                <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => setPayInFull(true)}
+                    className={`rounded-2xl p-4 text-left ring-1 transition ${
+                      payInFull
+                        ? "bg-[#7828E8]/[0.07] ring-[#7828E8]/40"
+                        : "bg-black/[0.03] ring-black/5 hover:ring-black/15"
+                    }`}
+                  >
+                    <p className="text-sm font-semibold text-neutral-900">Pay today</p>
+                    <p className="mt-2 text-2xl font-semibold tabular-nums text-neutral-900">
+                      {formatAmount(quote.terms.total_due || Number(amount) || 0)}
+                    </p>
+                    <p className="mt-2 text-[12px] text-neutral-500">One payment of principal plus TRACE interest.</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPayInFull(false)}
+                    className={`rounded-2xl p-4 text-left ring-1 transition ${
+                      !payInFull
+                        ? "bg-[#7828E8]/[0.07] ring-[#7828E8]/40"
+                        : "bg-black/[0.03] ring-black/5 hover:ring-black/15"
+                    }`}
+                  >
+                    <p className="text-sm font-semibold text-neutral-900">Pay with TRACE</p>
+                    <p className="mt-2 text-2xl font-semibold tabular-nums text-neutral-900">
+                      {instN ? `${instN} payments` : "—"}
+                    </p>
+                    <p className="mt-2 text-[12px] text-neutral-500">
+                      {instN
+                        ? `${formatAmount(instAmt)} each · repay ${formatAmount(quote.terms.total_due || 0)}`
+                        : "Split into payments."}
+                    </p>
+                  </button>
+                </div>
+                <div className="mt-5 grid grid-cols-3 gap-3">
                   {(
                     [
-                      ["Payments", instN ? `${instN}` : "—"],
-                      ["Each payment", instN ? formatAmount(instAmt) : "—"],
-                      ["You receive", formatAmount(quote.terms.principal || quote.terms.payout_amount || 0)],
                       [
-                        "Your limit",
-                        empty && quote.terms.used_onchain
-                          ? formatAmount(quote.terms.available)
-                          : empty
-                            ? "—"
-                            : formatAmount(rel!.current_limit),
+                        "Available to spend",
+                        empty && !quote.terms.used_onchain
+                          ? "—"
+                          : formatAmount(
+                              empty ? quote.terms.available : rel!.current_limit,
+                            ),
+                      ],
+                      ["Purchase", formatAmount(quote.terms.principal || Number(amount) || 0)],
+                      [
+                        "After purchase",
+                        formatAmount(
+                          Math.max(
+                            0,
+                            (empty ? quote.terms.available : rel!.current_limit) -
+                              (quote.terms.principal || Number(amount) || 0),
+                          ),
+                        ) + " remaining",
                       ],
                     ] as const
                   ).map(([k, v]) => (
                     <div key={k} className="rounded-xl bg-black/[0.03] px-3 py-3">
                       <p className="text-[10px] font-medium uppercase tracking-[0.1em] text-neutral-500">{k}</p>
-                      <p className="mt-1 text-lg font-semibold tabular-nums text-neutral-900">{v}</p>
+                      <p className="mt-1 text-[15px] font-semibold tabular-nums leading-tight text-neutral-900">{v}</p>
                     </div>
                   ))}
                 </div>
+                <p className="mt-3 text-[12px] text-neutral-500">Your TRACE limit</p>
                 {quote.terms.reduced_limit != null ? (
-                  <p className="mt-4 text-sm text-amber-800">
-                    You asked for {formatAmount(Number(amount))}. Alex would send{" "}
-                    {formatAmount(quote.terms.reduced_limit)} (reduced limit).
+                  <p className="mt-2 text-sm text-amber-800">
+                    You asked for {formatAmount(Number(amount))}. Eligible amount is{" "}
+                    {formatAmount(quote.terms.reduced_limit)}.
                   </p>
                 ) : null}
                 {schedule.length > 0 ? (
                   <ul className="mt-5 divide-y divide-black/5 rounded-xl ring-1 ring-black/5">
                     {schedule.map((due, i) => (
                       <li key={`${due}-${i}`} className="flex items-center justify-between px-4 py-3 text-sm">
-                        <span className="text-neutral-500">Payment {i + 1}</span>
+                        <span className="text-neutral-500">
+                          {i === 0 ? "First payment" : `Payment ${i + 1}`}
+                        </span>
                         <span className="font-medium tabular-nums text-neutral-900">{formatAmount(instAmt)}</span>
                         <span className="text-neutral-500">{formatDue(due)}</span>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="mt-4 text-sm text-neutral-500">No installment schedule on this quote.</p>
+                  <p className="mt-4 text-sm text-neutral-500">No repayment schedule on this offer.</p>
                 )}
                 {quote.terms.interest_rate != null && instN > 0 ? (
                   <p className="mt-3 text-[13px] leading-6 text-neutral-500">
-                    Trace interest {Math.round(quote.terms.interest_rate * 100)}% · repay{" "}
-                    {formatAmount(quote.terms.total_due || 0)}. You can pay the rest in one shot when you
-                    repay.
+                    TRACE interest {Math.round(quote.terms.interest_rate * 100)}% · total repayment{" "}
+                    {formatAmount(quote.terms.total_due || 0)}.
                   </p>
                 ) : null}
               </>
@@ -542,7 +593,7 @@ export function Desk() {
                 }}
                 className="rounded-full bg-[#7828E8] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#6a1fd4] disabled:opacity-50"
               >
-                {injected.connected ? "See why Alex said this" : "Connect Wallet"}
+                {injected.connected ? "Why you're eligible" : "Connect Wallet"}
               </button>
             </div>
           </div>
@@ -551,29 +602,37 @@ export function Desk() {
         {step === "reason" ? (
           <div className="mt-8 border-t border-black/5 pt-6">
             {!injected.connected ? (
-              <p className="text-[15px] text-neutral-600">Connect a wallet to load Alex’s reasoning.</p>
+              <p className="text-[15px] text-neutral-600">Connect a wallet to see why you&apos;re eligible.</p>
             ) : deciding ? (
               <div>
-                <p className="text-sm font-semibold text-neutral-900">Alex is thinking</p>
+                <p className="text-sm font-semibold text-neutral-900">Checking your history</p>
                 <p className="mt-1 text-[13px] text-neutral-500">{THINK_LINES[thinkI]}</p>
               </div>
             ) : quote ? (
               <div className="space-y-6">
                 <div>
-                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">Decision</p>
+                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">
+                    Why you&apos;re eligible
+                  </p>
                   <h3 className="mt-2 text-3xl font-semibold tracking-tight text-neutral-900">
                     {quote.verdict.decision}
                   </h3>
                   {quote.verdict.why ? (
                     <p className="mt-3 text-[17px] leading-7 text-neutral-800">{quote.verdict.why}</p>
                   ) : null}
-                  <p className="mt-2 text-[13px] text-neutral-500">
-                    {quote.terms.used_onchain ? "On-chain fallback" : "Relationship memory"}
-                    {quote.verdict.score ? ` · score ${Math.round(quote.verdict.score * 100)}` : ""}
+                  <p className="mt-3 text-[15px] leading-6 text-neutral-700">
+                    Sibyl remembers your financial history.
+                  </p>
+                  <p className="mt-1 text-[13px] text-neutral-500">
+                    Powered by Sibyl Memory
+                    {quote.verdict.score ? ` · TRACE reputation ${Math.round(quote.verdict.score * 100)}` : ""}
+                    {quote.terms.used_onchain ? " · onchain baseline (no purchases on file yet)" : ""}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">Reasoning</p>
+                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">
+                    What TRACE used
+                  </p>
                   <ul className="mt-3 space-y-2 text-[15px] leading-6 text-neutral-800">
                     {(quote.verdict.reasoning || []).map((line) => (
                       <li key={line} className="flex gap-2">
@@ -592,13 +651,14 @@ export function Desk() {
                     <div className="flex items-start gap-4">
                       <ScoreRing score={score} size="sm" />
                       <div className="min-w-0 flex-1">
+                        <p className="text-[12px] font-medium text-neutral-500">Your TRACE reputation</p>
                         <ScoreBreakdown breakdown={breakdown} open />
                       </div>
                     </div>
                     {timeline.length > 0 ? (
                       <div className="mt-5 border-t border-black/5 pt-4">
                         <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">
-                          With this agent
+                          Financial history on file
                         </p>
                         <MemoryTimeline events={timeline} compact />
                       </div>
@@ -609,7 +669,7 @@ export function Desk() {
                 ) : null}
               </div>
             ) : (
-              <p className="text-sm text-neutral-500">Waiting on a quote…</p>
+              <p className="text-sm text-neutral-500">Waiting on your offer…</p>
             )}
             <div className="mt-6 flex flex-wrap gap-3">
               <button
@@ -633,28 +693,30 @@ export function Desk() {
 
         {step === "confirm" ? (
           <div className="mt-8 border-t border-black/5 pt-6">
-            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">Order summary</p>
+            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">Confirm purchase</p>
             <h3 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">
-              {itemName ?? "Test item"}
+              {itemName ?? "Purchase"}
             </h3>
             {deciding ? (
               <div className="mt-6">
-                <p className="text-sm font-semibold text-neutral-900">Alex is thinking</p>
+                <p className="text-sm font-semibold text-neutral-900">Checking your history</p>
                 <p className="mt-1 text-[13px] text-neutral-500">{THINK_LINES[thinkI]}</p>
               </div>
             ) : quote ? (
               <dl className="mt-5 divide-y divide-black/5 rounded-xl ring-1 ring-black/5">
                 {(
                   [
-                    ["Item", itemName ?? "—"],
-                    ["You asked", formatAmount(Number(amount) || 0)],
+                    ["Purchase", itemName ?? "—"],
+                    ["Merchant", merchant],
+                    ["Amount", formatAmount(quote.terms.principal || Number(amount) || 0)],
                     [
-                      "Alex sends",
-                      formatAmount(quote.terms.principal || quote.terms.payout_amount || Number(amount) || 0),
+                      "How you'll pay",
+                      payInFull || instN === 1
+                        ? "Pay today"
+                        : `Pay with TRACE · ${instN} payments of ${formatAmount(instAmt)}`,
                     ],
-                    ["Payments", instN ? `${formatAmount(instAmt)} × ${instN}` : "—"],
-                    ["You repay", formatAmount(quote.terms.total_due || 0)],
-                    ["Due", schedule.map(formatDue).join(" · ") || "—"],
+                    ["Total repayment", formatAmount(quote.terms.total_due || 0)],
+                    ["Schedule", schedule.map(formatDue).join(" · ") || "—"],
                   ] as const
                 ).map(([k, v]) => (
                   <div key={k} className="flex justify-between gap-4 px-4 py-3 text-sm">
@@ -664,10 +726,6 @@ export function Desk() {
                 ))}
               </dl>
             ) : null}
-            <p className="mt-4 text-[12px] leading-5 text-neutral-500">
-              Merchant names are labels. ETH is sent to your connected wallet, not to a merchant contract.
-              Amounts are shown in USDC and settled in ETH on Base Sepolia.
-            </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <button
                 type="button"
@@ -692,16 +750,19 @@ export function Desk() {
           <div className="mt-6 space-y-5">
             <div>
               <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#7828E8]">
-                Recorded in Alex’s memory
+                Recorded in Sibyl Memory
               </p>
               <h3 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">
                 Your next purchase will reflect this.
               </h3>
+              <p className="mt-2 text-[15px] leading-6 text-neutral-600">
+                Your reputation compounds because your history is remembered.
+              </p>
             </div>
             {lastPurchase && quote ? (
               <div className="rounded-xl bg-[#7828E8]/[0.07] px-4 py-3 ring-1 ring-[#7828E8]/20">
                 <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#7828E8]">
-                  Memory just changed
+                  Your next limit
                 </p>
                 <p className="mt-1 font-mono text-sm font-semibold tabular-nums text-neutral-900">
                   Score: {Math.round((lastPurchase.score_before ?? quote.verdict.score ?? 0) * 100)} →{" "}
@@ -742,7 +803,7 @@ export function Desk() {
               }}
               className="block rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium text-neutral-700 hover:bg-black/5"
             >
-              Buy another test item
+              New purchase
             </button>
           </div>
         ) : null}
@@ -753,7 +814,8 @@ export function Desk() {
 
       <aside className="space-y-6">
         <section className="glass-panel standing-hero p-6 md:p-7">
-          <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Your standing</h2>
+          <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Your TRACE reputation</h2>
+          <p className="mt-1 text-[13px] text-neutral-500">Built from your financial history.</p>
           <div className="mt-6 flex flex-col items-center">
             <ScoreRing score={injected.connected ? score : null} />
             <span className={`mt-3 rounded-full border px-4 py-1 text-[12px] font-medium shadow-sm ${tag.cls}`}>
@@ -763,14 +825,14 @@ export function Desk() {
           <p className="mt-5 text-[14px] leading-6 text-neutral-600">
             {injected.connected
               ? standingCopy(rel, quote)
-              : "Connect a wallet to load this agent’s memory of you. If it has never approved a purchase for that address, Alex hasn't built up a relationship with you yet, so it uses a conservative on-chain baseline."}
+              : "Connect a wallet to load your TRACE reputation. If Sibyl has no history for that address, TRACE starts from a cautious onchain baseline."}
           </p>
           <div className="mt-5 grid grid-cols-3 gap-2 border-t border-black/5 pt-4">
             {(
               [
-                ["Current Limit", empty ? "—" : formatAmount(rel!.current_limit)],
-                ["On-Time Rate", onTimeRate],
-                ["Purchases Completed", String(completed)],
+                ["TRACE limit", empty ? "—" : formatAmount(rel!.current_limit)],
+                ["On-time rate", onTimeRate],
+                ["Purchases", String(completed)],
               ] as const
             ).map(([k, v]) => (
               <div key={k} className="min-w-0">
@@ -790,7 +852,7 @@ export function Desk() {
                 else setStep("product");
               }}
             >
-              {productId ? "See why Alex said this →" : "Pick a test item to see reasoning →"}
+              {productId ? "Why you're eligible →" : "Choose a purchase to see eligibility →"}
             </button>
           ) : null}
         </section>
@@ -798,7 +860,7 @@ export function Desk() {
         {injected.connected && active.length > 0 ? (
           <section className="glass-panel p-6">
             <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">
-              Open plans, repay here
+              Upcoming payments
             </p>
             <div className="mt-4 space-y-3">
               {active.map((p) => {
@@ -817,8 +879,8 @@ export function Desk() {
                       {formatAmount(p.amount)} · {p.merchant}
                     </p>
                     <p className="mt-0.5 text-[12px] text-neutral-500">
-                      {paid}/{p.installments} paid
-                      {next ? ` · next ${formatAmount(next.amount)} due ${next.due_date.slice(0, 10)}` : ""}
+                      {paid} of {p.installments} payments complete
+                      {next ? ` · next ${formatAmount(next.amount)} on ${next.due_date.slice(0, 10)}` : ""}
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <button
@@ -849,14 +911,15 @@ export function Desk() {
               })}
             </div>
             <p className="mt-3 text-[11px] text-neutral-400">
-              Amounts are shown in USDC. Repay sends the ETH equivalent to Alex on Base Sepolia.
+              Pay on time and your future capacity can increase — TRACE remembers the repayment.
             </p>
           </section>
         ) : null}
 
         <p className="px-1 text-[11px] leading-5 text-neutral-400">
-          Shown in USDC · settled in ETH. {wallet && injected.address && wallet !== injected.address
-            ? `Quoting ${shortAddress(wallet)}.`
+          Testnet only — no real goods or loans are provided. Powered by Sibyl Memory.
+          {wallet && injected.address && wallet !== injected.address
+            ? ` Quoting ${shortAddress(wallet)}.`
             : null}
         </p>
         {showOutput && quote && step !== "success" && step !== "reason" ? (

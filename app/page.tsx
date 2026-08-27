@@ -25,7 +25,7 @@ export default async function HomePage() {
       <div className="flex justify-center pt-1 pb-6 lg:pt-2 lg:pb-4">
         <span className="inline-flex items-center gap-2 rounded-full bg-[#17171c] px-4 py-2 text-[13px] font-medium text-white">
           <span className="h-1.5 w-1.5 rounded-full bg-[#7828E8]" aria-hidden />
-          Built on Sibyl
+          Powered by Sibyl Memory
         </span>
       </div>
       <section className="grid min-w-0 items-center gap-14 py-2 lg:min-h-[72vh] lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:py-6">
@@ -35,18 +35,18 @@ export default async function HomePage() {
               <circle cx="3.2" cy="5" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.2" />
               <circle cx="6.8" cy="5" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.2" />
             </svg>
-            Base Sepolia · Reputation weighted
+            TESTNET · BASE SEPOLIA
           </p>
           <h1 className="mt-4 text-[1.85rem] font-semibold uppercase leading-[1.08] tracking-tight text-[#0A0219] [overflow-wrap:anywhere] sm:text-5xl lg:text-[5.25rem]">
             Pay on time, and the next deal gets easier.
           </h1>
           <p className="mt-6 max-w-md text-[15px] leading-7 text-neutral-600 sm:text-[17px] sm:leading-8">
-            Alex sends you ETH today (shown as USDC). You pay Alex back in a few parts. Pay on time
-            and the next offer gets bigger. Miss a payment and it gets harder.
+            TRACE is reputation-weighted BNPL that remembers you. It builds your financial reputation
+            from your onchain behavior. Pay responsibly, and your future offers can improve.
           </p>
           <p className="mt-4 max-w-md text-[15px] leading-7 text-neutral-500">
-            New here? Alex hasn&apos;t built up a relationship with you yet, so it starts cautious. A
-            small first purchase, based only on your wallet&apos;s onchain activity.
+            New here? TRACE starts cautious — a small first purchase from your wallet&apos;s onchain
+            activity. After you repay on time, Sibyl Memory is what the next offer is based on.
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
             <Link
@@ -84,9 +84,9 @@ export default async function HomePage() {
 
       <article className="mx-auto mt-24 max-w-3xl">
         <section id="agent-status" className="scroll-mt-28">
-          <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">Alex’s cash, right now</h2>
+          <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">What TRACE can lend right now</h2>
           <p className="mt-3 text-[16px] leading-7 text-neutral-600">
-            These numbers are from this testnet, not a made-up dashboard.
+            Live testnet figures. Alex is TRACE’s autonomous BNPL agent.
           </p>
           {status ? (
             <dl className="glass-panel mt-8 divide-y divide-[#E8E7EC] px-6">
@@ -114,12 +114,14 @@ export default async function HomePage() {
         </section>
 
         <section className="mt-16">
-          <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">If we delete Alex’s notes</h2>
+          <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">Without memory, you start from zero.</h2>
           <p className="mt-4 text-[16px] leading-7 text-neutral-600">
-            Say you paid on time ten times. If we then delete Alex’s notes, the next time you ask you
-            look brand new: smaller limit, fewer payments. Nothing else about you changed. Alex just
-            forgot. That is the point of this testnet, the deal lives in Alex’s memory of you, not in a
-            bureau file.
+            Delete TRACE’s memory and the agent loses the financial history behind your current offer.
+            Same wallet, same chain — smaller limit, fewer payments. Nothing else about you changed.
+          </p>
+          <p className="mt-4 text-[16px] leading-7 text-neutral-600">
+            With Sibyl Memory, previous behavior can change the next decision. Your reputation
+            compounds because your history is remembered.
           </p>
         </section>
       </article>

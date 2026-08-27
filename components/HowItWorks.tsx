@@ -10,19 +10,19 @@ const STEPS = [
     n: "01",
     title: "You ask to buy something",
     line: ["You ask to", "buy something"],
-    body: "You connect, that is your login. Alex checks if you have bought here before. First time? You start small. Been here? Alex looks at whether you paid it back on time. It does not pull a standing from Equifax or anyone else.",
+    body: "You connect — that is your login. TRACE checks Sibyl Memory for this wallet. First time? You start small. Been here? The next offer depends on whether you paid on time.",
   },
   {
     n: "02",
-    title: "Alex says yes or no, then sends you ETH",
-    line: ["Alex says yes", "or no, then sends you ETH"],
-    body: "You see how much you can spend, how many payments, and when they are due. If yes, Alex sends ETH to your wallet (shown as USDC). If Alex is short, or you asked for too much, it says no.",
+    title: "TRACE says yes or no",
+    line: ["TRACE says yes", "or no"],
+    body: "You see your TRACE limit, how many payments, and when they are due. Alex, your TRACE agent, fronts the purchase if you are eligible. If the ask is too high, or the book is empty, the offer stays small.",
   },
   {
     n: "03",
-    title: "You pay Alex back in parts",
-    line: ["You pay Alex", "back in parts"],
-    body: "Each payment is on time, late, or missed. That is what the next deal is based on. Pay on time and the next offer can get better. Miss a payment and it gets harder, fast.",
+    title: "You pay TRACE back in parts",
+    line: ["You pay TRACE", "back in parts"],
+    body: "Each payment is on time, late, or missed. Sibyl remembers that. Pay on time and the next offer can get better. Miss a payment and it gets harder, fast.",
   },
 ] as const;
 
@@ -107,7 +107,7 @@ function StepVisual({
               first ? "bg-amber-50 text-amber-900 ring-1 ring-amber-200/80" : "bg-emerald-50 text-emerald-900 ring-1 ring-emerald-200/80"
             }`}
           >
-            {first ? "No history yet, checking wallet age" : "3 purchases · all on time"}
+            {first ? "No history yet — TRACE starts cautious" : "3 purchases · all on time"}
           </div>
         </div>
       ) : null}
@@ -140,7 +140,7 @@ Limit: $300 (3/3 on-time payments)`}
 
       {step === 3 ? (
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">Payback plan</p>
+          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">Upcoming payments</p>
           <p className="mt-1 text-[12px] text-neutral-500">Tap payment 3 to mark it on time or late.</p>
           <ul className="mt-3 divide-y divide-black/5 rounded-xl ring-1 ring-black/5">
             {SCHEDULE.map((row) => {
@@ -180,7 +180,9 @@ Limit: $300 (3/3 on-time payments)`}
               $300 → ${nextLimit}
             </p>
             <p className={`mt-1 text-[13px] ${nextUp ? "text-emerald-800" : "text-red-800"}`}>
-              {nextUp ? "On-time payment raised the next offer." : "Late payment cut the next offer."}
+              {nextUp
+                ? "Your on-time repayment was remembered by TRACE."
+                : "A late payment was remembered — the next offer got harder."}
             </p>
           </div>
         </div>
@@ -271,9 +273,7 @@ export function HowItWorks() {
             <p className="how-kicker">How it works</p>
             <p className="how-name">Alex</p>
             <p className="how-sub">
-              You connect. Alex remembers if you paid on time.
-              <br />
-              The next deal is based on that, not a bureau file.
+              Powered by Sibyl Memory. Pay on time, and the next deal can get easier.
             </p>
           </div>
 

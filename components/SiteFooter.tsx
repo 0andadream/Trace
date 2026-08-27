@@ -54,7 +54,7 @@ export function SiteFooter({ explorerHref }: { explorerHref?: string }) {
             <span className="text-[17px] font-semibold tracking-tight">Trace</span>
           </Link>
           <p className="mt-4 max-w-[16rem] text-[13px] leading-relaxed text-[#9B96AB]">
-            Reputation-weighted BNPL, run by an agent that remembers you.
+            Reputation-weighted BNPL that remembers you. Powered by Sibyl Memory.
           </p>
         </div>
         {network.map((col) => (

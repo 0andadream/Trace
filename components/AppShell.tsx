@@ -45,7 +45,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="glass-nav flex h-14 items-center justify-between gap-2 rounded-full px-3 sm:h-16 sm:gap-3 sm:px-5">
           <div className="flex min-w-0 items-center gap-3 sm:gap-8">
             <Link href="/" className="flex min-w-0 items-center gap-2 sm:gap-3">
-              <Logo variant="compact" tone="light" subtitle="Buy now, pay later" />
+              <Logo variant="compact" tone="light" subtitle="Reputation-weighted BNPL" />
             </Link>
             {!isLanding ? (
               <nav className="hidden items-center gap-1 md:flex">

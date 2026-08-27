@@ -61,21 +61,21 @@ function PhoneBuyScreen({ live }: { live: HeroLive }) {
 
       <div className="relative z-[1] -mt-2 flex min-h-0 flex-1 flex-col px-2.5">
         <div className="flex min-h-0 flex-1 flex-col rounded-[1.35rem] bg-white px-4 pb-4 pt-4 shadow-[0_16px_40px_rgba(15,15,30,0.08)] ring-1 ring-[#E8E7EC]">
-          <h2 className="text-[13px] font-semibold tracking-tight text-neutral-900">Your standing</h2>
+          <h2 className="text-[13px] font-semibold tracking-tight text-neutral-900">Your TRACE reputation</h2>
           <div className="mt-5 flex flex-1 flex-col items-center justify-center">
             <ScoreRing score={null} size="sm" />
             <span className="mt-3 rounded-full border border-amber-300/60 bg-amber-100 px-3 py-1 text-[9px] font-medium text-amber-800 shadow-sm">
               CONNECT WALLET
             </span>
             <p className="mt-4 max-w-[16rem] text-center text-[10px] leading-4 text-neutral-500">
-              Connect a wallet to load this agent’s memory of you.
+              Connect a wallet to load your TRACE reputation.
             </p>
           </div>
           <div className="mt-4 grid grid-cols-3 gap-2 border-t border-black/5 pt-3">
             {(
               [
-                ["Current Limit", "—"],
-                ["On-Time Rate", "—"],
+                ["TRACE limit", "—"],
+                ["On-time rate", "—"],
                 ["Purchases", "—"],
               ] as const
             ).map(([k, v]) => (
@@ -118,9 +118,9 @@ export function HeroPhone({ live }: { live: HeroLive }) {
         </PhoneFrame>
       </Link>
       <div className="phone-cash">
-        <section className="glass-panel standing-hero p-6 sm:p-7" aria-label="What Alex can still spend">
+        <section className="glass-panel standing-hero p-6 sm:p-7" aria-label="What TRACE can still lend">
           <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-500">
-            What Alex can still spend
+            What TRACE can still lend
           </p>
           {live.error && live.deployable == null ? (
             <p className="mt-3 text-sm text-red-600">
@@ -133,20 +133,18 @@ export function HeroPhone({ live }: { live: HeroLive }) {
                 {money(live.deployable)}
               </p>
               <p className="mt-3 text-[13px] leading-6 text-neutral-600">
-                After keeping a little cash ({money(live.reserve)}) so it is not emptied.
+                After keeping a reserve ({money(live.reserve)}) so the book is not emptied.
                 {live.simulated
-                  ? " We could not check Alex’s account just now, so this cash number is a stand-in."
+                  ? " We could not check the agent account just now, so this number is a stand-in."
                   : ""}
-                {live.execute
-                  ? " ETH payouts to your wallet are live on Base Sepolia."
-                  : " Paying the shop is simulated on this testnet, the yes or no is still real."}{" "}
+                {live.execute ? "" : " Payouts are simulated on this testnet; the yes or no is still real."}{" "}
                 {live.address ? (
                   <>
-                    Alex’s account{" "}
+                    Agent{" "}
                     <span className="font-mono text-neutral-900">{shortAddress(live.address)}</span>.
                   </>
                 ) : (
-                  "Alex’s account is not shown here."
+                  "Agent account is not shown here."
                 )}
               </p>
             </>
