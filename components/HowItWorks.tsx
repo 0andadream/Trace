@@ -8,21 +8,21 @@ import { buildHowStory } from "@/components/howStory";
 const STEPS = [
   {
     n: "01",
-    title: "You ask to buy something",
-    line: ["You ask to", "buy something"],
-    body: "You connect — that is your login. TRACE checks Sibyl Memory for this wallet. First time? You start small. Been here? The next offer depends on whether you paid on time.",
+    title: "Buy",
+    line: ["Buy", "now"],
+    body: "Connect your wallet and choose a purchase. TRACE checks Sibyl Memory for this wallet.",
   },
   {
     n: "02",
-    title: "TRACE says yes or no",
-    line: ["TRACE says yes", "or no"],
-    body: "TRACE finances your purchase upfront. You repay in a few parts. You see your TRACE limit, how many payments, and when they are due. If the ask is too high, or there is no history yet, the offer stays small.",
+    title: "Pay with TRACE",
+    line: ["Pay with", "TRACE"],
+    body: "TRACE finances the purchase upfront. You see your limit, how many payments, and when they are due.",
   },
   {
     n: "03",
-    title: "You pay TRACE back in parts",
-    line: ["You pay TRACE", "back in parts"],
-    body: "Each payment is on time, late, or missed. Sibyl remembers that. Pay on time and the next offer can get better. Miss a payment and it gets harder, fast.",
+    title: "Repay",
+    line: ["Repay", "over time"],
+    body: "Each payment is on time, late, or missed. Sibyl remembers that — and your reputation can grow.",
   },
 ] as const;
 
@@ -50,7 +50,7 @@ function statusChip(label: "Paid" | "Due" | "Late" | "On time") {
       : label === "Late"
         ? "bg-red-50 text-red-800 ring-red-200/70"
         : "bg-black/5 text-neutral-600 ring-black/5";
-  return `rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ring-1 ${tone}`;
+  return `rounded-full px-2.5 py-0.5 text-[12px] font-medium uppercase tracking-[0.06em] ring-1 ${tone}`;
 }
 
 function StepVisual({
@@ -77,10 +77,10 @@ function StepVisual({
           <div className="space-y-1">
             <div className="rounded-2xl bg-black/[0.03] p-4">
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-[11px] font-medium text-neutral-500">Pay</span>
-                <span className="text-sm font-semibold text-neutral-900">USDC</span>
+                <span className="text-[12px] font-medium text-neutral-500">Purchase</span>
+                <span className="text-[13px] font-medium text-neutral-500">USDC</span>
               </div>
-              <p className="text-2xl font-semibold tabular-nums text-neutral-900">150</p>
+              <p className="text-[2.5rem] font-semibold tabular-nums leading-none tracking-[-0.025em] text-neutral-900">150</p>
             </div>
             <div className="flex justify-center py-1">
               <span className="flex h-8 w-8 items-center justify-center rounded-full border border-black/10 bg-white text-neutral-400">
@@ -88,8 +88,8 @@ function StepVisual({
               </span>
             </div>
             <div className="rounded-2xl bg-black/[0.03] p-4">
-              <p className="mb-2 text-[11px] font-medium text-neutral-500">Merchant</p>
-              <p className="text-sm font-semibold text-neutral-900">Test Shop</p>
+              <p className="mb-2 text-[12px] font-medium text-neutral-500">Merchant</p>
+              <p className="text-[16px] font-semibold text-neutral-900">Test Shop</p>
             </div>
           </div>
 
@@ -114,34 +114,38 @@ function StepVisual({
 
       {step === 2 ? (
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">Output</p>
-          <pre className="mt-3 whitespace-pre-wrap font-mono text-[13px] leading-relaxed text-neutral-800">
-            {first
-              ? `Decision: Approve with reduced limit
-
-Reasoning:
-- No purchase history with this agent
-- Checking wallet age only
-- Limit cut to $75
-
-Limit: $75 (based on wallet age only)`
-              : `Decision: Approve
-
-Reasoning:
-- 3 purchases with this agent
-- 3/3 on-time payments
-- Relationship memory, not a bureau file
-
-Limit: $300 (3/3 on-time payments)`}
-          </pre>
+          <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-neutral-500">Decision</p>
+          <p className="mt-2 text-[18px] font-semibold leading-snug text-neutral-900">
+            {first ? "Approve with reduced limit" : "Approve"}
+          </p>
+          <p className="mt-4 text-[12px] font-semibold uppercase tracking-[0.06em] text-neutral-500">Reasoning</p>
+          <ul className="mt-2 space-y-1 text-[13px] font-normal leading-[1.45] text-neutral-700">
+            {(first
+              ? [
+                  "No purchase history with this agent",
+                  "Checking wallet age only",
+                  "Limit cut to $75",
+                ]
+              : [
+                  "3 purchases with this agent",
+                  "3/3 on-time payments",
+                  "Relationship memory, not a bureau file",
+                ]
+            ).map((line) => (
+              <li key={line}>– {line}</li>
+            ))}
+          </ul>
+          <p className="mt-3 text-[13px] font-medium text-neutral-600">
+            {first ? "Limit: $75 (based on wallet age only)" : "Limit: $300 (3/3 on-time payments)"}
+          </p>
           <PayoutNotice example amountUsd={150} />
         </div>
       ) : null}
 
       {step === 3 ? (
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">Upcoming payments</p>
-          <p className="mt-1 text-[12px] text-neutral-500">Tap payment 3 to mark it on time or late.</p>
+          <p className="text-[1.5rem] font-semibold leading-[1.2] tracking-[-0.02em] text-neutral-900">Upcoming payments</p>
+          <p className="mt-1 text-[13px] font-normal text-neutral-500">Tap payment 3 to mark it on time or late.</p>
           <ul className="mt-3 divide-y divide-black/5 rounded-xl ring-1 ring-black/5">
             {SCHEDULE.map((row) => {
               const interactive = !row.locked;
@@ -152,12 +156,12 @@ Limit: $300 (3/3 on-time payments)`}
                     type="button"
                     disabled={!interactive}
                     onClick={() => interactive && setMark(mark === "on_time" ? "late" : "on_time")}
-                    className={`flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-sm ${
+                    className={`flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left ${
                       interactive ? "bg-[#7828E8]/[0.04] hover:bg-[#7828E8]/[0.08]" : ""
                     }`}
                   >
-                    <span className="text-neutral-500">{row.date}</span>
-                    <span className="tabular-nums font-medium text-neutral-900">{row.amount}</span>
+                    <span className="text-[13px] font-normal text-neutral-500">{row.date}</span>
+                    <span className="text-[18px] font-semibold tabular-nums text-neutral-900">{row.amount}</span>
                     <span className={statusChip(label)}>{label}</span>
                   </button>
                 </li>
@@ -170,16 +174,16 @@ Limit: $300 (3/3 on-time payments)`}
               nextUp ? "bg-emerald-50 ring-emerald-200/80" : "bg-red-50 ring-red-200/80"
             }`}
           >
-            <p className="text-[12px] font-semibold uppercase tracking-[0.07em] text-neutral-500">Your next limit</p>
+            <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-neutral-500">Your next limit</p>
             <p
               key={nextLimit}
-              className={`mt-1 text-[1.75rem] font-semibold tabular-nums tracking-[-0.025em] sm:text-[2rem] ${
+              className={`mt-1 text-[1.625rem] font-semibold tabular-nums tracking-[-0.025em] sm:text-[2rem] ${
                 nextUp ? "text-emerald-800" : "text-red-800"
               }`}
             >
               $300 → ${nextLimit}
             </p>
-            <p className={`mt-1 text-[13px] ${nextUp ? "text-emerald-800" : "text-red-800"}`}>
+            <p className={`mt-1 text-[14px] font-normal leading-[1.45] sm:text-[15px] ${nextUp ? "text-emerald-800" : "text-red-800"}`}>
               {nextUp
                 ? "Your on-time repayment was remembered."
                 : "A late payment was remembered — the next offer got harder."}
@@ -270,7 +274,7 @@ export function HowItWorks() {
       <div className="how-mask">
         <div className="how-mask-content">
           <div className="how-mask-copy">
-            <p className="how-kicker">How it works</p>
+            <p className="how-kicker sr-only">How it works</p>
             <p className="how-name">TRACE</p>
             <p className="how-sub">
               Powered by Sibyl Memory. Pay on time, and the next deal can get easier.

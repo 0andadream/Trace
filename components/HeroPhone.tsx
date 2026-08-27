@@ -61,7 +61,7 @@ function PhoneBuyScreen({ live }: { live: HeroLive }) {
 
       <div className="relative z-[1] -mt-2 flex min-h-0 flex-1 flex-col px-2.5">
         <div className="flex min-h-0 flex-1 flex-col rounded-[1.35rem] bg-white px-4 pb-4 pt-4 shadow-[0_16px_40px_rgba(15,15,30,0.08)] ring-1 ring-[#E8E7EC]">
-          <h2 className="text-[13px] font-semibold tracking-tight text-neutral-900">Your TRACE reputation</h2>
+          <h2 className="text-[12px] font-semibold tracking-tight text-neutral-900">Your TRACE reputation</h2>
           <div className="mt-5 flex flex-1 flex-col items-center justify-center">
             <ScoreRing score={null} size="sm" />
             <span className="mt-3 rounded-full border border-amber-300/60 bg-amber-100 px-3 py-1 text-[9px] font-medium text-amber-800 shadow-sm">

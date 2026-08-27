@@ -418,10 +418,10 @@ html:has(.app-light) {
 
 .app-light .how-name {
   margin: 4px 0 18px;
-  font-size: clamp(28px, 8vw, 44px);
+  font-size: clamp(28px, 7vw, 32px);
   font-weight: 600;
-  line-height: 1.1;
-  letter-spacing: -0.03em;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
   color: #17171c;
 }
 

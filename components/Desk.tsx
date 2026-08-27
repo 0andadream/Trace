@@ -814,8 +814,8 @@ export function Desk() {
 
       <aside className="space-y-6">
         <section className="glass-panel standing-hero p-6 md:p-7">
-          <h2 className="text-[1.125rem] font-semibold leading-[1.2] tracking-[-0.02em] text-neutral-900">Your TRACE reputation</h2>
-          <p className="mt-1 text-[14px] font-normal leading-[1.45] text-neutral-500">Built from your financial history.</p>
+          <h2 className="text-[15px] font-semibold leading-[1.2] tracking-[-0.02em] text-neutral-900">Your TRACE reputation</h2>
+          <p className="mt-1 text-[13px] font-normal leading-[1.4] text-neutral-500">Built from your financial history.</p>
           <div className="mt-6 flex flex-col items-center">
             <ScoreRing score={injected.connected ? score : null} />
             <span className={`mt-3 rounded-full border px-4 py-1 text-[12px] font-medium shadow-sm ${tag.cls}`}>

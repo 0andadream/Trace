@@ -53,8 +53,11 @@ export function SiteFooter({ explorerHref }: { explorerHref?: string }) {
             <TraceMark size={32} className="bg-[#16082c] ring-1 ring-white/25" />
             <span className="text-[17px] font-semibold tracking-tight">Trace</span>
           </Link>
-          <p className="mt-4 max-w-[16rem] text-[13px] leading-relaxed text-[#9B96AB]">
-            Reputation-weighted BNPL that remembers you. Powered by Sibyl Memory.
+          <p className="mt-4 max-w-[16rem] text-[14px] font-medium leading-[1.45] text-[#9B96AB]">
+            Reputation-weighted BNPL that remembers you.
+          </p>
+          <p className="mt-2 max-w-[16rem] text-[13px] font-medium leading-[1.4] text-[#6B6578]">
+            Powered by Sibyl Memory.
           </p>
         </div>
         {network.map((col) => (

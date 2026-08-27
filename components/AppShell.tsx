@@ -124,8 +124,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   ] as const
                 ).map(([label, value]) => (
                   <div key={label} className="flex flex-col justify-center gap-1 p-4 sm:gap-1.5 sm:p-6 md:p-8">
-                    <p className="text-[12px] font-semibold uppercase leading-[1.3] tracking-[0.07em] text-neutral-500">{label}</p>
-                    <p className="text-[1.25rem] font-semibold tabular-nums tracking-[-0.025em] text-neutral-900 sm:text-[1.5rem] md:text-[1.75rem]">{value}</p>
+                    <p className="text-[11px] font-medium leading-[1.3] tracking-[0.02em] text-neutral-500 sm:text-[12px]">{label}</p>
+                    <p className="text-[1.25rem] font-semibold tabular-nums tracking-[-0.025em] text-neutral-900 sm:text-[1.375rem] md:text-[1.5rem]">{value}</p>
                   </div>
                 ))}
               </div>
