@@ -47,7 +47,7 @@ export function SiteFooter({ explorerHref }: { explorerHref?: string }) {
 
   return (
     <footer className="bg-[#0A0219] text-[#F4EFE4]">
-      <div className="mx-auto grid w-full max-w-7xl gap-12 px-6 py-16 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-12 sm:grid-cols-2 sm:gap-12 sm:px-6 sm:py-16 lg:grid-cols-5">
         <div className="sm:col-span-2 lg:col-span-1">
           <Link href="/" className="inline-flex items-center gap-2.5">
             <TraceMark size={32} className="bg-[#16082c] ring-1 ring-white/25" />

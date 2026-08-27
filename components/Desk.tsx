@@ -288,8 +288,8 @@ export function Desk() {
   }, [injected.connected, busy, deciding, quote]);
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
-      <section className="glass-panel standing-hero p-8 md:p-12">
+    <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
+      <section className="glass-panel standing-hero min-w-0 p-5 sm:p-8 md:p-12">
         <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Your standing</h2>
         <div className="mt-10 flex flex-col gap-10 sm:flex-row sm:items-start">
           <div className="flex shrink-0 flex-col items-center gap-3">
@@ -311,7 +311,7 @@ export function Desk() {
                 <MemoryTimeline events={timeline} compact />
               </div>
             ) : null}
-            <div className="grid grid-cols-3 gap-4 border-t border-black/5 pt-4">
+            <div className="grid grid-cols-3 gap-2 border-t border-black/5 pt-4 sm:gap-4">
               {(
                 [
                   ["Current Limit", empty ? "—" : formatAmount(rel!.current_limit)],
@@ -319,9 +319,9 @@ export function Desk() {
                   ["Purchases Completed", String(completed)],
                 ] as const
               ).map(([k, v]) => (
-                <div key={k}>
-                  <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">{k}</p>
-                  <p className="mt-1.5 text-base font-semibold tabular-nums text-neutral-900">{v}</p>
+                <div key={k} className="min-w-0">
+                  <p className="text-[10px] font-medium uppercase leading-tight tracking-[0.08em] text-neutral-500 sm:text-[11px] sm:tracking-[0.12em]">{k}</p>
+                  <p className="mt-1.5 text-sm font-semibold tabular-nums text-neutral-900 sm:text-base">{v}</p>
                 </div>
               ))}
             </div>

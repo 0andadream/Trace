@@ -145,7 +145,7 @@ export function DocsView() {
   }
 
   return (
-    <div className="flex gap-12">
+    <div className="flex min-w-0 gap-12">
       <aside className="hidden w-56 shrink-0 lg:block">
         <div className="sticky top-32 space-y-1">
           <p className="mb-4 px-3 text-[10px] font-semibold uppercase tracking-widest text-neutral-400">
@@ -169,7 +169,7 @@ export function DocsView() {
         </div>
       </aside>
 
-      <article className="min-w-0 max-w-3xl flex-1 space-y-20 pb-24">
+      <article className="min-w-0 max-w-3xl flex-1 space-y-20 overflow-x-clip pb-24">
         <Section id="overview" title="What is Trace?">
           <Lead>
             Trace is buy now, pay later on Base Sepolia. Alex sends you ETH today (shown as USDC). You

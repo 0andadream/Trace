@@ -28,19 +28,19 @@ export default async function HomePage() {
           Built on Sibyl
         </span>
       </div>
-      <section className="grid items-center gap-14 py-2 lg:min-h-[72vh] lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:py-6">
-        <div className="max-w-xl">
-          <p className="inline-flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.16em] text-neutral-500">
+      <section className="grid min-w-0 items-center gap-14 py-2 lg:min-h-[72vh] lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:py-6">
+        <div className="min-w-0 max-w-xl">
+          <p className="flex flex-wrap items-center gap-2 text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-500 sm:tracking-[0.16em]">
             <svg width="8" height="8" viewBox="0 0 10 10" aria-hidden>
               <circle cx="3.2" cy="5" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.2" />
               <circle cx="6.8" cy="5" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.2" />
             </svg>
             Base Sepolia · Reputation weighted
           </p>
-          <h1 className="mt-4 text-[2.75rem] font-semibold uppercase leading-[1.05] tracking-tight text-[#0A0219] sm:text-7xl lg:text-[5.25rem]">
+          <h1 className="mt-4 text-[1.85rem] font-semibold uppercase leading-[1.08] tracking-tight text-[#0A0219] [overflow-wrap:anywhere] sm:text-5xl lg:text-[5.25rem]">
             Pay on time, and the next deal gets easier.
           </h1>
-          <p className="mt-6 max-w-md text-[17px] leading-8 text-neutral-600">
+          <p className="mt-6 max-w-md text-[15px] leading-7 text-neutral-600 sm:text-[17px] sm:leading-8">
             Alex sends you ETH today (shown as USDC). You pay Alex back in a few parts. Pay on time
             and the next offer gets bigger. Miss a payment and it gets harder.
           </p>

@@ -37,7 +37,7 @@ export function Logo({
         <span className="flex min-w-0 flex-col items-start">
           <span className={`text-[17px] font-semibold leading-none tracking-tight ${name}`}>{title}</span>
           {subtitle ? (
-            <span className={`mt-1 text-[11px] font-medium leading-none ${sub}`}>{subtitle}</span>
+            <span className={`mt-1 hidden text-[11px] font-medium leading-none sm:block ${sub}`}>{subtitle}</span>
           ) : null}
         </span>
       </span>

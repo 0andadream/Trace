@@ -40,11 +40,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="app-light">
-      <header className="fixed left-1/2 top-6 z-50 w-full max-w-7xl -translate-x-1/2 px-4 sm:px-6">
-        <div className="glass-nav flex h-16 items-center justify-between rounded-full px-5">
-          <div className="flex min-w-0 items-center gap-8">
-            <Link href="/" className="flex items-center gap-3">
+    <div className="app-light min-w-0">
+      <header className="fixed left-1/2 top-3 z-50 w-full max-w-7xl -translate-x-1/2 px-3 sm:top-6 sm:px-6">
+        <div className="glass-nav flex h-14 items-center justify-between gap-2 rounded-full px-3 sm:h-16 sm:gap-3 sm:px-5">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-8">
+            <Link href="/" className="flex min-w-0 items-center gap-2 sm:gap-3">
               <Logo variant="compact" tone="light" subtitle="Buy now, pay later" />
             </Link>
             {!isLanding ? (
@@ -65,11 +65,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </nav>
             ) : null}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
             {isLanding ? (
               <Link
                 href="/docs"
-                className="px-3 py-2 text-xs font-medium text-neutral-500 hover:text-neutral-900"
+                className="px-2 py-2 text-xs font-medium text-neutral-500 hover:text-neutral-900 sm:px-3"
               >
                 Docs
               </Link>
@@ -81,7 +81,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {isLanding ? (
               <Link
                 href="/buy"
-                className="inline-flex h-9 items-center whitespace-nowrap rounded-full bg-[#0A0219] px-5 text-xs font-semibold text-white shadow-sm hover:bg-[#16082c]"
+                className="inline-flex h-8 items-center whitespace-nowrap rounded-full bg-[#0A0219] px-3 text-[11px] font-semibold text-white shadow-sm hover:bg-[#16082c] sm:h-9 sm:px-5 sm:text-xs"
               >
                 Launch App
               </Link>
@@ -90,9 +90,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             )}
           </div>
         </div>
+        {!isLanding ? (
+          <nav className="mt-2 flex gap-1 overflow-x-auto rounded-full bg-white/80 px-2 py-1 ring-1 ring-black/5 md:hidden">
+            {NAV.filter((n) => !n.ownerOnly || wallet.connected).map((n) => {
+              const active = path === n.href || path?.startsWith(`${n.href}/`);
+              return (
+                <Link
+                  key={n.href}
+                  href={n.href}
+                  className={`whitespace-nowrap rounded-full px-3 py-1.5 text-[11px] font-medium ${
+                    active ? "bg-black/5 text-neutral-900" : "text-neutral-500"
+                  }`}
+                >
+                  {n.label}
+                </Link>
+              );
+            })}
+          </nav>
+        ) : null}
       </header>
 
-      <div className="mx-auto w-full max-w-7xl px-4 pb-16 pt-28 sm:px-6">
+      <div className={`mx-auto w-full max-w-7xl px-4 pb-16 sm:px-6 ${!isLanding ? "pt-32 sm:pt-28" : "pt-24 sm:pt-28"}`}>
         {!isLanding && !isDocs ? (
           <div className="relative z-10">
             <div className="glass-panel stats-float overflow-hidden">
@@ -105,9 +123,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     ["People on file", status ? String(status.wallets_with_history) : "—"],
                   ] as const
                 ).map(([label, value]) => (
-                  <div key={label} className="flex flex-col justify-center gap-1.5 p-6 md:p-8">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">{label}</p>
-                    <p className="text-3xl font-semibold tracking-tight text-neutral-900 md:text-4xl">{value}</p>
+                  <div key={label} className="flex flex-col justify-center gap-1 p-4 sm:gap-1.5 sm:p-6 md:p-8">
+                    <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-500 sm:text-[11px]">{label}</p>
+                    <p className="text-xl font-semibold tracking-tight text-neutral-900 sm:text-3xl md:text-4xl">{value}</p>
                   </div>
                 ))}
               </div>
