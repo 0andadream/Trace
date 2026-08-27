@@ -119,7 +119,7 @@ export function HeroPhone({ live }: { live: HeroLive }) {
       </Link>
       <div className="phone-cash">
         <section className="glass-panel standing-hero p-6 sm:p-7" aria-label="Available to spend">
-          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-500">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.07em] text-neutral-500">
             Available to spend
           </p>
           {live.error && live.deployable == null ? (
@@ -129,7 +129,7 @@ export function HeroPhone({ live }: { live: HeroLive }) {
             </p>
           ) : (
             <>
-              <p className="mt-3 text-4xl font-semibold tabular-nums tracking-tight text-neutral-900 sm:text-[2.6rem]">
+              <p className="mt-3 text-[2rem] font-semibold tabular-nums tracking-[-0.025em] text-neutral-900 sm:text-[2.5rem]">
                 {money(live.deployable)}
               </p>
               <p className="mt-3 text-[13px] leading-6 text-neutral-600">

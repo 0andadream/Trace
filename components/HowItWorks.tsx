@@ -170,10 +170,10 @@ Limit: $300 (3/3 on-time payments)`}
               nextUp ? "bg-emerald-50 ring-emerald-200/80" : "bg-red-50 ring-red-200/80"
             }`}
           >
-            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">Your next limit</p>
+            <p className="text-[12px] font-semibold uppercase tracking-[0.07em] text-neutral-500">Your next limit</p>
             <p
               key={nextLimit}
-              className={`mt-1 text-3xl font-semibold tabular-nums tracking-tight ${
+              className={`mt-1 text-[1.75rem] font-semibold tabular-nums tracking-[-0.025em] sm:text-[2rem] ${
                 nextUp ? "text-emerald-800" : "text-red-800"
               }`}
             >

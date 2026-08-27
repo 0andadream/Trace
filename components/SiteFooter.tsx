@@ -59,7 +59,7 @@ export function SiteFooter({ explorerHref }: { explorerHref?: string }) {
         </div>
         {network.map((col) => (
           <div key={col.heading}>
-            <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#6B6578]">{col.heading}</p>
+            <p className="text-[12px] font-semibold uppercase tracking-[0.07em] text-[#6B6578]">{col.heading}</p>
             <ul className="mt-4 space-y-2.5">
               {col.links.map((l) => (
                 <li key={l.label}>

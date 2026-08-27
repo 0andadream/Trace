@@ -51,7 +51,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <nav className="hidden items-center gap-1 md:flex">
                 {NAV.filter((n) => !n.ownerOnly || wallet.connected).map((n) => {
                   const active = path === n.href || path?.startsWith(`${n.href}/`);
-                  const cls = `px-4 py-2 text-xs font-medium transition-all rounded-full ${
+                  const cls = `px-4 py-2 text-[14px] font-medium transition-all rounded-full ${
                     active
                       ? "bg-black/5 text-neutral-900 shadow-sm"
                       : "text-neutral-500 hover:bg-black/5 hover:text-neutral-900"
@@ -69,19 +69,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {isLanding ? (
               <Link
                 href="/docs"
-                className="px-2 py-2 text-xs font-medium text-neutral-500 hover:text-neutral-900 sm:px-3"
+                className="px-2 py-2 text-[14px] font-medium text-neutral-500 hover:text-neutral-900 sm:px-3"
               >
                 Docs
               </Link>
             ) : null}
-            <span className="hidden items-center gap-1.5 rounded-full bg-[#7828E8] px-3 py-1 text-[11px] font-semibold text-white shadow-sm sm:inline-flex">
+            <span className="hidden items-center gap-1.5 rounded-full bg-[#7828E8] px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.07em] text-white shadow-sm sm:inline-flex">
               <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden />
               Testnet
             </span>
             {isLanding ? (
               <Link
                 href="/buy"
-                className="inline-flex h-8 items-center whitespace-nowrap rounded-full bg-[#0A0219] px-3 text-[11px] font-semibold text-white shadow-sm hover:bg-[#16082c] sm:h-9 sm:px-5 sm:text-xs"
+                className="inline-flex h-8 items-center whitespace-nowrap rounded-full bg-[#0A0219] px-3 text-[14px] font-semibold text-white shadow-sm hover:bg-[#16082c] sm:h-9 sm:px-5 sm:text-[15px]"
               >
                 Launch App
               </Link>
@@ -98,7 +98,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <Link
                   key={n.href}
                   href={n.href}
-                  className={`whitespace-nowrap rounded-full px-3 py-1.5 text-[11px] font-medium ${
+                  className={`whitespace-nowrap rounded-full px-3 py-1.5 text-[13px] font-medium ${
                     active ? "bg-black/5 text-neutral-900" : "text-neutral-500"
                   }`}
                 >
@@ -124,8 +124,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   ] as const
                 ).map(([label, value]) => (
                   <div key={label} className="flex flex-col justify-center gap-1 p-4 sm:gap-1.5 sm:p-6 md:p-8">
-                    <p className="text-[10px] font-medium uppercase leading-tight tracking-[0.1em] text-neutral-500 sm:text-[11px] sm:tracking-[0.12em]">{label}</p>
-                    <p className="text-xl font-semibold tracking-tight text-neutral-900 sm:text-3xl md:text-4xl">{value}</p>
+                    <p className="text-[12px] font-semibold uppercase leading-[1.3] tracking-[0.07em] text-neutral-500">{label}</p>
+                    <p className="text-[1.25rem] font-semibold tabular-nums tracking-[-0.025em] text-neutral-900 sm:text-[1.5rem] md:text-[1.75rem]">{value}</p>
                   </div>
                 ))}
               </div>

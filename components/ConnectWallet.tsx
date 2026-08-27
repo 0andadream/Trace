@@ -153,14 +153,14 @@ export function ConnectWallet({ variant = "dark" }: { variant?: "dark" | "light"
       <button
         className={
           light
-            ? "inline-flex items-center gap-2 whitespace-nowrap rounded-full px-3 py-2 text-xs font-medium text-neutral-500 ring-1 ring-black/10 hover:bg-black/5 hover:text-neutral-900 sm:px-4"
+            ? "inline-flex items-center gap-2 whitespace-nowrap rounded-full px-3 py-2 text-[14px] font-medium text-neutral-500 ring-1 ring-black/10 hover:bg-black/5 hover:text-neutral-900 sm:px-4"
             : "btn-trace h-8 px-3 text-xs"
         }
         disabled={wallet.busy}
         onClick={wallet.connect}
         type="button"
       >
-        {wallet.busy ? "Connecting…" : <><span className="sm:hidden">Connect</span><span className="hidden sm:inline">Connect Wallet</span></>}
+        {wallet.busy ? "Connecting…" : <><span className="sm:hidden">Connect</span><span className="hidden sm:inline">Connect wallet</span></>}
       </button>
       {wallet.error ? (
         <p className={`mt-1 max-w-[14rem] text-right text-[10px] ${light ? "text-red-600" : "text-hold"}`}>{wallet.error}</p>

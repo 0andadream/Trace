@@ -360,12 +360,12 @@ export function Desk() {
       <section className="glass-panel min-w-0 p-5 sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Buy with TRACE</h2>
-            <p className="mt-1 text-[13px] text-neutral-500">
+            <h2 className="text-[1.375rem] font-semibold leading-[1.2] tracking-[-0.02em] text-neutral-900 sm:text-[1.5rem]">Buy with TRACE</h2>
+            <p className="mt-1 text-[14px] font-normal leading-[1.45] text-neutral-500">
               Pay now or split your purchase into payments.
             </p>
           </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-black/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-500">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-black/5 px-2.5 py-1 text-[12px] font-semibold uppercase tracking-[0.07em] text-neutral-500">
             TESTNET · BASE SEPOLIA
           </span>
         </div>
@@ -398,8 +398,8 @@ export function Desk() {
 
         {step === "product" || step === "plan" ? (
           <div className="mt-6">
-            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">Purchase</p>
-            <p className="mt-1 text-[13px] text-neutral-500">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.07em] text-neutral-500">Purchase</p>
+            <p className="mt-1 text-[14px] font-medium leading-[1.45] text-neutral-500">
               Merchant: {merchant}. Amount sets what you&apos;re asking TRACE to front.
             </p>
             <div className="mt-3 grid gap-3 sm:grid-cols-3">
@@ -416,11 +416,11 @@ export function Desk() {
                         : "bg-black/[0.03] ring-black/5 hover:ring-black/15"
                     }`}
                   >
-                    <p className="text-sm font-semibold text-neutral-900">{p.name}</p>
-                    <p className="mt-2 text-2xl font-semibold tabular-nums tracking-tight text-neutral-900">
+                    <p className="text-[16px] font-semibold leading-snug text-neutral-900">{p.name}</p>
+                    <p className="mt-2 text-[2.5rem] font-semibold tabular-nums leading-none tracking-[-0.025em] text-neutral-900 sm:text-[2.75rem]">
                       {formatAmount(p.price)}
                     </p>
-                    <p className="mt-2 text-[11px] text-neutral-400">Testnet purchase</p>
+                    <p className="mt-2 text-[12px] font-medium leading-[1.4] text-neutral-400">Testnet purchase</p>
                   </button>
                 );
               })}
@@ -441,7 +441,7 @@ export function Desk() {
                       type="number"
                       min={0}
                       step="any"
-                      className="mt-1 w-full bg-transparent text-2xl font-semibold text-neutral-900 outline-none"
+                      className="mt-1 w-full bg-transparent text-[2.5rem] font-semibold tabular-nums leading-none tracking-[-0.025em] text-neutral-900 outline-none"
                       value={productId === "custom" ? amount : ""}
                       placeholder="0"
                       onChange={(e) => {
@@ -464,11 +464,11 @@ export function Desk() {
 
         {step === "plan" ? (
           <div className="mt-8 border-t border-black/5 pt-6">
-            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">How you&apos;ll pay</p>
-            <h3 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.07em] text-neutral-500">How you&apos;ll pay</p>
+            <h3 className="mt-2 text-[1.375rem] font-semibold leading-[1.2] tracking-[-0.02em] text-neutral-900 sm:text-[1.5rem]">
               {itemName} · {formatAmount(Number(amount) || 0)}
             </h3>
-            <p className="mt-1 text-[13px] text-neutral-500">Merchant: {merchant}</p>
+            <p className="mt-1 text-[14px] font-medium leading-[1.45] text-neutral-500">Merchant: {merchant}</p>
             {!injected.connected ? (
               <p className="mt-4 text-[15px] leading-7 text-neutral-600">
                 Connect a wallet to see your TRACE limit and payment options.
@@ -487,8 +487,8 @@ export function Desk() {
                         : "bg-black/[0.03] ring-black/5 hover:ring-black/15"
                     }`}
                   >
-                    <p className="text-sm font-semibold text-neutral-900">Pay today</p>
-                    <p className="mt-2 text-2xl font-semibold tabular-nums text-neutral-900">
+                    <p className="text-[15px] font-medium text-neutral-900">Pay today</p>
+                    <p className="mt-2 text-[1.75rem] font-semibold tabular-nums leading-none tracking-[-0.025em] text-neutral-900 sm:text-[2rem]">
                       {formatAmount(quote.terms.total_due || Number(amount) || 0)}
                     </p>
                     <p className="mt-2 text-[12px] text-neutral-500">One payment of principal plus TRACE interest.</p>
@@ -502,8 +502,8 @@ export function Desk() {
                         : "bg-black/[0.03] ring-black/5 hover:ring-black/15"
                     }`}
                   >
-                    <p className="text-sm font-semibold text-neutral-900">Pay with TRACE</p>
-                    <p className="mt-2 text-2xl font-semibold tabular-nums text-neutral-900">
+                    <p className="text-[15px] font-medium text-neutral-900">Pay with TRACE</p>
+                    <p className="mt-2 text-[1.75rem] font-semibold tabular-nums leading-none tracking-[-0.025em] text-neutral-900 sm:text-[2rem]">
                       {instN ? `${instN} payments` : "—"}
                     </p>
                     <p className="mt-2 text-[12px] text-neutral-500">
@@ -538,8 +538,8 @@ export function Desk() {
                     ] as const
                   ).map(([k, v]) => (
                     <div key={k} className="rounded-xl bg-black/[0.03] px-3 py-3">
-                      <p className="text-[10px] font-medium uppercase tracking-[0.1em] text-neutral-500">{k}</p>
-                      <p className="mt-1 text-[15px] font-semibold tabular-nums leading-tight text-neutral-900">{v}</p>
+                      <p className="text-[12px] font-semibold uppercase tracking-[0.07em] text-neutral-500">{k}</p>
+                      <p className="mt-1 text-[1.25rem] font-semibold tabular-nums leading-tight tracking-[-0.025em] text-neutral-900">{v}</p>
                     </div>
                   ))}
                 </div>
@@ -553,12 +553,12 @@ export function Desk() {
                 {schedule.length > 0 ? (
                   <ul className="mt-5 divide-y divide-black/5 rounded-xl ring-1 ring-black/5">
                     {schedule.map((due, i) => (
-                      <li key={`${due}-${i}`} className="flex items-center justify-between px-4 py-3 text-sm">
-                        <span className="text-neutral-500">
+                      <li key={`${due}-${i}`} className="flex items-center justify-between px-4 py-3">
+                        <span className="text-[13px] font-medium text-neutral-500">
                           {i === 0 ? "First payment" : `Payment ${i + 1}`}
                         </span>
-                        <span className="font-medium tabular-nums text-neutral-900">{formatAmount(instAmt)}</span>
-                        <span className="text-neutral-500">{formatDue(due)}</span>
+                        <span className="text-[18px] font-semibold tabular-nums text-neutral-900">{formatAmount(instAmt)}</span>
+                        <span className="text-[13px] font-normal text-neutral-500">{formatDue(due)}</span>
                       </li>
                     ))}
                   </ul>
@@ -577,7 +577,7 @@ export function Desk() {
               <button
                 type="button"
                 onClick={() => setStep("product")}
-                className="rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium text-neutral-700 hover:bg-black/5"
+                className="rounded-full border border-black/10 px-5 py-2.5 text-[15px] font-medium text-neutral-700 hover:bg-black/5"
               >
                 Back
               </button>
@@ -591,7 +591,7 @@ export function Desk() {
                   }
                   setStep("reason");
                 }}
-                className="rounded-full bg-[#7828E8] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#6a1fd4] disabled:opacity-50"
+                className="rounded-full bg-[#7828E8] px-5 py-2.5 text-[15px] font-semibold text-white hover:bg-[#6a1fd4] disabled:opacity-50"
               >
                 {injected.connected ? "Why you're eligible" : "Connect Wallet"}
               </button>
@@ -611,10 +611,10 @@ export function Desk() {
             ) : quote ? (
               <div className="space-y-6">
                 <div>
-                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.07em] text-neutral-500">
                     Why you&apos;re eligible
                   </p>
-                  <h3 className="mt-2 text-3xl font-semibold tracking-tight text-neutral-900">
+                  <h3 className="mt-2 text-[1.75rem] font-semibold leading-[1.15] tracking-[-0.02em] text-neutral-900 sm:text-[2rem]">
                     {quote.verdict.decision}
                   </h3>
                   {quote.verdict.why ? (
@@ -630,7 +630,7 @@ export function Desk() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.07em] text-neutral-500">
                     What TRACE used
                   </p>
                   <ul className="mt-3 space-y-2 text-[15px] leading-6 text-neutral-800">
@@ -643,8 +643,8 @@ export function Desk() {
                   </ul>
                 </div>
                 <div>
-                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">Terms</p>
-                  <p className="mt-2 font-mono text-[13px] leading-6 text-neutral-800">{quote.verdict.terms}</p>
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.07em] text-neutral-500">Terms</p>
+                  <p className="mt-2 text-[14px] font-normal leading-[1.45] text-neutral-800">{quote.verdict.terms}</p>
                 </div>
                 {injected.connected ? (
                   <div className="rounded-2xl bg-black/[0.03] px-4 py-4">
@@ -657,7 +657,7 @@ export function Desk() {
                     </div>
                     {timeline.length > 0 ? (
                       <div className="mt-5 border-t border-black/5 pt-4">
-                        <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">
+                        <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.07em] text-neutral-500">
                           Financial history on file
                         </p>
                         <MemoryTimeline events={timeline} compact />
@@ -675,7 +675,7 @@ export function Desk() {
               <button
                 type="button"
                 onClick={() => setStep("plan")}
-                className="rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium text-neutral-700 hover:bg-black/5"
+                className="rounded-full border border-black/10 px-5 py-2.5 text-[15px] font-medium text-neutral-700 hover:bg-black/5"
               >
                 Back
               </button>
@@ -683,7 +683,7 @@ export function Desk() {
                 type="button"
                 disabled={!approved || deciding}
                 onClick={() => setStep("confirm")}
-                className="rounded-full bg-[#7828E8] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#6a1fd4] disabled:opacity-50"
+                className="rounded-full bg-[#7828E8] px-5 py-2.5 text-[15px] font-semibold text-white hover:bg-[#6a1fd4] disabled:opacity-50"
               >
                 {blocked ? quote?.terms.decision : "Continue to confirm"}
               </button>
@@ -693,8 +693,8 @@ export function Desk() {
 
         {step === "confirm" ? (
           <div className="mt-8 border-t border-black/5 pt-6">
-            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">Confirm purchase</p>
-            <h3 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.07em] text-neutral-500">Confirm purchase</p>
+            <h3 className="mt-2 text-[1.375rem] font-semibold leading-[1.2] tracking-[-0.02em] text-neutral-900 sm:text-[1.5rem]">
               {itemName ?? "Purchase"}
             </h3>
             {deciding ? (
@@ -730,7 +730,7 @@ export function Desk() {
               <button
                 type="button"
                 onClick={() => setStep("reason")}
-                className="rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium text-neutral-700 hover:bg-black/5"
+                className="rounded-full border border-black/10 px-5 py-2.5 text-[15px] font-medium text-neutral-700 hover:bg-black/5"
               >
                 Back
               </button>
@@ -738,7 +738,7 @@ export function Desk() {
                 type="button"
                 disabled={busy || deciding || blocked}
                 onClick={requestPurchase}
-                className="rounded-full bg-[#7828E8] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#6a1fd4] disabled:opacity-50"
+                className="rounded-full bg-[#7828E8] px-5 py-2.5 text-[15px] font-semibold text-white hover:bg-[#6a1fd4] disabled:opacity-50"
               >
                 {confirmLabel}
               </button>
@@ -749,10 +749,10 @@ export function Desk() {
         {step === "success" ? (
           <div className="mt-6 space-y-5">
             <div>
-              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#7828E8]">
+              <p className="text-[12px] font-semibold uppercase tracking-[0.07em] text-[#7828E8]">
                 Recorded in Sibyl Memory
               </p>
-              <h3 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">
+              <h3 className="mt-2 text-[1.75rem] font-semibold leading-[1.15] tracking-[-0.02em] text-neutral-900 sm:text-[2rem]">
                 Your next purchase will reflect this.
               </h3>
               <p className="mt-2 text-[15px] leading-6 text-neutral-600">
@@ -761,14 +761,14 @@ export function Desk() {
             </div>
             {lastPurchase && quote ? (
               <div className="rounded-xl bg-[#7828E8]/[0.07] px-4 py-3 ring-1 ring-[#7828E8]/20">
-                <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#7828E8]">
+                <p className="text-[12px] font-semibold uppercase tracking-[0.07em] text-[#7828E8]">
                   Your next limit
                 </p>
-                <p className="mt-1 font-mono text-sm font-semibold tabular-nums text-neutral-900">
+                <p className="mt-1 text-[1.25rem] font-semibold tabular-nums tracking-[-0.025em] text-neutral-900">
                   Score: {Math.round((lastPurchase.score_before ?? quote.verdict.score ?? 0) * 100)} →{" "}
                   {Math.round((lastPurchase.score_after ?? rel?.current_standing_score ?? quote.verdict.score ?? 0) * 100)}
                 </p>
-                <p className="mt-0.5 font-mono text-sm font-semibold tabular-nums text-neutral-900">
+                <p className="mt-0.5 text-[1.25rem] font-semibold tabular-nums tracking-[-0.025em] text-neutral-900">
                   Limit: {formatAmount(lastPurchase.limit_before ?? quote.terms.available)} →{" "}
                   {formatAmount(lastPurchase.limit_after ?? rel?.current_limit ?? quote.terms.available)}
                 </p>
@@ -814,8 +814,8 @@ export function Desk() {
 
       <aside className="space-y-6">
         <section className="glass-panel standing-hero p-6 md:p-7">
-          <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Your TRACE reputation</h2>
-          <p className="mt-1 text-[13px] text-neutral-500">Built from your financial history.</p>
+          <h2 className="text-[1.125rem] font-semibold leading-[1.2] tracking-[-0.02em] text-neutral-900">Your TRACE reputation</h2>
+          <p className="mt-1 text-[14px] font-normal leading-[1.45] text-neutral-500">Built from your financial history.</p>
           <div className="mt-6 flex flex-col items-center">
             <ScoreRing score={injected.connected ? score : null} />
             <span className={`mt-3 rounded-full border px-4 py-1 text-[12px] font-medium shadow-sm ${tag.cls}`}>
@@ -859,7 +859,7 @@ export function Desk() {
 
         {injected.connected && active.length > 0 ? (
           <section className="glass-panel p-6">
-            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.07em] text-neutral-500">
               Upcoming payments
             </p>
             <div className="mt-4 space-y-3">
@@ -887,7 +887,7 @@ export function Desk() {
                         type="button"
                         disabled={busy || !next}
                         onClick={() => repay(p.purchase_id, false)}
-                        className="rounded-full bg-[#7828E8] px-4 py-2 text-xs font-semibold text-white hover:bg-[#6a1fd4] disabled:opacity-50"
+                        className="rounded-full bg-[#7828E8] px-4 py-2 text-[15px] font-semibold text-white hover:bg-[#6a1fd4] disabled:opacity-50"
                       >
                         {repayingId === p.purchase_id && !repayingRest
                           ? "Confirm in wallet…"

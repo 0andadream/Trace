@@ -30,37 +30,37 @@ export default async function HomePage() {
       </div>
       <section className="grid min-w-0 items-center gap-14 py-2 lg:min-h-[72vh] lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:py-6">
         <div className="min-w-0 max-w-xl">
-          <p className="flex flex-wrap items-center gap-2 text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-500 sm:tracking-[0.16em]">
+          <p className="flex flex-wrap items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.07em] text-neutral-500">
             <svg width="8" height="8" viewBox="0 0 10 10" aria-hidden>
               <circle cx="3.2" cy="5" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.2" />
               <circle cx="6.8" cy="5" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.2" />
             </svg>
             TESTNET · BASE SEPOLIA
           </p>
-          <h1 className="mt-4 text-[1.85rem] font-semibold uppercase leading-[1.08] tracking-tight text-[#0A0219] [overflow-wrap:anywhere] sm:text-5xl lg:text-[5.25rem]">
+          <h1 className="mt-4 max-w-xl text-[2.375rem] font-semibold leading-[1.05] tracking-[-0.035em] text-[#0A0219] [overflow-wrap:anywhere] sm:text-[3rem] lg:text-[3.5rem]">
             Pay on time, and the next deal gets easier.
           </h1>
-          <p className="mt-6 max-w-md text-[15px] leading-7 text-neutral-600 sm:text-[17px] sm:leading-8">
+          <p className="mt-6 max-w-[40rem] text-base font-normal leading-[1.5] text-neutral-600 sm:text-lg">
             TRACE uses your onchain financial history to build a reputation that can unlock better
             ways to pay over time.
           </p>
-          <p className="mt-4 max-w-md text-[15px] leading-7 text-neutral-500">
+          <p className="mt-4 max-w-[40rem] text-base font-normal leading-[1.5] text-neutral-500">
             Buy now. Pay over time. Build a financial reputation as you go.
           </p>
-          <p className="mt-4 max-w-md text-[13px] leading-6 text-neutral-400">
+          <p className="mt-4 max-w-[40rem] text-[13px] font-medium leading-[1.4] text-neutral-400">
             Alex is TRACE&apos;s autonomous BNPL agent. Sibyl provides the persistent memory that
             lets Alex remember your financial history across sessions.
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
             <Link
               href="/buy"
-              className="inline-flex h-12 items-center rounded-full bg-[#7828E8] px-7 text-sm font-semibold text-white shadow-[0_12px_32px_rgba(120,40,232,0.28)] hover:bg-[#6a1fd4]"
+              className="inline-flex h-12 items-center rounded-full bg-[#7828E8] px-7 text-[15px] font-semibold text-white shadow-[0_12px_32px_rgba(120,40,232,0.28)] hover:bg-[#6a1fd4]"
             >
               Launch App
             </Link>
             <a
               href="#how-it-works"
-              className="inline-flex h-12 items-center rounded-full border border-black/10 px-6 text-sm font-medium text-neutral-900 hover:bg-black/5"
+              className="inline-flex h-12 items-center rounded-full border border-black/10 px-6 text-[15px] font-medium text-neutral-900 hover:bg-black/5"
             >
               How it works
             </a>
@@ -87,8 +87,8 @@ export default async function HomePage() {
 
       <article className="mx-auto mt-24 max-w-3xl">
         <section id="agent-status" className="scroll-mt-28">
-          <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">Available to spend, in total</h2>
-          <p className="mt-3 text-[16px] leading-7 text-neutral-600">
+          <h2 className="text-[1.75rem] font-semibold leading-[1.15] tracking-[-0.02em] text-neutral-900 sm:text-[2rem] lg:text-[2.25rem]">Available to spend, in total</h2>
+          <p className="mt-3 max-w-[40rem] text-base font-normal leading-[1.5] text-neutral-600">
             Live testnet figures for TRACE. Testnet only — no real goods or loans are provided.
           </p>
           {status ? (
@@ -107,7 +107,7 @@ export default async function HomePage() {
               ).map(([k, v]) => (
                 <div key={k} className="flex flex-wrap justify-between gap-2 py-3 text-sm">
                   <dt className="text-neutral-500">{k}</dt>
-                  <dd className="font-mono text-[13px] text-neutral-900">{v}</dd>
+                  <dd className={`text-[13px] font-medium leading-[1.4] text-neutral-900 ${String(v).startsWith("0x") ? "font-mono" : "tabular-nums"}`}>{v}</dd>
                 </div>
               ))}
             </dl>
@@ -117,22 +117,22 @@ export default async function HomePage() {
         </section>
 
         <section className="mt-16">
-          <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">Your history doesn&apos;t disappear.</h2>
-          <p className="mt-4 text-[16px] leading-7 text-neutral-600">
+          <h2 className="text-[1.75rem] font-semibold leading-[1.15] tracking-[-0.02em] text-neutral-900 sm:text-[2rem]">Your history doesn&apos;t disappear.</h2>
+          <p className="mt-4 max-w-[40rem] text-[15px] font-normal leading-[1.5] text-neutral-600">
             Sibyl Memory carries your financial history across sessions, so TRACE doesn&apos;t start
             from zero every time.
           </p>
-          <p className="mt-4 text-[16px] leading-7 text-neutral-600">
+          <p className="mt-4 max-w-[40rem] text-[15px] font-normal leading-[1.5] text-neutral-600">
             Your past behavior can change your next offer.
           </p>
         </section>
 
         <section className="mt-16">
-          <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">Without memory, you start from zero.</h2>
-          <p className="mt-4 text-[16px] leading-7 text-neutral-600">
+          <h2 className="text-[1.75rem] font-semibold leading-[1.15] tracking-[-0.02em] text-neutral-900 sm:text-[2rem]">Without memory, you start from zero.</h2>
+          <p className="mt-4 max-w-[40rem] text-[15px] font-normal leading-[1.5] text-neutral-600">
             Delete Sibyl Memory and TRACE loses the financial history behind your previous offers.
           </p>
-          <p className="mt-4 text-[16px] leading-7 text-neutral-600">
+          <p className="mt-4 max-w-[40rem] text-[15px] font-normal leading-[1.5] text-neutral-600">
             With Sibyl Memory, previous behavior can influence what you&apos;re offered next.
           </p>
         </section>

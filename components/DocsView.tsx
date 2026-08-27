@@ -46,7 +46,7 @@ function Section({
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#7828E8]/10 text-[#7828E8]">
           <Icon d={ICONS[id]} />
         </span>
-        <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">{title}</h2>
+        <h2 className="text-[1.75rem] font-semibold leading-[1.15] tracking-[-0.02em] text-neutral-900 sm:text-[2rem]">{title}</h2>
       </div>
       {children}
     </section>
@@ -148,7 +148,7 @@ export function DocsView() {
     <div className="flex min-w-0 gap-12">
       <aside className="hidden w-56 shrink-0 lg:block">
         <div className="sticky top-32 space-y-1">
-          <p className="mb-4 px-3 text-[10px] font-semibold uppercase tracking-widest text-neutral-400">
+          <p className="mb-4 px-3 text-[12px] font-semibold uppercase tracking-[0.07em] text-neutral-400">
             Documentation
           </p>
           {NAV.map((item) => (

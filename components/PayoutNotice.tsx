@@ -25,7 +25,7 @@ export function PayoutNotice({
           i
         </span>
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-neutral-400">Walkthrough</p>
+          <p className="text-[12px] font-semibold uppercase tracking-[0.07em] text-neutral-400">Walkthrough</p>
           <p className="mt-0.5 font-medium text-neutral-800">
             If eligible, TRACE finances this {amount} purchase on testnet.
           </p>

@@ -73,6 +73,11 @@ html:has(.app-light) {
   color: #17171c;
   background: var(--page);
   overflow-x: clip;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+  font-feature-settings: "ss01" 1, "cv11" 1, "tnum" 0;
 }
 
 .app-light .glass-nav {

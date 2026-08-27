@@ -18,7 +18,7 @@ export function ScoreBreakdown({
   if (!breakdown || breakdown.lines.length === 0) return null;
   const body = (
     <>
-      <ul className="mt-3 space-y-1.5 font-mono text-[12px] leading-5 text-neutral-700">
+      <ul className="mt-3 space-y-1.5 text-[13px] font-medium leading-[1.4] text-neutral-700">
         {breakdown.lines.map((line) => (
           <li key={line.id} className="flex justify-between gap-3">
             <span className="min-w-0 font-sans text-neutral-600">{line.label}</span>
@@ -32,7 +32,7 @@ export function ScoreBreakdown({
           </li>
         ))}
       </ul>
-      <div className="mt-2 flex justify-between border-t border-black/10 pt-2 font-mono text-[12px] font-semibold tabular-nums text-neutral-900">
+      <div className="mt-2 flex justify-between border-t border-black/10 pt-2 text-[13px] font-semibold tabular-nums text-neutral-900">
         <span className="font-sans font-medium">Current score</span>
         <span>{breakdown.score}</span>
       </div>

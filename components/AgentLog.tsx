@@ -94,7 +94,7 @@ export function AgentLog() {
           rows.slice(0, 80).map((row) => (
             <li id={row.id} key={row.id} className="flex flex-wrap items-start gap-3 px-6 py-3 text-sm">
               <span className="mt-2 h-2 w-8 shrink-0 border-t-[3px] border-dashed border-[#7828E8]" aria-hidden />
-              <span className="font-mono text-[12px] text-neutral-500">{row.at.slice(0, 19).replace("T", " ")}</span>
+              <span className="text-[12px] font-medium leading-[1.4] text-neutral-500">{row.at.slice(0, 19).replace("T", " ")}</span>
               <span className="font-mono text-[12px] text-neutral-400">{shortAddress(row.wallet)}</span>
               <span className="text-neutral-700">→ {row.line}</span>
             </li>

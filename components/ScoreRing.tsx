@@ -36,13 +36,13 @@ export function ScoreRing({ score, size = "md" }: { score: number | null; size?:
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span
-          className={`font-semibold tabular-nums tracking-tight text-neutral-900 ${
-            size === "sm" ? "text-2xl" : "text-4xl"
+          className={`font-semibold tabular-nums tracking-[-0.025em] text-neutral-900 ${
+            size === "sm" ? "text-[2rem]" : "text-[2.5rem]"
           }`}
         >
           {score == null ? "—" : Math.round(score)}
         </span>
-        <span className={`font-medium text-neutral-500 ${size === "sm" ? "text-[9px]" : "text-[11px]"}`}>Score</span>
+        <span className={`font-semibold uppercase tracking-[0.04em] text-neutral-500 ${size === "sm" ? "text-[11px]" : "text-[12px]"}`}>Score</span>
       </div>
     </div>
   );

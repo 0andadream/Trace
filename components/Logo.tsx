@@ -35,9 +35,9 @@ export function Logo({
       <span className={`inline-flex items-center gap-2.5 ${className}`} aria-label={title}>
         <TraceMark size={36} />
         <span className="flex min-w-0 flex-col items-start">
-          <span className={`text-[17px] font-semibold leading-none tracking-tight ${name}`}>{title}</span>
+          <span className={`text-[17px] font-semibold leading-none tracking-[-0.02em] ${name}`}>{title}</span>
           {subtitle ? (
-            <span className={`mt-1 hidden text-[11px] font-medium leading-none sm:block ${sub}`}>{subtitle}</span>
+            <span className={`mt-1 hidden text-[13px] font-medium leading-none sm:block ${sub}`}>{subtitle}</span>
           ) : null}
         </span>
       </span>

@@ -155,7 +155,7 @@ export function HistoryView() {
                 .reverse()
                 .map((p) => (
                   <tr key={p.purchase_id} className="border-b border-black/5">
-                    <td className="px-6 py-3 font-mono text-[12px] text-neutral-600">
+                    <td className="px-6 py-3 text-[13px] font-medium tabular-nums text-neutral-600">
                       {p.approved_date.slice(0, 10)}
                     </td>
                     <td className="px-6 py-3">{p.merchant}</td>
