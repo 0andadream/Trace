@@ -120,8 +120,8 @@ function StepVisual({
             {(first
               ? [
                   "No purchase history with this agent",
-                  "Checking wallet age only",
-                  "Limit cut to $75",
+                  "No prior repayment history available",
+                  "Starting limit: $75",
                 ]
               : [
                   "3 purchases with this agent",
@@ -256,16 +256,14 @@ export function HowItWorks() {
       ref={rootRef}
       className="how-reveal mt-24 scroll-mt-28"
     >
-      <h2 className="sr-only">How it works</h2>
-
       <div className="how-title-wrap">
-        <p className="how-title">
+        <h2 className="how-title">
           <span className="how-line how-line-1">
             How it
             <span className="how-slot" aria-hidden />
           </span>
           <span className="how-line how-line-2">works</span>
-        </p>
+        </h2>
       </div>
 
       <div className="how-mask">
