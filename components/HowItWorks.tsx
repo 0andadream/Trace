@@ -74,40 +74,37 @@ function StepVisual({
     <>
       {step === 1 ? (
         <div>
-          <div className="space-y-1">
-            <div className="rounded-2xl bg-black/[0.03] p-4">
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-[12px] font-medium text-neutral-500">Purchase</span>
-                <span className="text-[13px] font-medium text-neutral-500">USDC</span>
-              </div>
-              <p className="text-[2.5rem] font-semibold tabular-nums leading-none tracking-[-0.025em] text-neutral-900">150</p>
+          <div className="rounded-2xl bg-black/[0.03] p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-[12px] font-medium text-neutral-500">Purchase</span>
+              <span className="text-[12px] font-medium text-neutral-400">USDC</span>
             </div>
-            <div className="flex justify-center py-1">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full border border-black/10 bg-white text-neutral-400">
-                ↓
-              </span>
-            </div>
-            <div className="rounded-2xl bg-black/[0.03] p-4">
-              <p className="mb-2 text-[12px] font-medium text-neutral-500">Merchant</p>
-              <p className="text-[16px] font-semibold text-neutral-900">Test Shop</p>
-            </div>
+            <p className="text-[2.5rem] font-semibold tabular-nums leading-none tracking-[-0.025em] text-neutral-900">$150</p>
+            <p className="mt-3 text-[15px] font-medium text-neutral-900">Pay with TRACE</p>
+            <p className="mt-1 text-[14px] font-normal text-neutral-600">4 payments of $37.50</p>
+            <p className="mt-3 text-[12px] font-medium text-neutral-500">
+              Merchant <span className="font-semibold text-neutral-900">Test Shop</span>
+            </p>
           </div>
 
-          <div className="mt-4 flex w-fit items-center gap-1 rounded-full bg-black/5 p-1">
+          <p className="mt-5 text-[12px] font-semibold uppercase tracking-[0.06em] text-neutral-500">Try the memory</p>
+          <div className="mt-2 flex w-fit items-center gap-1 rounded-full bg-black/5 p-1">
             <button type="button" className={pill(first)} onClick={() => setVisitor("first")}>
               First time
             </button>
             <button type="button" className={pill(!first)} onClick={() => setVisitor("returning")}>
-              Been here before
+              Returning customer
             </button>
           </div>
 
           <div
-            className={`mt-4 rounded-xl px-3 py-2.5 text-sm ${
+            className={`mt-3 rounded-xl px-3 py-2.5 text-[13px] leading-[1.45] ${
               first ? "bg-amber-50 text-amber-900 ring-1 ring-amber-200/80" : "bg-emerald-50 text-emerald-900 ring-1 ring-emerald-200/80"
             }`}
           >
-            {first ? "No history yet — TRACE starts cautious" : "3 purchases · all on time"}
+            {first
+              ? "No history yet — TRACE starts cautious."
+              : "The next offer depends on whether you paid on time."}
           </div>
         </div>
       ) : null}
@@ -115,8 +112,8 @@ function StepVisual({
       {step === 2 ? (
         <div>
           <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-neutral-500">Decision</p>
-          <p className="mt-2 text-[18px] font-semibold leading-snug text-neutral-900">
-            {first ? "Approve with reduced limit" : "Approve"}
+          <p className="mt-2 text-[16px] font-semibold leading-snug text-neutral-800">
+            Decision: {first ? "Approve with reduced limit" : "Approve"}
           </p>
           <p className="mt-4 text-[12px] font-semibold uppercase tracking-[0.06em] text-neutral-500">Reasoning</p>
           <ul className="mt-2 space-y-1 text-[13px] font-normal leading-[1.45] text-neutral-700">
@@ -177,7 +174,7 @@ function StepVisual({
             <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-neutral-500">Your next limit</p>
             <p
               key={nextLimit}
-              className={`mt-1 text-[1.625rem] font-semibold tabular-nums tracking-[-0.025em] sm:text-[2rem] ${
+              className={`mt-1 text-[1.75rem] font-semibold tabular-nums tracking-[-0.025em] sm:text-[2rem] ${
                 nextUp ? "text-emerald-800" : "text-red-800"
               }`}
             >
@@ -274,7 +271,6 @@ export function HowItWorks() {
       <div className="how-mask">
         <div className="how-mask-content">
           <div className="how-mask-copy">
-            <p className="how-kicker sr-only">How it works</p>
             <p className="how-name">TRACE</p>
             <p className="how-sub">
               Powered by Sibyl Memory. Pay on time, and the next deal can get easier.

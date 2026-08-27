@@ -62,7 +62,7 @@ export default async function HomePage() {
               href="#how-it-works"
               className="inline-flex h-12 items-center rounded-full border border-black/10 px-6 text-[15px] font-medium text-neutral-900 hover:bg-black/5"
             >
-              How it works
+              See the flow
             </a>
           </div>
         </div>
@@ -108,7 +108,7 @@ export default async function HomePage() {
         </section>
 
         <section id="agent-status" className="mt-16 scroll-mt-28">
-          <h2 className="text-[1.125rem] font-semibold leading-[1.2] tracking-[-0.02em] text-neutral-900 sm:text-[1.25rem]">Available to spend, in total</h2>
+          <h2 className="text-[1.125rem] font-semibold leading-[1.2] tracking-[-0.02em] text-neutral-900 sm:text-[1.25rem]">Under the hood</h2>
           <p className="mt-2 max-w-[38.75rem] text-[13px] font-normal leading-[1.45] text-neutral-500">
             Live testnet figures. Testnet only — no real goods or loans are provided.
           </p>
