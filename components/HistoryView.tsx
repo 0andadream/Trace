@@ -15,6 +15,8 @@ export function HistoryView() {
   const [rel, setRel] = useState<UserRelationship | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [repayingId, setRepayingId] = useState<string | null>(null);
+  const [repayingRest, setRepayingRest] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async (addr: string) => {
@@ -53,6 +55,8 @@ export function HistoryView() {
     }
     const amountUsd = remaining ? pending.reduce((s, i) => s + i.amount, 0) : next.amount;
     setBusy(true);
+    setRepayingId(id);
+    setRepayingRest(remaining);
     setError(null);
     try {
       if (injected.wrongNetwork) await injected.switchBaseSepolia();
@@ -86,6 +90,8 @@ export function HistoryView() {
       setError(e instanceof Error ? e.message : "repay failed");
     } finally {
       setBusy(false);
+      setRepayingId(null);
+      setRepayingRest(false);
     }
   }
 
@@ -176,7 +182,7 @@ export function HistoryView() {
                             className="rounded-full bg-[#7828E8] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#6a1fd4] disabled:opacity-50"
                             onClick={() => repay(p.purchase_id, false)}
                           >
-                            {busy ? "Confirm in wallet…" : "Pay next"}
+                            {repayingId === p.purchase_id && !repayingRest ? "Confirm in wallet…" : "Pay next"}
                           </button>
                           {p.schedule.filter((i) => i.status === "pending").length > 1 ? (
                             <button
@@ -185,7 +191,7 @@ export function HistoryView() {
                               className="rounded-full border border-[#7828E8]/40 px-3 py-1.5 text-xs font-semibold text-[#7828E8] hover:bg-[#7828E8]/5 disabled:opacity-50"
                               onClick={() => repay(p.purchase_id, true)}
                             >
-                              Pay remaining
+                              {repayingId === p.purchase_id && repayingRest ? "Confirm in wallet…" : "Pay remaining"}
                             </button>
                           ) : null}
                         </div>

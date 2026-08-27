@@ -63,6 +63,8 @@ export function Desk() {
   const [onchainMeta, setOnchainMeta] = useState<{ age: number; txs: number } | null>(null);
   const [quote, setQuote] = useState<PurchaseResult | null>(null);
   const [busy, setBusy] = useState(false);
+  const [repayingId, setRepayingId] = useState<string | null>(null);
+  const [repayingRest, setRepayingRest] = useState(false);
   const [deciding, setDeciding] = useState(false);
   const [thinkI, setThinkI] = useState(0);
   const [showOutput, setShowOutput] = useState(false);
@@ -214,6 +216,8 @@ export function Desk() {
     }
     const amountUsd = remaining ? pending.reduce((s, i) => s + i.amount, 0) : next.amount;
     setBusy(true);
+    setRepayingId(purchaseId);
+    setRepayingRest(remaining);
     setError(null);
     setNote("Confirm the ETH transfer in your wallet…");
     try {
@@ -253,6 +257,8 @@ export function Desk() {
       setNote(null);
     } finally {
       setBusy(false);
+      setRepayingId(null);
+      setRepayingRest(false);
     }
   }
 
@@ -402,7 +408,9 @@ export function Desk() {
                   return (
                     <div
                       key={p.purchase_id}
-                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-black/[0.03] px-4 py-3"
+                      className={`flex flex-wrap items-center justify-between gap-3 rounded-xl bg-black/[0.03] px-4 py-3 ${
+                        repayingId === p.purchase_id ? "ring-1 ring-[#7828E8]/35" : ""
+                      }`}
                     >
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-neutral-900">
@@ -420,7 +428,9 @@ export function Desk() {
                           onClick={() => repay(p.purchase_id, false)}
                           className="rounded-full bg-[#7828E8] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#6a1fd4] disabled:opacity-50"
                         >
-                          {busy ? "Confirm in wallet…" : `Pay next ${next ? formatAmount(next.amount) : ""}`}
+                          {repayingId === p.purchase_id && !repayingRest
+                            ? "Confirm in wallet…"
+                            : `Pay next ${next ? formatAmount(next.amount) : ""}`}
                         </button>
                         {pending.length > 1 ? (
                           <button
@@ -429,7 +439,9 @@ export function Desk() {
                             onClick={() => repay(p.purchase_id, true)}
                             className="rounded-full border border-[#7828E8]/40 px-4 py-2 text-xs font-semibold text-[#7828E8] hover:bg-[#7828E8]/5 disabled:opacity-50"
                           >
-                            Pay remaining {formatAmount(rest)}
+                            {repayingId === p.purchase_id && repayingRest
+                              ? "Confirm in wallet…"
+                              : `Pay remaining ${formatAmount(rest)}`}
                           </button>
                         ) : null}
                       </div>
