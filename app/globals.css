@@ -465,6 +465,23 @@ html:has(.app-light) {
   pointer-events: none;
 }
 
+@media (max-width: 1023px) {
+  .app-light .how-mask-phone .how-screen-layer:not([data-screen="1"]) {
+    display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .app-light .how-stack-phone {
+    display: none;
+  }
+
+  .app-light .how-reveal.how-story .how-screen-layer:not([data-screen="1"]) {
+    display: block;
+    pointer-events: auto;
+  }
+}
+
 .app-light .how-screen-dim {
   position: absolute;
   inset: 0;

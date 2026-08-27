@@ -101,10 +101,7 @@ function PhoneBuyScreen({ live }: { live: HeroLive }) {
               B
             </span>
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#7828E8] px-2.5 py-1 text-[8px] font-semibold text-white">
-            <span className="h-1 w-1 rounded-full bg-white" aria-hidden />
-            Testnet
-          </span>
+          <span className="text-[8px] font-medium uppercase tracking-[0.12em] text-neutral-500">Base Sepolia</span>
         </div>
       </div>
     </div>
@@ -140,7 +137,9 @@ export function HeroPhone({ live }: { live: HeroLive }) {
                 {live.simulated
                   ? " We could not check Alex’s account just now, so this cash number is a stand-in."
                   : ""}
-                {live.execute ? "" : " Paying the shop is simulated on this testnet, the yes or no is still real."}{" "}
+                {live.execute
+                  ? " ETH payouts to your wallet are live on Base Sepolia."
+                  : " Paying the shop is simulated on this testnet, the yes or no is still real."}{" "}
                 {live.address ? (
                   <>
                     Alex’s account{" "}

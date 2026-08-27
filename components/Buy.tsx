@@ -89,8 +89,8 @@ export function Buy() {
     if (data.quote) setQuote(data.quote as PurchaseResult);
     setNote(
       data.payout_mode === "on_chain" && data.tx?.sent
-        ? `Plan ${data.purchase.purchase_id} approved. On-chain payout.`
-        : `Plan ${data.purchase.purchase_id} approved. Merchant payout simulated (not broadcast). ${data.tx?.reason || ""}`,
+        ? `Alex → your wallet: ${formatAmount(data.purchase.amount)} in ETH sent${data.tx?.txHash || data.purchase?.payout_tx_hash ? "" : "."}`
+        : `Simulated: Alex would send ${formatAmount(data.purchase.amount)} in ETH (not sent on this testnet). ${data.tx?.reason || ""}`,
     );
     await loadRelationship(wallet);
   }

@@ -13,7 +13,7 @@ import {
   standingBreakdown,
 } from "@/lib/bnpl/relationship";
 import { formatAmount, shortAddress } from "@/lib/format";
-import { TxLink } from "@/components/TxLink";
+import { PayoutNotice } from "@/components/PayoutNotice";
 import type { PurchaseRecord, PurchaseResult, UserRelationship } from "@/types/bnpl";
 import Link from "next/link";
 
@@ -70,6 +70,7 @@ export function Desk() {
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [payoutHash, setPayoutHash] = useState<string | null>(null);
+  const [payoutLive, setPayoutLive] = useState(false);
 
   useEffect(() => {
     if (injected.address) setWallet(injected.address);
@@ -148,6 +149,8 @@ export function Desk() {
     setShowOutput(false);
     setError(null);
     setNote(null);
+    setPayoutHash(null);
+    setPayoutLive(false);
     const started = Date.now();
     try {
       const quoted = await fetch("/api/purchase", {
@@ -180,12 +183,10 @@ export function Desk() {
         if (data.quote) setQuote(data.quote);
         if (data.purchase) setLastPurchase(data.purchase as PurchaseRecord);
         const hash = data.tx?.txHash || data.purchase?.payout_tx_hash || null;
+        const live = data.payout_mode === "on_chain" && Boolean(data.tx?.sent) && Boolean(hash);
         setPayoutHash(hash);
-        setNote(
-          data.payout_mode === "on_chain" && data.tx?.sent
-            ? "Alex sent ETH to your wallet."
-            : `Approved. Payout simulated. ${data.tx?.reason || ""}`,
-        );
+        setPayoutLive(live);
+        setNote(null);
         await loadRel(wallet);
       }
     } catch (e) {
@@ -369,27 +370,23 @@ export function Desk() {
                     {quote.verdict.terms}
                   </pre>
                 </div>
-                {note ? (
+                {lastPurchase ? (
+                  <div className="space-y-2">
+                    <PayoutNotice
+                      amountUsd={lastPurchase.amount}
+                      hash={payoutHash}
+                      live={payoutLive}
+                    />
+                    <Link
+                      href={`/log#${lastPurchase.purchase_id}`}
+                      className="inline-block text-[12px] font-medium text-[#7828E8] hover:underline"
+                    >
+                      See this in the Agent Log →
+                    </Link>
+                  </div>
+                ) : note ? (
                   <div className="rounded-xl bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800 ring-1 ring-emerald-200/80">
-                    <div className="flex items-start gap-2.5">
-                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white">
-                        ✓
-                      </span>
-                      <div className="min-w-0">
-                        <p className="font-medium">{note}</p>
-                        {payoutHash ? (
-                          <p className="mt-1 break-all text-[12px]">
-                            <TxLink hash={payoutHash} />
-                          </p>
-                        ) : null}
-                        <Link
-                          href={lastPurchase ? `/log#${lastPurchase.purchase_id}` : "/log"}
-                          className="mt-2 inline-block text-[12px] font-medium text-[#7828E8] hover:underline"
-                        >
-                          See this in the Agent Log →
-                        </Link>
-                      </div>
-                    </div>
+                    <p className="font-medium">{note}</p>
                   </div>
                 ) : null}
               </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { PhoneFrame } from "@/components/PhoneFrame";
+import { PayoutNotice } from "@/components/PayoutNotice";
 import { buildHowStory } from "@/components/howStory";
 
 const STEPS = [
@@ -133,12 +134,7 @@ Reasoning:
 
 Limit: $300 (3/3 on-time payments)`}
           </pre>
-          <div className="mt-4 flex items-center gap-2.5 rounded-xl bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800 ring-1 ring-emerald-200/80">
-            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white">
-              ✓
-            </span>
-            <span className="font-medium">Alex → your wallet: $150 in ETH sent</span>
-          </div>
+          <PayoutNotice example amountUsd={150} />
         </div>
       ) : null}
 
@@ -215,6 +211,15 @@ export function HowItWorks() {
   const rootRef = useRef<HTMLElement | null>(null);
   const [visitor, setVisitor] = useState<Visitor>("first");
   const [mark, setMark] = useState<PayMark>("on_time");
+  const [wide, setWide] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const apply = () => setWide(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
 
   useEffect(() => {
     const el = rootRef.current;
@@ -233,7 +238,7 @@ export function HowItWorks() {
       rm.removeEventListener("change", rebuild);
       revert();
     };
-  }, []);
+  }, [wide]);
 
   const visuals = {
     visitor,
@@ -278,7 +283,7 @@ export function HowItWorks() {
                 <PhoneScreen
                   layers={
                     <div className="how-screen relative h-full">
-                      {([1, 2, 3] as const).map((n) => (
+                      {(wide ? ([1, 2, 3] as const) : ([1] as const)).map((n) => (
                         <div key={n} className="how-screen-layer" data-screen={n}>
                           <StepVisual step={n} {...visuals} />
                         </div>
@@ -297,21 +302,25 @@ export function HowItWorks() {
               <span className="how-t">{STEPS[0].line[1]}</span>
               <span className="how-note">{STEPS[0].body}</span>
             </p>
-            <div className="how-stack-phone">
-              <PhoneScreen>
-                <StepVisual step={2} {...visuals} />
-              </PhoneScreen>
-            </div>
+            {!wide ? (
+              <div className="how-stack-phone">
+                <PhoneScreen>
+                  <StepVisual step={2} {...visuals} />
+                </PhoneScreen>
+              </div>
+            ) : null}
             <p className="how-step-2">
               <span className="how-t">{STEPS[1].line[0]}</span>
               <span className="how-t">{STEPS[1].line[1]}</span>
               <span className="how-note">{STEPS[1].body}</span>
             </p>
-            <div className="how-stack-phone">
-              <PhoneScreen>
-                <StepVisual step={3} {...visuals} />
-              </PhoneScreen>
-            </div>
+            {!wide ? (
+              <div className="how-stack-phone">
+                <PhoneScreen>
+                  <StepVisual step={3} {...visuals} />
+                </PhoneScreen>
+              </div>
+            ) : null}
             <p>
               <span className="how-t">{STEPS[2].line[0]}</span>
               <span className="how-t">{STEPS[2].line[1]}</span>

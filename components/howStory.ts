@@ -126,6 +126,7 @@ export function buildHowStory(holdEl: HTMLElement) {
           yPercent: 0,
           autoAlpha: n === i ? 1 : 0,
           zIndex: n === i ? 2 : 1,
+          pointerEvents: n === i ? "auto" : "none",
         });
       });
       if (dim) gsap.set(dim, { opacity: 0 });

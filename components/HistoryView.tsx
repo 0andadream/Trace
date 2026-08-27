@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { getInjectedEthereum, useInjectedWallet } from "@/components/ConnectWallet";
 import { sendUserRepay } from "@/lib/bnpl/sendUserRepay";
 import { MemoryTimeline } from "@/components/MemoryTimeline";
-import { memoryTimeline } from "@/lib/bnpl/relationship";
+import { ScoreBreakdown } from "@/components/ScoreBreakdown";
+import { memoryTimeline, standingBreakdown } from "@/lib/bnpl/relationship";
 import { formatAmount, shortAddress } from "@/lib/format";
 import { TxLink } from "@/components/TxLink";
 import type { UserRelationship } from "@/types/bnpl";
@@ -111,7 +112,8 @@ export function HistoryView() {
       {error ? <p className="px-6 pb-3 text-sm text-red-600">{error}</p> : null}
       {rel && rel.total_purchases > 0 ? (
         <div className="border-t border-black/5 px-6 py-5">
-          <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">With this agent</p>
+          <ScoreBreakdown breakdown={standingBreakdown(rel)} />
+          <p className="mb-4 mt-6 text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">With this agent</p>
           <MemoryTimeline events={memoryTimeline(rel)} />
         </div>
       ) : null}
@@ -155,11 +157,14 @@ export function HistoryView() {
                     <td className="px-6 py-3 font-medium">{p.outcome.replaceAll("_", " ")}</td>
                     <td className="px-6 py-3 text-neutral-500">
                       {p.payout_tx_hash ? (
-                        <TxLink hash={p.payout_tx_hash} className="text-[11px]" />
+                        <span className="block">
+                          <span className="text-neutral-700">ETH sent · </span>
+                          <TxLink hash={p.payout_tx_hash} className="text-[11px]" />
+                        </span>
                       ) : p.payout_mode === "on_chain" ? (
-                        "on-chain"
+                        "ETH sent"
                       ) : (
-                        "simulated"
+                        "Simulated — not sent"
                       )}
                     </td>
                     <td className="px-6 py-3 text-right">

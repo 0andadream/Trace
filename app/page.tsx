@@ -97,6 +97,7 @@ export default async function HomePage() {
                   ["Cash on hand", formatUsd(status.spendable_usd)],
                   ["Still owed to Alex", formatUsd(status.outstanding_exposure)],
                   ["What Alex can still spend", formatUsd(status.deployable)],
+                  ["ETH to your wallet", status.execute ? "Live on Base Sepolia" : "Simulated on this testnet"],
                   ["Purchases on file", String(status.total_purchases)],
                   ["People Alex has seen before", String(status.wallets_with_history)],
                 ] as const

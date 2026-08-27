@@ -45,11 +45,13 @@ export function AgentLog() {
               Originated {formatAmount(p.amount)} at {p.merchant} · {p.outcome.replaceAll("_", " ")}
               {p.payout_tx_hash ? (
                 <>
-                  {" · "}
+                  {" · ETH sent "}
                   <TxLink hash={p.payout_tx_hash} className="text-[12px]" />
                 </>
+              ) : p.payout_mode === "on_chain" ? (
+                " · ETH sent"
               ) : (
-                ` · payout ${p.payout_mode || "n/a"}`
+                " · Simulated: ETH not sent"
               )}
               {p.score_before != null && p.score_after != null
                 ? ` · score ${Math.round(p.score_before * 100)} → ${Math.round(p.score_after * 100)}`
