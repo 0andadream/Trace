@@ -132,9 +132,16 @@ function StepVisual({
               <li key={line}>– {line}</li>
             ))}
           </ul>
-          <p className="mt-3 text-[13px] font-medium text-neutral-600">
-            {first ? "Limit: $75 (based on wallet age only)" : "Limit: $300 (3/3 on-time payments)"}
-          </p>
+          {first ? (
+            <div className="mt-3 text-[13px] font-medium text-neutral-600">
+              <p>Starting limit: $75</p>
+              <p className="mt-1 font-normal">Based on available wallet history; no prior repayment history yet.</p>
+            </div>
+          ) : (
+            <p className="mt-3 text-[13px] font-medium text-neutral-600">
+              Limit: $300 (3/3 on-time payments)
+            </p>
+          )}
           <PayoutNotice example amountUsd={150} />
         </div>
       ) : null}
