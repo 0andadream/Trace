@@ -1,27 +1,23 @@
-# Trace
+# TRACE
 
-Trace is a reputation-weighted buy-now-pay-later agent on Base Sepolia. The agent is **Alex**.
+Reputation-weighted BNPL that remembers you. Powered by [Sibyl Memory](https://github.com/Sibyl-Labs/Sibyl-Memory).
 
-You connect a wallet (that address is your login). You ask to buy something. Alex looks up **this agent’s memory of that wallet** — purchases it approved here, and whether those were repaid on time, late, or missed. If the book is empty, it uses a conservative on-chain baseline (wallet age and tx count, fetched fresh, never stored). Then it says yes or no.
+**TRACE** is the product. **Alex** is TRACE’s autonomous BNPL agent. **Sibyl** is the persistent memory that lets Alex remember this wallet’s purchases and repayments across sessions.
 
-On **Approve**, Alex sends **ETH** to **your connected wallet** when `BASE_EXECUTE=1` (this is on at [trace-26xx.vercel.app](https://trace-26xx.vercel.app/)). Amounts on screen are **USDC-equivalent**. You repay by signing an **ETH** transfer back to Alex. The installment is written to memory only after that transfer is verified on-chain.
+You connect a wallet (that address is your login). You pick a purchase. TRACE looks up **USER_RELATIONSHIP** for that wallet — purchases it approved here, and whether those were repaid on time, late, or missed. If the book is empty, it uses a conservative on-chain baseline (wallet age and tx count, fetched fresh, never stored). Then it says yes or no.
 
-Pay on time and the next limit and plan can get better. Miss a payment and it gets harder, fast. Delete Sibyl and Alex forgets; the chain still looks the same. That is the [Sibyl Labs Hackathon](https://hack.sibyllabs.org/) load-bearing gate.
+On **Approve**, TRACE finances the purchase: native **ETH** to **your connected wallet** when `BASE_EXECUTE=1` (this is on at [trace-26xx.vercel.app](https://trace-26xx.vercel.app/)). Amounts on screen are **USDC-equivalent**. You repay by signing an **ETH** transfer back to the agent. The installment is written to Sibyl only after that transfer is verified on-chain.
+
+Pay on time and the next limit and plan can get better. Miss a payment and it gets harder, fast. Delete Sibyl and TRACE starts from zero; the chain still looks the same. That is the [Sibyl Labs Hackathon](https://hack.sibyllabs.org/) load-bearing gate.
 
 ```
-REQUEST → CEILING → SOLVENCY → USER_RELATIONSHIP? → APPROVAL_POLICY → SEND ETH → RECORD
-              │          │              │ no purchases
-              │          │              ▼
-              │          │        ONCHAIN_SIGNAL (fresh, not stored)
-              │          ▼
-              │     MIN_AGENT_RESERVE vs agent cash + outstanding exposure
-              ▼
-        MAX_PURCHASE_AMOUNT / MAX_ACTIVE_PLANS
+WALLET HISTORY → SIBYL MEMORY → TRACE REPUTATION → ELIGIBILITY
+        → PURCHASE → REPAY → SIBYL UPDATED → NEXT OFFER
 ```
 
 Live: [https://trace-26xx.vercel.app/](https://trace-26xx.vercel.app/) · Base Sepolia (`84532`) · Agent [`0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e`](https://sepolia.basescan.org/address/0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e).
 
-Merchant names (`Test Shop`, `Sibyl Labs (test merchant)`, …) are **labels**. ETH is sent to the connected user wallet, not to a merchant contract.
+Testnet only — no real goods or loans. Merchant names are labels. Settlement is ETH to/from the connected wallet.
 
 ## Core principle (enforced in code)
 
@@ -37,7 +33,7 @@ What Sibyl stores **cannot** be reconstructed from the chain:
 - Human overrides of this agent’s approve/decline
 - This agent’s prior quotes and reasoning
 
-Standing and limit are computed in TypeScript (`standingFromHistory` / `limitFromStanding` in `lib/bnpl/relationship.ts`), not by Sibyl or Grok. Sibyl stores the book; code turns it into a score. Displayed score is standing × 100.
+Standing (shown as **TRACE reputation**) and limit are computed in TypeScript (`standingFromHistory` / `limitFromStanding` in `lib/bnpl/relationship.ts`), not by Sibyl or Grok. Sibyl stores the book; code turns it into a score. Displayed score is standing × 100.
 
 - An **open** plan does not raise standing above the starter cap (`STARTER_STANDING` = 0.38, score 38).
 - Each **completed on-time** plan adds 0.005 standing (~0.5 displayed points), plus a small repaid-share term.
@@ -49,30 +45,22 @@ The LLM (`XAI_API_KEY`, optional) only writes reasoning. Decision, limit, instal
 
 ## Routes
 
-What the live header and footer actually open (see `app/` and `components/AppShell.tsx`):
+Live nav (`components/AppShell.tsx`):
 
 | URL | What |
 |---|---|
-| `/` | Landing: how it works, live agent cash, ETH payout status |
-| `/buy` | Connect wallet, request a purchase, repay open plans. Score breakdown + memory timeline when connected. |
-| `/history` | **My History** — private to the connected wallet. Timeline, score breakdown, repay. |
-| `/log` | **Agent Log** — public quotes and purchases across wallets, with explorer links on real payouts |
+| `/` | Landing: hero, How it works (one heading), Sibyl memory sections, **Under the hood** |
+| `/buy` | **Buy with TRACE** — purchase → pay today or pay with TRACE → why you’re eligible → confirm. Repay open plans. Reputation + **Sibyl Memory found** only when a real relationship was loaded. |
+| `/history` | **My History** — private to the connected wallet. Timeline, reputation breakdown, repay. |
+| `/log` | **Agent Log** — public quotes and purchases, explorer links on real payouts |
 | `/docs` | Product docs |
 | `/privacy` · `/terms` | Legal |
 
-Redirects that still exist:
+Redirects: `/lend` → `/buy`, `/memory` → `/history`, `/agent-log` → `/log`, `/developers` → `/`, `/desk` → `/alex`.
 
-| URL | Goes to |
-|---|---|
-| `/lend` | `/buy` |
-| `/memory` | `/history` |
-| `/agent-log` | `/log` |
-| `/developers` | `/` |
-| `/desk` | `/alex` |
+`/alex` is leftover treasury (Proceed / Hold). Not in the live nav.
 
-`/alex` is a leftover treasury desk (Proceed / Hold, `MAX_TX_AMOUNT_USDC`). It is **not** in the live nav and is not how you use Trace. Ignore it unless you are digging through leftover code.
-
-## Use Alex
+## Use TRACE
 
 Needs Node 20, pnpm, and (for local Sibyl) Python 3.10+ with the venv below. Dev server is **port 3002**.
 
@@ -82,28 +70,24 @@ pnpm dev                 # http://localhost:3002
 
 On `/buy`:
 
-1. **Connect Wallet** (MetaMask, Rabby, or Coinbase Wallet on Base Sepolia). That address is the relationship key. It is not `AGENT_PRIVATE_KEY`.
-2. Amount (shown as USDC) + merchant → **Request Purchase**. Desk quotes, then originates the plan when the decision is Approve / Approve with reduced limit.
-3. If `BASE_EXECUTE=1` and the agent key can broadcast: Alex sends ETH to your wallet and the UI shows **Alex → your wallet: $X in ETH sent** plus a [Base Sepolia explorer](https://sepolia.basescan.org) link. Otherwise the approval is still stored, and the payout is labeled simulated.
-4. **Pay next** or **Pay remaining** on `/buy` or `/history`. Confirm an ETH transfer **to Alex** in your wallet (value shown as USDC). The API records the installment only after it verifies that transfer.
+1. **Connect wallet** (MetaMask, Rabby, or Coinbase Wallet on Base Sepolia). That address is the relationship key. It is not `AGENT_PRIVATE_KEY`.
+2. **Purchase** — pick Notebook Set `$12`, Desk Lamp `$40`, Wireless Headphones `$150`, or a custom amount. Merchant is **Test Shop** (a label).
+3. **How you’ll pay** — **Pay today** (one payment of principal + TRACE interest) or **Pay with TRACE** (the quoted installment count). Schedule, first payment, total repayment, and available / purchase / remaining are from the live quote.
+4. **Why you’re eligible** — Decision, Sibyl-grounded reasoning, terms, reputation breakdown, timeline. Not hidden.
+5. **Confirm purchase** — originates the plan when the decision is Approve / Approve with reduced limit.
+6. If `BASE_EXECUTE=1` and the agent key can broadcast: payout is **on_chain** with a Base Sepolia explorer link (**Purchase financed**). Otherwise the approval is still stored and labeled simulated.
+7. **Upcoming payments** on `/buy` or `/history`: **Pay next** or **Pay remaining**. Confirm the transfer in your wallet. The API records the installment only after it verifies ETH to the agent.
 
-```
-Decision: Approve
-
-Reasoning:
-- …
-
-Terms: receive 12 · repay … · Trace interest …% · 2 installments · due …
-```
+If Sibyl actually returned a relationship with purchases, the UI shows **Sibyl Memory found**. **Previous repayment: On time** / **Late** only appears when a paid installment exists. The homepage first-time / returning toggle is a walkthrough, not live Sibyl.
 
 | Decision | What happens |
 |---|---|
-| **Approve** | Quoted limit + installment count + due dates. Agent sends ETH to your wallet (`on_chain` with a tx hash, or **simulated**). |
+| **Approve** | Quoted limit + installment count + due dates. TRACE finances the purchase (`on_chain` with a tx hash, or **simulated**). |
 | **Approve with reduced limit** | Amount exceeds available limit. Origination uses the reduced size. |
 | **Decline** | Default (or standing &lt; `DECLINE_STANDING` 0.18) in this agent’s book, available limit 0, or agent insolvency. |
 | **Ceiling blocked** | Amount &gt; `MAX_PURCHASE_AMOUNT`, or `MAX_ACTIVE_PLANS` already open. Scoring skipped. |
 
-The agent signer (`AGENT_PRIVATE_KEY`) pays you. You connect to identify yourself, receive the ETH, and send repay ETH.
+The agent signer (`AGENT_PRIVATE_KEY`) finances the purchase. You connect to identify yourself, receive the ETH, and send repay ETH.
 
 ## APPROVAL_POLICY
 
@@ -119,7 +103,7 @@ Deterministic, in `lib/bnpl/policy.ts`. Ceilings in `lib/bnpl/ceiling.ts` and `l
 | Late completion, no default | worse than clean | 2 | |
 | Active unpaid plan | gross limit − outstanding | unchanged | Cannot overextend an open plan |
 
-Trace interest is higher when standing is lower (floor 2%, ceiling 26%). You can pay the next installment or the remaining balance at repay time.
+TRACE interest is higher when standing is lower (floor 2%, ceiling 26%). You can pay the next installment or the remaining balance at repay time.
 
 Hard caps (defaults):
 
@@ -129,11 +113,11 @@ Hard caps (defaults):
 | `MAX_ACTIVE_PLANS` | `2` | Concurrent open plans per book. |
 | `MIN_AGENT_RESERVE` | `5` | Agent cannot approve a payout that would leave spendable cash below this (USDC-equivalent). |
 
-`MAX_TX_AMOUNT_USDC` is still in `.env.example` and `lib/policy/ceiling.ts`. It applies to the leftover `/alex` treasury desk only. BNPL payouts skip it (`sendMerchantPayout` → `skipTreasuryCeiling`).
+`MAX_TX_AMOUNT_USDC` is still in `.env.example` and `lib/policy/ceiling.ts`. It applies to leftover `/alex` only. BNPL payouts skip it (`sendMerchantPayout` → `skipTreasuryCeiling`).
 
 ## Load-bearing test (run this live, under a few minutes)
 
-Needs the app running (`pnpm dev` → http://localhost:3002). Use a wallet that is **not** in the seed file. Same wallet every step. Amount stays at **12**. You need Base Sepolia ETH in that wallet to repay.
+Needs the app running (`pnpm dev` → http://localhost:3002). Use a wallet that is **not** in the seed file. Same wallet every step. Amount stays at **12** (Notebook Set, or custom). You need Base Sepolia ETH in that wallet to repay.
 
 ### 0. Reset, then run the app
 
@@ -147,8 +131,8 @@ Confirm reset printed `Relationships:    0 (want 0)`.
 ### a. New wallet → on-chain baseline
 
 1. Open http://localhost:3002/buy
-2. **Connect Wallet**
-3. Merchant `Test Shop`, amount `12` → **Request Purchase**
+2. **Connect wallet**
+3. Purchase **Notebook Set** `$12` (Test Shop) → Pay with TRACE → Why you’re eligible → **Confirm purchase**
 
 Expect:
 
@@ -158,22 +142,25 @@ Expect:
 - Primary **ONCHAIN_SIGNAL**
 - Short plan: **1** installment (thin) or **2** (moderate / established)
 - Limit in the **$12 / $20 / $24** band
-- If `BASE_EXECUTE=1` and the agent is funded: a real ETH send to your wallet plus an explorer link. If not: simulated payout, plan still stored.
+- No **Sibyl Memory found** (book is empty)
+- If `BASE_EXECUTE=1` and the agent is funded: on-chain finance plus an explorer link. If not: simulated payout, plan still stored.
 
 ### b. Repay on time
 
-On `/buy` (open plans) or `/history`: **Pay next** until the plan is `completed_on_time`. Confirm the ETH transfer in the wallet.
+On `/buy` (Upcoming payments) or `/history`: **Pay next** until the plan is `completed_on_time`. Confirm the transfer in the wallet.
 
-The API (`POST /api/repay`) records the installment only after it verifies a native ETH transfer (from your wallet, to Alex, USDC-equivalent at `ETH_USD`) on Base Sepolia. No on-chain transfer means no repay.
+The API (`POST /api/repay`) records the installment only after it verifies a native ETH transfer (from your wallet, to the agent, USDC-equivalent at `ETH_USD`) on Base Sepolia. No on-chain transfer means no repay.
 
 Due dates are in the future, so paying now is `on_time`.
 
 ### c. Same wallet, second purchase → memory-improved terms
 
-Amount `12` again → **Request Purchase**.
+`$12` again → Confirm purchase.
 
 Expect:
 
+- **Sibyl Memory found**
+- **Previous repayment: On time** (a paid installment exists)
 - **Limit much higher** than the $12–24 on-chain band (about **$2,358** gross after one completed on-time $12)
 - **4 installments** (clean relationship book), not 1–2
 - Reasoning cites **that purchase / repayment** (`ONCHAIN_SIGNAL not used`)
@@ -193,6 +180,7 @@ Expect:
 
 - Empty-relationship copy again
 - Limit and installment count back to the step-a baseline
+- **Sibyl Memory found** gone
 - The improved terms are gone even though the wallet’s on-chain history is unchanged
 
 ### e. Agent solvency — decline that ignores the wallet
@@ -205,7 +193,7 @@ Stop the dev server, then:
 MIN_AGENT_RESERVE=10000 pnpm dev
 ```
 
-On `/buy`, amount `12` → **Request Purchase**.
+On `/buy`, amount `12` → **Confirm purchase**.
 
 Expect:
 
@@ -237,7 +225,7 @@ A third wallet (yours) is the on-chain-only baseline until it has a purchase in 
 
 Python 3.10+ (3.12 recommended) and Node 20+ **on your laptop**. Vercel’s Node runtime cannot spawn `.venv/bin/python`. There the same Sibyl ops run in Node. **Create a Redis store on the Vercel project** so every visitor shares one durable book:
 
-1. Vercel dashboard → the Trace project → **Storage** → **Create Database** → **Redis** (Upstash)
+1. Vercel dashboard → the TRACE project → **Storage** → **Create Database** → **Redis** (Upstash)
 2. Connect it to Production (and Preview if you want)
 3. Redeploy. Vercel injects `KV_REST_API_URL` / `KV_REST_API_TOKEN` (or `UPSTASH_REDIS_REST_*`)
 
@@ -263,9 +251,9 @@ BNPL settlement is **native ETH**, priced at `ETH_USD` (default `2000`). Fund th
 - **Gas** for broadcasts
 - **Payouts** to users when `BASE_EXECUTE=1`
 
-You do **not** need Circle testnet USDC for the current BNPL path. (USDC still exists in leftover treasury send code.)
+You do **not** need Circle testnet USDC for the current BNPL path.
 
-End users **Connect Wallet** on `/buy` and also need Base Sepolia ETH to repay.
+End users **Connect wallet** on `/buy` and also need Base Sepolia ETH to repay.
 
 Set `BASE_EXECUTE=1` in `.env.local` to broadcast. `runAcceptPurchase` only broadcasts when that value is exactly `1`. Leave it unset/off to record simulated payouts while still writing the plan to Sibyl.
 
@@ -291,7 +279,7 @@ pnpm memory:export                        # backup
 | standing / `current_limit` | **computed** | `standingFromHistory` / `limitFromStanding` on every read |
 | AGENT_REPUTATION / COUNTERPARTY_PROFILE | leftover treasury only | Still produced by `/alex`, `pnpm mcp`, and `GET /api/memory`’s treasury fields. **Not** what BNPL terms use. |
 
-If Sibyl / Redis is down, `POST /api/purchase`, `POST /api/repay`, `GET /api/health`, and `GET /api/agent-status` return **503**. The landing page shows the error on Alex’s cash.
+If Sibyl / Redis is down, `POST /api/purchase`, `POST /api/repay`, `GET /api/health`, and `GET /api/agent-status` return **503**.
 
 Laptop: [`sibyl-memory-client`](https://github.com/Sibyl-Labs/Sibyl-Memory) via `sibyl/bridge.py` when `.venv/bin/python` exists. Vercel: same ops in `lib/memory/engine.ts` on Redis (per-wallet keys, no TTL). See `docs/sibyl-parity.md`.
 
@@ -311,14 +299,14 @@ See `.env.example`. BNPL-relevant:
 | `MIN_AGENT_RESERVE` | Solvency floor in USDC-equivalent (default 5) |
 | `ETH_USD` | USDC display → ETH settlement rate (default 2000) |
 | `AGENT_SIMULATED_USDC` | Fallback spendable when the agent key/balance cannot be read (default 100) |
-| `XAI_API_KEY` | Optional. Alex still quotes without it. |
+| `XAI_API_KEY` | Optional. TRACE still quotes without it. |
 | `KV_REST_API_URL` / `KV_REST_API_TOKEN` | Vercel Redis. Required in production. |
 | `SIBYL_PYTHON` / `SIBYL_MEMORY_DB` / `SIBYL_TENANT` | Local Python Sibyl |
 
 ## API (BNPL)
 
-- `POST /api/purchase` — `{ wallet, amount, merchant? }` quotes (Desk preview uses `persist: false`); `{ accept: true }` originates a plan
-- `POST /api/repay` — `{ wallet, purchase_id, tx_hash }` records the next installment after verifying ETH to Alex. `{ pay_remaining: true }` pays all pending. `{ mark_default: true }` is attested, not an on-chain repay.
+- `POST /api/purchase` — `{ wallet, amount, merchant? }` quotes (Buy preview uses `persist: false`); `{ accept: true }` originates a plan; `{ pay_in_full: true }` is one payment of principal + interest
+- `POST /api/repay` — `{ wallet, purchase_id, tx_hash }` records the next installment after verifying ETH to the agent. `{ pay_remaining: true }` pays all pending. `{ mark_default: true }` is attested, not an on-chain repay.
 - `GET /api/relationship/:wallet` — relationship + computed standing/limit; on-chain only if the book is empty
 - `GET /api/agent-status` — agent cash, reserve, deployable, `execute`; **503** if Sibyl/Redis is down
 - `GET /api/health` — store ping; **503** if unreachable
