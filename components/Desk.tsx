@@ -17,8 +17,24 @@ import { PayoutNotice } from "@/components/PayoutNotice";
 import type { PurchaseRecord, PurchaseResult, UserRelationship } from "@/types/bnpl";
 import Link from "next/link";
 
-const MERCHANTS = ["Test Shop", "Sibyl Labs (test merchant)", "Northwind", "Acme Market", "Base Supply"];
 const THINK_LINES = ["Checking notes…", "Checking cash…", "Writing the decision…"];
+const CUSTOM_MERCHANT = "Test Shop";
+
+const PRODUCTS = [
+  { id: "notebook", name: "Notebook Set", price: 12 },
+  { id: "lamp", name: "Desk Lamp", price: 40 },
+  { id: "headphones", name: "Wireless Headphones", price: 150 },
+] as const;
+
+type ProductId = (typeof PRODUCTS)[number]["id"] | "custom";
+type Step = "product" | "plan" | "reason" | "confirm" | "success";
+
+const STEPS: { id: Step; n: string; label: string }[] = [
+  { id: "product", n: "1", label: "Test item" },
+  { id: "plan", n: "2", label: "Payment plan" },
+  { id: "reason", n: "3", label: "Why Alex said this" },
+  { id: "confirm", n: "4", label: "Confirm" },
+];
 
 function scoreFromRel(rel: UserRelationship | null, onchainStanding: number | null) {
   if (!rel || rel.total_purchases === 0) {
@@ -53,11 +69,25 @@ function standingCopy(rel: UserRelationship | null, quote: PurchaseResult | null
   return `This wallet has completed ${completed} purchase${completed === 1 ? "" : "s"} with this agent (${rel.on_time_count} on time, ${rel.late_count} late, ${rel.default_count} defaulted). Current limit is ${formatAmount(rel.current_limit)} across up to 2 active plans. No on-chain fallback was used, this wallet has a relationship history with this agent.`;
 }
 
+function formatDue(iso: string) {
+  const d = new Date(iso);
+  if (!Number.isFinite(d.getTime())) return iso.slice(0, 10);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function canApprove(quote: PurchaseResult | null) {
+  const d = quote?.terms?.decision;
+  return d === "Approve" || d === "Approve with reduced limit";
+}
+
 export function Desk() {
   const injected = useInjectedWallet();
   const [wallet, setWallet] = useState("");
-  const [merchant, setMerchant] = useState(MERCHANTS[0]);
+  const [merchant, setMerchant] = useState(CUSTOM_MERCHANT);
   const [amount, setAmount] = useState("12");
+  const [productId, setProductId] = useState<ProductId | null>(null);
+  const [customOpen, setCustomOpen] = useState(false);
+  const [step, setStep] = useState<Step>("product");
   const [rel, setRel] = useState<UserRelationship | null>(null);
   const [onchainStanding, setOnchainStanding] = useState<number | null>(null);
   const [onchainMeta, setOnchainMeta] = useState<{ age: number; txs: number } | null>(null);
@@ -73,6 +103,9 @@ export function Desk() {
   const [note, setNote] = useState<string | null>(null);
   const [payoutHash, setPayoutHash] = useState<string | null>(null);
   const [payoutLive, setPayoutLive] = useState(false);
+
+  const product = PRODUCTS.find((p) => p.id === productId) ?? null;
+  const itemName = product?.name ?? (productId === "custom" ? "Custom amount" : null);
 
   useEffect(() => {
     if (injected.address) setWallet(injected.address);
@@ -124,11 +157,11 @@ export function Desk() {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-            wallet,
-            amount: Number(amount),
-            merchant,
-            persist: false,
-          }),
+          wallet,
+          amount: Number(amount),
+          merchant,
+          persist: false,
+        }),
       })
         .then(async (r) => {
           const d = await r.json();
@@ -190,6 +223,9 @@ export function Desk() {
         setPayoutLive(live);
         setNote(null);
         await loadRel(wallet);
+        setStep("success");
+      } else {
+        setStep("reason");
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "request failed");
@@ -262,6 +298,23 @@ export function Desk() {
     }
   }
 
+  function pickProduct(id: ProductId, price: number, label: string) {
+    setProductId(id);
+    setAmount(String(price));
+    setMerchant(id === "custom" ? CUSTOM_MERCHANT : label);
+    setLastPurchase(null);
+    setShowOutput(false);
+    setStep("plan");
+  }
+
+  function go(next: Step) {
+    if (next === "product") setStep("product");
+    else if (next === "plan" && productId) setStep("plan");
+    else if (next === "reason" && productId) setStep("reason");
+    else if (next === "confirm" && productId && canApprove(quote)) setStep("confirm");
+    else if (next === "success" && lastPurchase) setStep("success");
+  }
+
   const empty = !rel || rel.total_purchases === 0;
   const active = rel?.purchases.filter((p) => p.outcome === "active") ?? [];
   const score = scoreFromRel(rel, onchainStanding);
@@ -282,301 +335,532 @@ export function Desk() {
   const schedule = quote?.terms?.due_dates ?? [];
   const instN = quote?.terms?.installments ?? 0;
   const instAmt = quote?.terms?.installment_amount ?? 0;
+  const approved = canApprove(quote);
+  const blocked =
+    quote?.terms?.outcome === "insolvent_declined" ||
+    quote?.terms?.decision === "Decline" ||
+    quote?.terms?.decision === "Ceiling blocked";
 
-  const primaryLabel = useMemo(() => {
-    if (!injected.connected) return "Connect Wallet";
-    if (deciding) return "Alex is thinking…";
-    if (busy) return "Working…";
-    if (quote?.terms?.outcome === "insolvent_declined") return "Agent insolvent";
-    if (quote?.terms?.decision === "Decline" || quote?.terms?.decision === "Ceiling blocked") {
-      return quote.terms.decision;
-    }
-    return "Request Purchase";
-  }, [injected.connected, busy, deciding, quote]);
+  const confirmLabel = !injected.connected
+    ? "Connect Wallet"
+    : deciding
+      ? "Alex is thinking…"
+      : busy
+        ? "Working…"
+        : blocked
+          ? quote?.terms?.decision || "Cannot confirm"
+          : "Confirm and send ETH";
 
   return (
-    <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
-      <section className="glass-panel standing-hero min-w-0 p-5 sm:p-8 md:p-12">
-        <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Your standing</h2>
-        <div className="mt-10 flex flex-col gap-10 sm:flex-row sm:items-start">
-          <div className="flex shrink-0 flex-col items-center gap-3">
-            <ScoreRing score={injected.connected ? score : null} />
-            <span className={`rounded-full border px-5 py-1.5 text-sm font-medium shadow-sm ${tag.cls}`}>
-              {injected.connected ? tag.label : "CONNECT WALLET"}
-            </span>
-            {injected.connected ? <ScoreBreakdown breakdown={breakdown} /> : null}
-          </div>
-          <div className="min-w-0 flex-1 space-y-5">
-            <p className="text-[15px] leading-7 text-neutral-600">
-              {injected.connected
-                ? standingCopy(rel, quote)
-                : "Connect a wallet to load this agent’s memory of you. If it has never approved a purchase for that address, Alex hasn't built up a relationship with you yet, so it uses a conservative on-chain baseline."}
+    <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)]">
+      <section className="glass-panel min-w-0 p-5 sm:p-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Buy a test item</h2>
+            <p className="mt-1 text-[13px] text-neutral-500">
+              Test items for this testnet — no real goods are shipped.
             </p>
-            {timeline.length > 0 ? (
-              <div className="border-t border-black/5 pt-4">
-                <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">With this agent</p>
-                <MemoryTimeline events={timeline} compact />
-              </div>
-            ) : null}
-            <div className="grid grid-cols-3 gap-2 border-t border-black/5 pt-4 sm:gap-4">
-              {(
-                [
-                  ["Current Limit", empty ? "—" : formatAmount(rel!.current_limit)],
-                  ["On-Time Rate", onTimeRate],
-                  ["Purchases Completed", String(completed)],
-                ] as const
-              ).map(([k, v]) => (
-                <div key={k} className="min-w-0">
-                  <p className="text-[10px] font-medium uppercase leading-tight tracking-[0.08em] text-neutral-500 sm:text-[11px] sm:tracking-[0.12em]">{k}</p>
-                  <p className="mt-1.5 text-sm font-semibold tabular-nums text-neutral-900 sm:text-base">{v}</p>
-                </div>
-              ))}
-            </div>
-            {deciding ? (
-              <div className="flex flex-col items-start border-t border-black/5 pt-5">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#7828E8]/10">
-                  <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-[#7828E8]" />
-                </span>
-                <p className="mt-3 text-sm font-semibold text-neutral-900">Alex is thinking</p>
-                <p className="mt-1 text-[13px] text-neutral-500">{THINK_LINES[thinkI]}</p>
-              </div>
-            ) : showOutput && quote ? (
-              <div className="space-y-4 border-t border-black/5 pt-4">
-                <div className="rounded-xl bg-[#7828E8]/[0.07] px-4 py-3 ring-1 ring-[#7828E8]/20">
-                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#7828E8]">
-                    Memory just changed
-                  </p>
-                  <p className="mt-1 font-mono text-sm font-semibold tabular-nums text-neutral-900">
-                    Score: {Math.round((lastPurchase?.score_before ?? quote.verdict.score ?? 0) * 100)} →{" "}
-                    {Math.round((lastPurchase?.score_after ?? rel?.current_standing_score ?? quote.verdict.score ?? 0) * 100)}
-                  </p>
-                  <p className="mt-0.5 font-mono text-sm font-semibold tabular-nums text-neutral-900">
-                    Limit: {formatAmount(lastPurchase?.limit_before ?? quote.terms.available)} →{" "}
-                    {formatAmount(lastPurchase?.limit_after ?? rel?.current_limit ?? quote.terms.available)}
-                  </p>
-                </div>
-                <div className="border-t border-black/[0.08] pt-3">
-                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">Decision</p>
-                  {quote.verdict.why ? (
-                    <p className="mt-2 text-[15px] leading-6 text-neutral-900">{quote.verdict.why}</p>
-                  ) : null}
-                  <pre className="mt-2 whitespace-pre-wrap font-mono text-[13px] leading-relaxed text-neutral-800">
-                    {`Decision: ${quote.verdict.decision}`}
-                  </pre>
-                </div>
-                <div className="border-t border-black/[0.08] pt-3">
-                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">Reasoning</p>
-                  <pre className="mt-2 whitespace-pre-wrap font-mono text-[13px] leading-relaxed text-neutral-800">
-                    {(quote.verdict.reasoning || []).map((line) => `- ${line}`).join("\n")}
-                  </pre>
-                </div>
-                <div className="border-t border-black/[0.08] pt-3">
-                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">Terms</p>
-                  <pre className="mt-2 whitespace-pre-wrap font-mono text-[13px] leading-relaxed text-neutral-800">
-                    {quote.verdict.terms}
-                  </pre>
-                </div>
-                {lastPurchase ? (
-                  <div className="space-y-2">
-                    <PayoutNotice
-                      amountUsd={lastPurchase.amount}
-                      hash={payoutHash}
-                      live={payoutLive}
-                    />
-                    <Link
-                      href={`/log#${lastPurchase.purchase_id}`}
-                      className="inline-block text-[12px] font-medium text-[#7828E8] hover:underline"
-                    >
-                      See this in the Agent Log →
-                    </Link>
-                  </div>
-                ) : note ? (
-                  <div className="rounded-xl bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800 ring-1 ring-emerald-200/80">
-                    <p className="font-medium">{note}</p>
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
-            {injected.connected && active.length > 0 ? (
-              <div className="space-y-3 border-t border-black/5 pt-4">
-                <p className="text-[11px] font-medium text-neutral-500">Open plans, repay here</p>
-                {active.map((p) => {
-                  const pending = p.schedule.filter((i) => i.status === "pending");
-                  const next = pending[0];
-                  const paid = p.schedule.filter((i) => i.status !== "pending").length;
-                  const rest = pending.reduce((s, i) => s + i.amount, 0);
-                  return (
-                    <div
-                      key={p.purchase_id}
-                      className={`flex flex-wrap items-center justify-between gap-3 rounded-xl bg-black/[0.03] px-4 py-3 ${
-                        repayingId === p.purchase_id ? "ring-1 ring-[#7828E8]/35" : ""
-                      }`}
-                    >
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-neutral-900">
-                          {formatAmount(p.amount)} · {p.merchant}
-                        </p>
-                        <p className="mt-0.5 text-[12px] text-neutral-500">
-                          {paid}/{p.installments} paid
-                          {next ? ` · next ${formatAmount(next.amount)} due ${next.due_date.slice(0, 10)}` : ""}
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          disabled={busy || !next}
-                          onClick={() => repay(p.purchase_id, false)}
-                          className="rounded-full bg-[#7828E8] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#6a1fd4] disabled:opacity-50"
-                        >
-                          {repayingId === p.purchase_id && !repayingRest
-                            ? "Confirm in wallet…"
-                            : `Pay next ${next ? formatAmount(next.amount) : ""}`}
-                        </button>
-                        {pending.length > 1 ? (
-                          <button
-                            type="button"
-                            disabled={busy}
-                            onClick={() => repay(p.purchase_id, true)}
-                            className="rounded-full border border-[#7828E8]/40 px-4 py-2 text-xs font-semibold text-[#7828E8] hover:bg-[#7828E8]/5 disabled:opacity-50"
-                          >
-                            {repayingId === p.purchase_id && repayingRest
-                              ? "Confirm in wallet…"
-                              : `Pay remaining ${formatAmount(rest)}`}
-                          </button>
-                        ) : null}
-                      </div>
-                    </div>
-                  );
-                })}
-                <p className="text-[11px] text-neutral-400">
-                  Amounts are shown in USDC. Repay sends the ETH equivalent to Alex on Base Sepolia.
-                </p>
-              </div>
-            ) : null}
           </div>
-        </div>
-      </section>
-
-      <aside className="glass-panel p-6 md:p-7">
-        <div className="mb-4">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-black/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-500">
-            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden className="text-neutral-400">
-              <circle cx="3.2" cy="5" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.2" />
-              <circle cx="6.8" cy="5" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.2" />
-            </svg>
-            Base Sepolia
-          </span>
-        </div>
-        <div className="mb-4 flex w-fit items-center gap-2 rounded-full bg-black/5 p-1">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#7828E8] px-4 py-1.5 text-xs font-semibold text-white shadow-sm">
-            <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden />
-            Testnet
-          </span>
-          <span className="inline-flex cursor-not-allowed items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-neutral-400">
-            Mainnet
-            <span className="rounded-full bg-black/10 px-1.5 py-0.5 text-[9px] font-bold uppercase">Soon</span>
+            Base Sepolia · Testnet
           </span>
         </div>
 
-        <div className="space-y-1">
-          <div className="rounded-well bg-black/[0.03] p-4">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-[11px] font-medium text-neutral-500">Pay</span>
-              <span className="text-sm font-semibold text-neutral-900">USDC</span>
-            </div>
-            <input
-              type="number"
-              min={0}
-              step="any"
-              className="w-full bg-transparent text-2xl font-semibold text-neutral-900 outline-none"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
-              <p className="mt-2 text-[11px] text-neutral-400">Shown in USDC · settled in ETH</p>
-          </div>
+        {step !== "success" ? (
+          <ol className="mt-6 flex flex-wrap gap-2">
+            {STEPS.map((s, i) => {
+              const activeStep = s.id === step;
+              const reached = STEPS.findIndex((x) => x.id === step) >= i;
+              return (
+                <li key={s.id}>
+                  <button
+                    type="button"
+                    onClick={() => go(s.id)}
+                    className={`rounded-full px-3 py-1.5 text-[11px] font-medium ${
+                      activeStep
+                        ? "bg-[#7828E8] text-white"
+                        : reached
+                          ? "bg-[#7828E8]/10 text-[#7828E8]"
+                          : "bg-black/5 text-neutral-400"
+                    }`}
+                  >
+                    {s.n} {s.label}
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+        ) : null}
 
-          <div className="flex justify-center py-1">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full border border-black/10 bg-white text-neutral-400">
-              ↓
-            </span>
-          </div>
-
-          <div className="rounded-well bg-black/[0.03] p-4">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-[11px] font-medium text-neutral-500">Merchant</span>
+        {step === "product" || step === "plan" ? (
+          <div className="mt-6">
+            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">Pick a test item</p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              {PRODUCTS.map((p) => {
+                const selected = productId === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => pickProduct(p.id, p.price, p.name)}
+                    className={`rounded-2xl p-4 text-left ring-1 transition ${
+                      selected
+                        ? "bg-[#7828E8]/[0.07] ring-[#7828E8]/40"
+                        : "bg-black/[0.03] ring-black/5 hover:ring-black/15"
+                    }`}
+                  >
+                    <p className="text-sm font-semibold text-neutral-900">{p.name}</p>
+                    <p className="mt-2 text-2xl font-semibold tabular-nums tracking-tight text-neutral-900">
+                      {formatAmount(p.price)}
+                    </p>
+                    <p className="mt-2 text-[11px] text-neutral-400">Test item · no goods ship</p>
+                  </button>
+                );
+              })}
             </div>
-            <select
-              className="w-full bg-transparent text-sm font-semibold text-neutral-900 outline-none"
-              value={merchant}
-              onChange={(e) => setMerchant(e.target.value)}
-            >
-              {MERCHANTS.map((m) => (
-                <option key={m}>{m}</option>
-              ))}
-            </select>
-            <p className="mt-2 text-[11px] text-neutral-400">
-              Merchant is a label. ETH is sent to your connected wallet, not to Sibyl Labs.
+            <p className="mt-3 text-[12px] leading-5 text-neutral-500">
+              Merchant names are labels. ETH is sent to your connected wallet, not to a merchant contract.
             </p>
+            <button
+              type="button"
+              className="mt-3 text-[12px] font-medium text-[#7828E8] hover:underline"
+              onClick={() => setCustomOpen((v) => !v)}
+            >
+              {customOpen ? "Hide custom amount" : "Or type an amount"}
+            </button>
+            {customOpen ? (
+              <div className="mt-3 rounded-2xl bg-black/[0.03] p-4 ring-1 ring-black/5">
+                <div className="flex items-end justify-between gap-3">
+                  <label className="min-w-0 flex-1">
+                    <span className="text-[11px] font-medium text-neutral-500">Amount (USDC-equivalent)</span>
+                    <input
+                      type="number"
+                      min={0}
+                      step="any"
+                      className="mt-1 w-full bg-transparent text-2xl font-semibold text-neutral-900 outline-none"
+                      value={productId === "custom" ? amount : ""}
+                      placeholder="0"
+                      onChange={(e) => {
+                        setProductId("custom");
+                        setAmount(e.target.value);
+                        setMerchant(CUSTOM_MERCHANT);
+                        setLastPurchase(null);
+                        setShowOutput(false);
+                        if (step === "product") setStep("plan");
+                      }}
+                    />
+                  </label>
+                  <span className="text-sm font-semibold text-neutral-500">USDC</span>
+                </div>
+                <p className="mt-2 text-[11px] text-neutral-400">Shown in USDC · settled in ETH</p>
+              </div>
+            ) : null}
           </div>
+        ) : null}
 
-          <div className="flex justify-center py-1">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full border border-black/10 bg-white text-neutral-400">
-              ↓
-            </span>
-          </div>
-
-          <div className="rounded-well bg-black/[0.03] p-4">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-[11px] font-medium text-neutral-500">You&apos;ll pay back</span>
-              <span className="text-sm font-semibold text-neutral-900">{instN ? `${instN}×` : "—"}</span>
-            </div>
-            <div className="min-h-[32px] text-2xl font-semibold text-neutral-900">
-              {instN > 0 ? `${formatAmount(instAmt)} × ${instN}` : "—"}
-            </div>
-            {schedule.length > 0 ? (
+        {step === "plan" ? (
+          <div className="mt-8 border-t border-black/5 pt-6">
+            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">Payment plan</p>
+            <h3 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">
+              {itemName} · {formatAmount(Number(amount) || 0)}
+            </h3>
+            {!injected.connected ? (
+              <p className="mt-4 text-[15px] leading-7 text-neutral-600">
+                Connect a wallet to see how many payments Alex would offer, and your current limit.
+              </p>
+            ) : !quote ? (
+              <p className="mt-4 text-sm text-neutral-500">Asking Alex for terms…</p>
+            ) : (
               <>
-                <p className="mt-2 text-[11px] text-neutral-500">
-                  Due {schedule.map((d) => d.slice(0, 10)).join(" · ")}
-                </p>
-                {quote?.terms.interest_rate != null ? (
-                  <p className="mt-2 text-[11px] text-neutral-500">
-                    Trace interest {Math.round(quote.terms.interest_rate * 100)}% · receive{" "}
-                    {formatAmount(quote.terms.principal || quote.terms.payout_amount)} · repay{" "}
+                <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {(
+                    [
+                      ["Payments", instN ? `${instN}` : "—"],
+                      ["Each payment", instN ? formatAmount(instAmt) : "—"],
+                      ["You receive", formatAmount(quote.terms.principal || quote.terms.payout_amount || 0)],
+                      [
+                        "Your limit",
+                        empty && quote.terms.used_onchain
+                          ? formatAmount(quote.terms.available)
+                          : empty
+                            ? "—"
+                            : formatAmount(rel!.current_limit),
+                      ],
+                    ] as const
+                  ).map(([k, v]) => (
+                    <div key={k} className="rounded-xl bg-black/[0.03] px-3 py-3">
+                      <p className="text-[10px] font-medium uppercase tracking-[0.1em] text-neutral-500">{k}</p>
+                      <p className="mt-1 text-lg font-semibold tabular-nums text-neutral-900">{v}</p>
+                    </div>
+                  ))}
+                </div>
+                {quote.terms.reduced_limit != null ? (
+                  <p className="mt-4 text-sm text-amber-800">
+                    You asked for {formatAmount(Number(amount))}. Alex would send{" "}
+                    {formatAmount(quote.terms.reduced_limit)} (reduced limit).
+                  </p>
+                ) : null}
+                {schedule.length > 0 ? (
+                  <ul className="mt-5 divide-y divide-black/5 rounded-xl ring-1 ring-black/5">
+                    {schedule.map((due, i) => (
+                      <li key={`${due}-${i}`} className="flex items-center justify-between px-4 py-3 text-sm">
+                        <span className="text-neutral-500">Payment {i + 1}</span>
+                        <span className="font-medium tabular-nums text-neutral-900">{formatAmount(instAmt)}</span>
+                        <span className="text-neutral-500">{formatDue(due)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-4 text-sm text-neutral-500">No installment schedule on this quote.</p>
+                )}
+                {quote.terms.interest_rate != null && instN > 0 ? (
+                  <p className="mt-3 text-[13px] leading-6 text-neutral-500">
+                    Trace interest {Math.round(quote.terms.interest_rate * 100)}% · repay{" "}
                     {formatAmount(quote.terms.total_due || 0)}. You can pay the rest in one shot when you
                     repay.
                   </p>
                 ) : null}
               </>
-            ) : (
-              <p className="mt-2 text-[11px] text-neutral-400">Enter an amount to see the schedule.</p>
             )}
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => setStep("product")}
+                className="rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium text-neutral-700 hover:bg-black/5"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                disabled={!injected.connected}
+                onClick={async () => {
+                  if (!injected.connected) {
+                    await injected.connect();
+                    return;
+                  }
+                  setStep("reason");
+                }}
+                className="rounded-full bg-[#7828E8] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#6a1fd4] disabled:opacity-50"
+              >
+                {injected.connected ? "See why Alex said this" : "Connect Wallet"}
+              </button>
+            </div>
           </div>
-        </div>
-
-        <button
-          type="button"
-          disabled={
-            busy ||
-            quote?.terms?.outcome === "insolvent_declined" ||
-            quote?.terms?.decision === "Decline" ||
-            quote?.terms?.decision === "Ceiling blocked"
-          }
-          onClick={requestPurchase}
-          className="mt-4 w-full rounded-full bg-[#7828E8] py-3 text-sm font-semibold tracking-wide text-white shadow-md transition hover:bg-[#7828E8]/90 disabled:opacity-50"
-        >
-          {primaryLabel}
-        </button>
-        {quote && injected.connected ? (
-          <p className="mt-3 text-center text-[11px] text-neutral-500">
-            {quote.verdict.decision}
-            {quote.terms.used_onchain ? " · on-chain fallback" : " · relationship memory"}
-            {quote.verdict.score ? ` · score ${Math.round(quote.verdict.score * 100)}` : ""}
-          </p>
         ) : null}
-        {error ? <p className="mt-3 text-center text-[12px] text-red-600">{error}</p> : null}
-        {note ? <p className="mt-3 text-center text-[12px] text-emerald-700">{note}</p> : null}
-        {wallet && injected.address && wallet !== injected.address ? (
-          <p className="mt-2 text-center font-mono text-[10px] text-neutral-400">quoting {shortAddress(wallet)}</p>
+
+        {step === "reason" ? (
+          <div className="mt-8 border-t border-black/5 pt-6">
+            {!injected.connected ? (
+              <p className="text-[15px] text-neutral-600">Connect a wallet to load Alex’s reasoning.</p>
+            ) : deciding ? (
+              <div>
+                <p className="text-sm font-semibold text-neutral-900">Alex is thinking</p>
+                <p className="mt-1 text-[13px] text-neutral-500">{THINK_LINES[thinkI]}</p>
+              </div>
+            ) : quote ? (
+              <div className="space-y-6">
+                <div>
+                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">Decision</p>
+                  <h3 className="mt-2 text-3xl font-semibold tracking-tight text-neutral-900">
+                    {quote.verdict.decision}
+                  </h3>
+                  {quote.verdict.why ? (
+                    <p className="mt-3 text-[17px] leading-7 text-neutral-800">{quote.verdict.why}</p>
+                  ) : null}
+                  <p className="mt-2 text-[13px] text-neutral-500">
+                    {quote.terms.used_onchain ? "On-chain fallback" : "Relationship memory"}
+                    {quote.verdict.score ? ` · score ${Math.round(quote.verdict.score * 100)}` : ""}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">Reasoning</p>
+                  <ul className="mt-3 space-y-2 text-[15px] leading-6 text-neutral-800">
+                    {(quote.verdict.reasoning || []).map((line) => (
+                      <li key={line} className="flex gap-2">
+                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#7828E8]" aria-hidden />
+                        <span>{line}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">Terms</p>
+                  <p className="mt-2 font-mono text-[13px] leading-6 text-neutral-800">{quote.verdict.terms}</p>
+                </div>
+                {injected.connected ? (
+                  <div className="rounded-2xl bg-black/[0.03] px-4 py-4">
+                    <div className="flex items-start gap-4">
+                      <ScoreRing score={score} size="sm" />
+                      <div className="min-w-0 flex-1">
+                        <ScoreBreakdown breakdown={breakdown} open />
+                      </div>
+                    </div>
+                    {timeline.length > 0 ? (
+                      <div className="mt-5 border-t border-black/5 pt-4">
+                        <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">
+                          With this agent
+                        </p>
+                        <MemoryTimeline events={timeline} compact />
+                      </div>
+                    ) : (
+                      <p className="mt-4 text-[13px] text-neutral-500">{standingCopy(rel, quote)}</p>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <p className="text-sm text-neutral-500">Waiting on a quote…</p>
+            )}
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => setStep("plan")}
+                className="rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium text-neutral-700 hover:bg-black/5"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                disabled={!approved || deciding}
+                onClick={() => setStep("confirm")}
+                className="rounded-full bg-[#7828E8] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#6a1fd4] disabled:opacity-50"
+              >
+                {blocked ? quote?.terms.decision : "Continue to confirm"}
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {step === "confirm" ? (
+          <div className="mt-8 border-t border-black/5 pt-6">
+            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">Order summary</p>
+            <h3 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">
+              {itemName ?? "Test item"}
+            </h3>
+            {deciding ? (
+              <div className="mt-6">
+                <p className="text-sm font-semibold text-neutral-900">Alex is thinking</p>
+                <p className="mt-1 text-[13px] text-neutral-500">{THINK_LINES[thinkI]}</p>
+              </div>
+            ) : quote ? (
+              <dl className="mt-5 divide-y divide-black/5 rounded-xl ring-1 ring-black/5">
+                {(
+                  [
+                    ["Item", itemName ?? "—"],
+                    ["You asked", formatAmount(Number(amount) || 0)],
+                    [
+                      "Alex sends",
+                      formatAmount(quote.terms.principal || quote.terms.payout_amount || Number(amount) || 0),
+                    ],
+                    ["Payments", instN ? `${formatAmount(instAmt)} × ${instN}` : "—"],
+                    ["You repay", formatAmount(quote.terms.total_due || 0)],
+                    ["Due", schedule.map(formatDue).join(" · ") || "—"],
+                  ] as const
+                ).map(([k, v]) => (
+                  <div key={k} className="flex justify-between gap-4 px-4 py-3 text-sm">
+                    <dt className="text-neutral-500">{k}</dt>
+                    <dd className="text-right font-medium text-neutral-900">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : null}
+            <p className="mt-4 text-[12px] leading-5 text-neutral-500">
+              Merchant names are labels. ETH is sent to your connected wallet, not to a merchant contract.
+              Amounts are shown in USDC and settled in ETH on Base Sepolia.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => setStep("reason")}
+                className="rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium text-neutral-700 hover:bg-black/5"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                disabled={busy || deciding || blocked}
+                onClick={requestPurchase}
+                className="rounded-full bg-[#7828E8] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#6a1fd4] disabled:opacity-50"
+              >
+                {confirmLabel}
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {step === "success" ? (
+          <div className="mt-6 space-y-5">
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#7828E8]">
+                Recorded in Alex’s memory
+              </p>
+              <h3 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">
+                Your next purchase will reflect this.
+              </h3>
+            </div>
+            {lastPurchase && quote ? (
+              <div className="rounded-xl bg-[#7828E8]/[0.07] px-4 py-3 ring-1 ring-[#7828E8]/20">
+                <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#7828E8]">
+                  Memory just changed
+                </p>
+                <p className="mt-1 font-mono text-sm font-semibold tabular-nums text-neutral-900">
+                  Score: {Math.round((lastPurchase.score_before ?? quote.verdict.score ?? 0) * 100)} →{" "}
+                  {Math.round((lastPurchase.score_after ?? rel?.current_standing_score ?? quote.verdict.score ?? 0) * 100)}
+                </p>
+                <p className="mt-0.5 font-mono text-sm font-semibold tabular-nums text-neutral-900">
+                  Limit: {formatAmount(lastPurchase.limit_before ?? quote.terms.available)} →{" "}
+                  {formatAmount(lastPurchase.limit_after ?? rel?.current_limit ?? quote.terms.available)}
+                </p>
+              </div>
+            ) : null}
+            {lastPurchase ? (
+              <PayoutNotice amountUsd={lastPurchase.amount} hash={payoutHash} live={payoutLive} />
+            ) : null}
+            {quote ? (
+              <div>
+                <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">Decision</p>
+                <p className="mt-2 text-lg font-semibold text-neutral-900">{quote.verdict.decision}</p>
+                {quote.verdict.why ? (
+                  <p className="mt-1 text-[15px] leading-6 text-neutral-700">{quote.verdict.why}</p>
+                ) : null}
+              </div>
+            ) : null}
+            {lastPurchase ? (
+              <Link
+                href={`/log#${lastPurchase.purchase_id}`}
+                className="inline-block text-[13px] font-medium text-[#7828E8] hover:underline"
+              >
+                See this in the Agent Log →
+              </Link>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => {
+                setStep("product");
+                setLastPurchase(null);
+                setShowOutput(false);
+              }}
+              className="block rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium text-neutral-700 hover:bg-black/5"
+            >
+              Buy another test item
+            </button>
+          </div>
+        ) : null}
+
+        {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
+        {note && step !== "success" ? <p className="mt-3 text-sm text-emerald-700">{note}</p> : null}
+      </section>
+
+      <aside className="space-y-6">
+        <section className="glass-panel standing-hero p-6 md:p-7">
+          <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Your standing</h2>
+          <div className="mt-6 flex flex-col items-center">
+            <ScoreRing score={injected.connected ? score : null} />
+            <span className={`mt-3 rounded-full border px-4 py-1 text-[12px] font-medium shadow-sm ${tag.cls}`}>
+              {injected.connected ? tag.label : "CONNECT WALLET"}
+            </span>
+          </div>
+          <p className="mt-5 text-[14px] leading-6 text-neutral-600">
+            {injected.connected
+              ? standingCopy(rel, quote)
+              : "Connect a wallet to load this agent’s memory of you. If it has never approved a purchase for that address, Alex hasn't built up a relationship with you yet, so it uses a conservative on-chain baseline."}
+          </p>
+          <div className="mt-5 grid grid-cols-3 gap-2 border-t border-black/5 pt-4">
+            {(
+              [
+                ["Current Limit", empty ? "—" : formatAmount(rel!.current_limit)],
+                ["On-Time Rate", onTimeRate],
+                ["Purchases Completed", String(completed)],
+              ] as const
+            ).map(([k, v]) => (
+              <div key={k} className="min-w-0">
+                <p className="text-[10px] font-medium uppercase leading-tight tracking-[0.08em] text-neutral-500">
+                  {k}
+                </p>
+                <p className="mt-1 text-sm font-semibold tabular-nums text-neutral-900">{v}</p>
+              </div>
+            ))}
+          </div>
+          {step !== "reason" && injected.connected ? (
+            <button
+              type="button"
+              className="mt-4 text-[12px] font-medium text-[#7828E8] hover:underline"
+              onClick={() => {
+                if (productId) setStep("reason");
+                else setStep("product");
+              }}
+            >
+              {productId ? "See why Alex said this →" : "Pick a test item to see reasoning →"}
+            </button>
+          ) : null}
+        </section>
+
+        {injected.connected && active.length > 0 ? (
+          <section className="glass-panel p-6">
+            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">
+              Open plans, repay here
+            </p>
+            <div className="mt-4 space-y-3">
+              {active.map((p) => {
+                const pending = p.schedule.filter((i) => i.status === "pending");
+                const next = pending[0];
+                const paid = p.schedule.filter((i) => i.status !== "pending").length;
+                const rest = pending.reduce((s, i) => s + i.amount, 0);
+                return (
+                  <div
+                    key={p.purchase_id}
+                    className={`rounded-xl bg-black/[0.03] px-4 py-3 ${
+                      repayingId === p.purchase_id ? "ring-1 ring-[#7828E8]/35" : ""
+                    }`}
+                  >
+                    <p className="text-sm font-medium text-neutral-900">
+                      {formatAmount(p.amount)} · {p.merchant}
+                    </p>
+                    <p className="mt-0.5 text-[12px] text-neutral-500">
+                      {paid}/{p.installments} paid
+                      {next ? ` · next ${formatAmount(next.amount)} due ${next.due_date.slice(0, 10)}` : ""}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        disabled={busy || !next}
+                        onClick={() => repay(p.purchase_id, false)}
+                        className="rounded-full bg-[#7828E8] px-4 py-2 text-xs font-semibold text-white hover:bg-[#6a1fd4] disabled:opacity-50"
+                      >
+                        {repayingId === p.purchase_id && !repayingRest
+                          ? "Confirm in wallet…"
+                          : `Pay next ${next ? formatAmount(next.amount) : ""}`}
+                      </button>
+                      {pending.length > 1 ? (
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => repay(p.purchase_id, true)}
+                          className="rounded-full border border-[#7828E8]/40 px-4 py-2 text-xs font-semibold text-[#7828E8] hover:bg-[#7828E8]/5 disabled:opacity-50"
+                        >
+                          {repayingId === p.purchase_id && repayingRest
+                            ? "Confirm in wallet…"
+                            : `Pay remaining ${formatAmount(rest)}`}
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="mt-3 text-[11px] text-neutral-400">
+              Amounts are shown in USDC. Repay sends the ETH equivalent to Alex on Base Sepolia.
+            </p>
+          </section>
+        ) : null}
+
+        <p className="px-1 text-[11px] leading-5 text-neutral-400">
+          Shown in USDC · settled in ETH. {wallet && injected.address && wallet !== injected.address
+            ? `Quoting ${shortAddress(wallet)}.`
+            : null}
+        </p>
+        {showOutput && quote && step !== "success" && step !== "reason" ? (
+          <p className="px-1 text-[12px] text-neutral-500">{quote.verdict.decision}</p>
         ) : null}
       </aside>
     </div>

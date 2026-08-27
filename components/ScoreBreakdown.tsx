@@ -8,13 +8,16 @@ function formatPts(n: number) {
   return body;
 }
 
-export function ScoreBreakdown({ breakdown }: { breakdown: StandingBreakdown | null }) {
+export function ScoreBreakdown({
+  breakdown,
+  open = false,
+}: {
+  breakdown: StandingBreakdown | null;
+  open?: boolean;
+}) {
   if (!breakdown || breakdown.lines.length === 0) return null;
-  return (
-    <details className="mt-4 w-full max-w-xs text-left">
-      <summary className="cursor-pointer text-[12px] font-medium text-[#7828E8] hover:underline">
-        Why this score?
-      </summary>
+  const body = (
+    <>
       <ul className="mt-3 space-y-1.5 font-mono text-[12px] leading-5 text-neutral-700">
         {breakdown.lines.map((line) => (
           <li key={line.id} className="flex justify-between gap-3">
@@ -33,6 +36,22 @@ export function ScoreBreakdown({ breakdown }: { breakdown: StandingBreakdown | n
         <span className="font-sans font-medium">Current score</span>
         <span>{breakdown.score}</span>
       </div>
+    </>
+  );
+  if (open) {
+    return (
+      <div className="mt-4 w-full text-left">
+        <p className="text-[12px] font-medium text-[#7828E8]">Why this score?</p>
+        {body}
+      </div>
+    );
+  }
+  return (
+    <details className="mt-4 w-full max-w-xs text-left">
+      <summary className="cursor-pointer text-[12px] font-medium text-[#7828E8] hover:underline">
+        Why this score?
+      </summary>
+      {body}
     </details>
   );
 }

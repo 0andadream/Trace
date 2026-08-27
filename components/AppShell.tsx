@@ -117,14 +117,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <div className="grid grid-cols-2 divide-y divide-[#E8E7EC] md:grid-cols-4 md:divide-x md:divide-y-0">
                 {(
                   [
-                    ["Alex’s cash", status ? formatAmount(status.spendable_usd) : "—"],
-                    ["Still owed", status ? formatAmount(status.outstanding_exposure) : "—"],
-                    ["Purchases", status ? String(status.total_purchases) : "—"],
-                    ["People on file", status ? String(status.wallets_with_history) : "—"],
+                    ["What Alex can lend right now", status ? formatAmount(status.spendable_usd) : "—"],
+                    ["Still owed to Alex, in total", status ? formatAmount(status.outstanding_exposure) : "—"],
+                    ["Purchases on file", status ? String(status.total_purchases) : "—"],
+                    ["People Alex has seen before", status ? String(status.wallets_with_history) : "—"],
                   ] as const
                 ).map(([label, value]) => (
                   <div key={label} className="flex flex-col justify-center gap-1 p-4 sm:gap-1.5 sm:p-6 md:p-8">
-                    <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-500 sm:text-[11px]">{label}</p>
+                    <p className="text-[10px] font-medium uppercase leading-tight tracking-[0.1em] text-neutral-500 sm:text-[11px] sm:tracking-[0.12em]">{label}</p>
                     <p className="text-xl font-semibold tracking-tight text-neutral-900 sm:text-3xl md:text-4xl">{value}</p>
                   </div>
                 ))}
