@@ -80,6 +80,20 @@ function canApprove(quote: PurchaseResult | null) {
   return d === "Approve" || d === "Approve with reduced limit";
 }
 
+function lastRepaymentLabel(rel: UserRelationship | null): "On time" | "Late" | null {
+  if (!rel?.purchases?.length) return null;
+  let latest: { at: string; status: string } | null = null;
+  for (const p of rel.purchases) {
+    for (const inst of p.schedule || []) {
+      if (!inst.paid_date || inst.status === "pending") continue;
+      if (!latest || inst.paid_date > latest.at) latest = { at: inst.paid_date, status: inst.status };
+    }
+  }
+  if (latest?.status === "on_time") return "On time";
+  if (latest?.status === "late") return "Late";
+  return null;
+}
+
 export function Desk() {
   const injected = useInjectedWallet();
   const [wallet, setWallet] = useState("");
@@ -333,6 +347,8 @@ export function Desk() {
     return standingBreakdown(rel);
   }, [injected.connected, rel, quote, onchainMeta]);
   const timeline = useMemo(() => (rel && rel.total_purchases > 0 ? memoryTimeline(rel) : []), [rel]);
+  const sibylFound = Boolean(injected.connected && rel && rel.total_purchases > 0);
+  const lastRepayment = lastRepaymentLabel(rel);
   const tag = badge(rel);
   const completed = rel ? rel.on_time_count + rel.late_count + rel.default_count : 0;
   const onTimeRate = completed > 0 && rel ? `${Math.round((rel.on_time_count / completed) * 100)}%` : "—";
@@ -827,6 +843,12 @@ export function Desk() {
               ? standingCopy(rel, quote)
               : "Connect a wallet to load your TRACE reputation. If Sibyl has no history for that address, TRACE starts from a cautious onchain baseline."}
           </p>
+          {sibylFound ? (
+            <p className="mt-2 text-[12px] font-medium text-neutral-500">Sibyl Memory found</p>
+          ) : null}
+          {sibylFound && lastRepayment ? (
+            <p className="mt-1 text-[13px] text-neutral-600">Previous repayment: {lastRepayment}</p>
+          ) : null}
           <div className="mt-5 grid grid-cols-3 gap-2 border-t border-black/5 pt-4">
             {(
               [
