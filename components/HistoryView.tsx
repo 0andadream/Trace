@@ -64,8 +64,8 @@ export function HistoryView() {
       if (!eth) throw new Error("No injected wallet. Connect MetaMask, Rabby, or Coinbase Wallet.");
       const agentRes = await fetch("/api/agent-status");
       const agent = await agentRes.json();
-      if (!agent.address) throw new Error("Alex’s account is not published.");
-      if (!(agent.eth_usd > 0)) throw new Error("Could not read the ETH price for this repay.");
+      if (!agent.address) throw new Error("The TRACE agent account is not published.");
+      if (!(agent.eth_usd > 0)) throw new Error("Could not read the settlement price for this repayment.");
       const sent = await sendUserRepay({
         from: injected.address,
         agent: agent.address,
@@ -103,7 +103,7 @@ export function HistoryView() {
         <h2 className="text-sm font-semibold tracking-tight text-neutral-900">My history</h2>
         <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-neutral-500">
           Purchase history is private to the wallet that made it. Connect to see yours. Nobody else
-          can open this list. Repay sends ETH (shown as USDC).
+          can open this list.
         </p>
       </section>
     );
@@ -119,7 +119,7 @@ export function HistoryView() {
       {rel && rel.total_purchases > 0 ? (
         <div className="border-t border-black/5 px-6 py-5">
           <ScoreBreakdown breakdown={standingBreakdown(rel)} />
-          <p className="mb-4 mt-6 text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">With this agent</p>
+          <p className="mb-4 mt-6 text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500">Financial history on file</p>
           <MemoryTimeline events={memoryTimeline(rel)} />
         </div>
       ) : null}
@@ -145,8 +145,8 @@ export function HistoryView() {
             ) : rows.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-10 text-neutral-500">
-                  No purchases for this wallet yet. Request one on Buy. After Alex says yes, Repay
-                  shows up here and on Buy.
+                  No purchases for this wallet yet. Request one on Buy. After TRACE says yes, upcoming
+                  payments show up here and on Buy.
                 </td>
               </tr>
             ) : (
@@ -164,11 +164,11 @@ export function HistoryView() {
                     <td className="px-6 py-3 text-neutral-500">
                       {p.payout_tx_hash ? (
                         <span className="block">
-                          <span className="text-neutral-700">ETH sent · </span>
+                          <span className="text-neutral-700">Financed · </span>
                           <TxLink hash={p.payout_tx_hash} className="text-[11px]" />
                         </span>
                       ) : p.payout_mode === "on_chain" ? (
-                        "ETH sent"
+                        "Financed"
                       ) : (
                         "Simulated — not sent"
                       )}

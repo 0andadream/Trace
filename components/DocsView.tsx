@@ -6,7 +6,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 const NAV = [
   { id: "overview", label: "Overview" },
   { id: "how-it-works", label: "How it works" },
-  { id: "standing", label: "Standing" },
+  { id: "standing", label: "Reputation" },
   { id: "memory", label: "Memory" },
   { id: "payments", label: "Payments" },
   { id: "try-it", label: "Try it" },
@@ -92,16 +92,16 @@ const FAQ = [
     a: "No. This site is Base Sepolia testnet, not a real loan and not mainnet. You cannot lose mainnet dollars here.",
   },
   {
-    q: "Does Alex pull a credit score?",
-    a: "No. Standing with this agent is not a bureau score. If you have bought here before, the deal uses that history. If you have not, it uses a conservative read of your wallet’s on-chain activity, fetched fresh and not stored.",
+    q: "Does TRACE pull a credit score?",
+    a: "No. TRACE reputation is not a bureau score. If you have bought here before, the deal uses that history. If you have not, it uses a conservative read of your wallet’s onchain activity, fetched fresh and not stored.",
   },
   {
     q: "Where does the ETH go?",
-    a: "When Alex says yes, it sends ETH to the wallet you connected. Merchant names are labels. Amounts in the UI are shown in USDC.",
+    a: "When TRACE finances a purchase, ETH is sent to the wallet you connected. Merchant names are labels. Amounts in the UI are shown in USDC. This is the technical settlement path, not a store shipment.",
   },
   {
-    q: "How do I pay Alex back?",
-    a: "You sign an ETH transfer to Alex on Base Sepolia. The amount is shown in USDC. You can pay the next installment or the rest at once. Late and missed payments go in your notes.",
+    q: "How do I repay?",
+    a: "You sign a transfer to the TRACE agent on Base Sepolia. The amount is shown in USDC. You can pay the next installment or the rest at once. Late and missed payments go in Sibyl Memory.",
   },
   {
     q: "What wallet do I need?",
@@ -112,12 +112,12 @@ const FAQ = [
     a: "Yes. Anyone can read it. My History is only for the connected wallet.",
   },
   {
-    q: "Can I talk Alex into a better deal?",
+    q: "Can I talk TRACE into a better deal?",
     a: "No. Code sets the yes, the no, the limit, and the schedule. Any written reason is just the explanation.",
   },
   {
-    q: "What if Alex’s notes are deleted?",
-    a: "You look new again: smaller limit, shorter plan. Your wallet on-chain did not change. The longer deal lived in memory, not on Base.",
+    q: "What if Sibyl Memory is deleted?",
+    a: "You look new again: smaller limit, shorter plan. Your wallet onchain did not change. The longer deal lived in memory, not on Base.",
   },
 ] as const;
 
@@ -172,24 +172,24 @@ export function DocsView() {
       <article className="min-w-0 max-w-3xl flex-1 space-y-20 overflow-x-clip pb-24">
         <Section id="overview" title="What is Trace?">
           <Lead>
-            Trace is buy now, pay later on Base Sepolia. Alex sends you ETH today (shown as USDC). You
-            pay Alex back in parts. Pay on time and the next offer can get bigger. Miss a payment and it
-            gets harder.
+            TRACE is reputation-weighted BNPL. Buy now. Pay over time. Build a financial reputation as
+            you go. Powered by Sibyl Memory.
           </Lead>
           <Callout>
-            This site is Base Sepolia. Mainnet is not turned on. You cannot lose mainnet dollars here.
+            Testnet only — no real goods or loans are provided. This site is Base Sepolia. Mainnet is
+            not turned on.
           </Callout>
           <Sub>What problem does it solve?</Sub>
           <p className="text-sm leading-relaxed text-neutral-600">
-            A bureau file does not know whether you paid this agent back. Alex only remembers purchases
-            it approved here, and whether those payments were on time, late, or missed. That memory is
-            the product.
+            A bureau file does not know whether you paid TRACE back. Sibyl remembers purchases approved
+            here, and whether those payments were on time, late, or missed. TRACE turns that history
+            into reputation, and reputation into eligibility.
           </p>
           <Sub>What holds</Sub>
           <ul className="mt-4 space-y-3">
             <Check
               title="Memory is load-bearing"
-              body="Delete Alex’s notes and you look new again, even if the chain is unchanged."
+              body="Delete Sibyl Memory and you look new again, even if the chain is unchanged."
             />
             <Check
               title="Code decides the numbers"
@@ -197,11 +197,11 @@ export function DocsView() {
             />
             <Check
               title="First time is cautious"
-              body="No purchase history means a conservative on-chain read, fetched fresh and not stored. After one purchase here, relationship memory takes over."
+              body="No purchase history means a conservative onchain read, fetched fresh and not stored. After one purchase here, memory takes over."
             />
             <Check
-              title="Alex will not empty itself"
-              body="It keeps a cash reserve and will say no if it cannot afford the send, even if you always pay on time."
+              title="TRACE will not empty itself"
+              body="It keeps a reserve and will say no if it cannot finance the purchase, even if you always pay on time."
             />
           </ul>
         </Section>
@@ -210,9 +210,9 @@ export function DocsView() {
           <Lead>Three steps. Connect is your login. Nothing else is an account.</Lead>
           <ol className="mt-4 list-none space-y-3">
             {[
-              "You connect and ask to buy something. Alex checks if you have bought here before.",
-              "Alex says yes or no, then sends ETH to your wallet if yes. You see the amount in USDC, how many payments, and when they are due.",
-              "You pay Alex back in parts. Each payment is on time, late, or missed. That is what the next deal is based on.",
+              "You connect and ask to buy something. TRACE checks Sibyl Memory for this wallet.",
+              "TRACE finances the purchase if you are eligible. You see the amount, how many payments, and when they are due.",
+              "You repay in parts. Each payment is on time, late, or missed. That is what the next deal is based on.",
             ].map((line, i) => (
               <li key={line} className="flex gap-3 text-sm leading-relaxed text-neutral-600">
                 <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#7828E8]/10 text-[11px] font-bold text-[#7828E8]">
@@ -224,17 +224,18 @@ export function DocsView() {
           </ol>
         </Section>
 
-        <Section id="standing" title="Standing and limits">
+        <Section id="standing" title="Reputation and limits">
           <Lead>
-            Standing moves slowly. The limit can still rise. Those two numbers are not the same thing.
+            TRACE reputation moves slowly. The limit can still rise. Those two numbers are not the same
+            thing.
           </Lead>
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             {(
               [
-                ["Standing", "Each completed on-time plan adds 0.005. The ring shows standing × 100. Max is 95. An open plan does not raise standing above 0.38."],
-                ["Limit", "Score 0–50 stays under $3k. 50 is $3k. 95 is $10k, the max you can buy at once. At most two open plans."],
-                ["Interest", "Lower standing means higher Trace interest. You can pay the rest in one shot when you repay."],
-                ["First-time cap", "New wallets start small. Alex is extra careful with people it does not know."],
+                ["Reputation", "Each completed on-time plan adds 0.005. The ring shows reputation × 100. Max is 95. An open plan does not raise it above 0.38."],
+                ["TRACE limit", "Score 0–50 stays under $3k. 50 is $3k. 95 is $10k, the max you can buy at once. At most two open plans."],
+                ["Interest", "Lower reputation means higher TRACE interest. You can pay the rest in one shot when you repay."],
+                ["First-time cap", "New wallets start small. TRACE is extra careful with people it does not know."],
               ] as const
             ).map(([label, desc]) => (
               <div key={label} className="glass-panel space-y-2 p-5">
@@ -245,26 +246,27 @@ export function DocsView() {
           </div>
         </Section>
 
-        <Section id="memory" title="What Alex remembers">
+        <Section id="memory" title="What Sibyl remembers">
           <Lead>
             What you bought here, when payments were due, and whether you paid on time, late, or missed.
             Not your name. Not your email.
           </Lead>
-          <Sub>Sibyl</Sub>
+          <Sub>Sibyl Memory</Sub>
           <p className="text-sm leading-relaxed text-neutral-600">
-            Notes live in Sibyl memory. Standing, limits, and ceilings are computed in Trace’s TypeScript,
-            not inside Sibyl. Sibyl stores the book. Code turns it into a score.
+            History lives in Sibyl Memory. Reputation, limits, and ceilings are computed in TRACE’s
+            TypeScript, not inside Sibyl. Sibyl stores the book. TRACE turns it into eligibility.
           </p>
           <Callout>
-            If we delete Alex’s notes, the next time you ask you look brand new: smaller limit, fewer
-            payments. Nothing else about you changed. Alex just forgot.
+            Without memory, you start from zero. Delete Sibyl Memory and TRACE loses the financial
+            history behind your previous offers. With Sibyl Memory, previous behavior can influence
+            what you&apos;re offered next.
           </Callout>
         </Section>
 
         <Section id="payments" title="Payments">
           <Lead>
-            Amounts on screen are USDC. Settlement is ETH on Base Sepolia, to and from the wallet you
-            connected.
+            Amounts on screen are USDC-equivalent. Settlement is on Base Sepolia, to and from the
+            wallet you connected.
           </Lead>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div className="glass-panel space-y-2 p-5">
@@ -275,7 +277,7 @@ export function DocsView() {
               </p>
             </div>
             <div className="glass-panel space-y-2 p-5">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500">Alex’s account</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500">Agent account</p>
               <p className="break-all font-mono text-[13px] text-neutral-900">0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e</p>
               <a
                 href="https://sepolia.basescan.org/address/0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e"
@@ -294,8 +296,8 @@ export function DocsView() {
           <ol className="mt-4 list-none space-y-3">
             {[
               "Go to Buy and connect a wallet. That is your login.",
-              "Enter an amount in USDC and request a purchase. Alex thinks, then says yes or no.",
-              "If yes, ETH is sent to your wallet. Pay it back from Buy or My History.",
+              "Choose a purchase amount and how you’ll pay: today, or with TRACE over time.",
+              "If eligible, TRACE finances the purchase. Repay from Buy or My History.",
               "The Agent Log is public. My History is only visible when that wallet is connected.",
             ].map((line, i) => (
               <li key={line} className="flex gap-3 text-sm leading-relaxed text-neutral-600">

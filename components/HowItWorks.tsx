@@ -16,7 +16,7 @@ const STEPS = [
     n: "02",
     title: "TRACE says yes or no",
     line: ["TRACE says yes", "or no"],
-    body: "You see your TRACE limit, how many payments, and when they are due. Alex, your TRACE agent, fronts the purchase if you are eligible. If the ask is too high, or the book is empty, the offer stays small.",
+    body: "TRACE finances your purchase upfront. You repay in a few parts. You see your TRACE limit, how many payments, and when they are due. If the ask is too high, or there is no history yet, the offer stays small.",
   },
   {
     n: "03",
@@ -181,7 +181,7 @@ Limit: $300 (3/3 on-time payments)`}
             </p>
             <p className={`mt-1 text-[13px] ${nextUp ? "text-emerald-800" : "text-red-800"}`}>
               {nextUp
-                ? "Your on-time repayment was remembered by TRACE."
+                ? "Your on-time repayment was remembered."
                 : "A late payment was remembered — the next offer got harder."}
             </p>
           </div>
@@ -271,7 +271,7 @@ export function HowItWorks() {
         <div className="how-mask-content">
           <div className="how-mask-copy">
             <p className="how-kicker">How it works</p>
-            <p className="how-name">Alex</p>
+            <p className="how-name">TRACE</p>
             <p className="how-sub">
               Powered by Sibyl Memory. Pay on time, and the next deal can get easier.
             </p>

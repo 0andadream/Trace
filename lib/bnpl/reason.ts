@@ -9,31 +9,31 @@ export function whyDecisionLine(input: {
 }): string {
   const { terms, relationship, amount } = input;
   if (terms.outcome === "insolvent_declined") {
-    return "Declined — Alex cannot afford this send and still keep its reserve.";
+    return "Declined — TRACE cannot finance this purchase and still keep its reserve.";
   }
   if (terms.decision === "Ceiling blocked") {
     return "Blocked — this amount or another open plan hits a hard cap.";
   }
   if (terms.relationship_empty) {
     if (terms.decision === "Approve with reduced limit") {
-      return "Approved with reduced limit — Alex hasn't built up a relationship with you yet, so this stays a small first offer.";
+      return "Approved with reduced limit — TRACE hasn't built up a relationship with you yet, so this stays a small first offer.";
     }
     if (terms.decision === "Approve") {
-      return "Approved — Alex hasn't built up a relationship with you yet, so this stays a cautious first purchase.";
+      return "Approved — TRACE hasn't built up a relationship with you yet, so this stays a cautious first purchase.";
     }
-    return "Declined — Alex hasn't built up a relationship with you yet, and this ask is outside a first offer.";
+    return "Declined — TRACE hasn't built up a relationship with you yet, and this ask is outside a first offer.";
   }
   if (terms.decision === "Decline") {
     if (relationship.default_count >= 1) {
-      return "Declined — a missed payment with this agent cut your standing.";
+      return "Declined — a missed payment cut your TRACE reputation.";
     }
     if (relationship.late_count >= 1) {
-      return "Declined — a late payment with this agent made the next deal harder.";
+      return "Declined — a late payment made the next deal harder.";
     }
     if (terms.available <= 0) {
-      return "Declined — you already have as much open with this agent as your standing allows.";
+      return "Declined — you already have as much open as your TRACE limit allows.";
     }
-    return "Declined — standing with this agent is too low for this purchase.";
+    return "Declined — your TRACE reputation is too low for this purchase.";
   }
   const closed = [...(relationship.purchases || [])]
     .filter((p) => p.outcome !== "active")
@@ -41,10 +41,10 @@ export function whyDecisionLine(input: {
   const last = closed[0];
   if (terms.decision === "Approve with reduced limit") {
     if (relationship.active_count >= 1) {
-      return "Approved with reduced limit — you still have an open plan with this agent.";
+      return "Approved with reduced limit — you still have an open plan.";
     }
     if (amount > terms.available) {
-      return "Approved with reduced limit — this is more than your standing with this agent allows right now.";
+      return "Approved with reduced limit — this is more than your TRACE limit allows right now.";
     }
     return "Approved with reduced limit — this is outside your usual purchase size.";
   }
@@ -52,9 +52,9 @@ export function whyDecisionLine(input: {
     return "Approved — your last purchase was repaid on time, so your limit went up.";
   }
   if (last?.outcome === "completed_late") {
-    return "Approved — you have a relationship with this agent, with a late payment still on file.";
+    return "Approved — TRACE has your history on file, with a late payment still remembered.";
   }
-  return "Approved — this agent already has a relationship with you.";
+  return "Approved — TRACE already has a relationship with you.";
 }
 
 export function formatTermsLine(terms: ApprovalTerms) {

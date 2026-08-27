@@ -41,7 +41,7 @@ export function ScoreBreakdown({
   if (open) {
     return (
       <div className="mt-4 w-full text-left">
-        <p className="text-[12px] font-medium text-[#7828E8]">Why this score?</p>
+        <p className="text-[12px] font-medium text-[#7828E8]">Why this reputation?</p>
         {body}
       </div>
     );
@@ -49,7 +49,7 @@ export function ScoreBreakdown({
   return (
     <details className="mt-4 w-full max-w-xs text-left">
       <summary className="cursor-pointer text-[12px] font-medium text-[#7828E8] hover:underline">
-        Why this score?
+        Why this reputation?
       </summary>
       {body}
     </details>

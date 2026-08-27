@@ -17,7 +17,7 @@ export default async function HomePage() {
   try {
     status = await getAgentStatus();
   } catch (err) {
-    statusError = err instanceof Error ? err.message : "Could not load Alex’s cash right now.";
+    statusError = err instanceof Error ? err.message : "Could not load TRACE capacity right now.";
   }
 
   return (
@@ -41,12 +41,15 @@ export default async function HomePage() {
             Pay on time, and the next deal gets easier.
           </h1>
           <p className="mt-6 max-w-md text-[15px] leading-7 text-neutral-600 sm:text-[17px] sm:leading-8">
-            TRACE is reputation-weighted BNPL that remembers you. It builds your financial reputation
-            from your onchain behavior. Pay responsibly, and your future offers can improve.
+            TRACE uses your onchain financial history to build a reputation that can unlock better
+            ways to pay over time.
           </p>
           <p className="mt-4 max-w-md text-[15px] leading-7 text-neutral-500">
-            New here? TRACE starts cautious — a small first purchase from your wallet&apos;s onchain
-            activity. After you repay on time, Sibyl Memory is what the next offer is based on.
+            Buy now. Pay over time. Build a financial reputation as you go.
+          </p>
+          <p className="mt-4 max-w-md text-[13px] leading-6 text-neutral-400">
+            Alex is TRACE&apos;s autonomous BNPL agent. Sibyl provides the persistent memory that
+            lets Alex remember your financial history across sessions.
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
             <Link
@@ -84,22 +87,22 @@ export default async function HomePage() {
 
       <article className="mx-auto mt-24 max-w-3xl">
         <section id="agent-status" className="scroll-mt-28">
-          <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">What TRACE can lend right now</h2>
+          <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">Available to spend, in total</h2>
           <p className="mt-3 text-[16px] leading-7 text-neutral-600">
-            Live testnet figures. Alex is TRACE’s autonomous BNPL agent.
+            Live testnet figures for TRACE. Testnet only — no real goods or loans are provided.
           </p>
           {status ? (
             <dl className="glass-panel mt-8 divide-y divide-[#E8E7EC] px-6">
               {(
                 [
-                  ["Alex’s account", status.address || "—"],
-                  ["Where this runs", "Base Sepolia testnet"],
-                  ["Cash on hand", formatUsd(status.spendable_usd)],
-                  ["Still owed to Alex", formatUsd(status.outstanding_exposure)],
-                  ["What Alex can still spend", formatUsd(status.deployable)],
-                  ["ETH to your wallet", status.execute ? "Live on Base Sepolia" : "Simulated on this testnet"],
+                  ["Agent account", status.address || "—"],
+                  ["Network", "Base Sepolia testnet"],
+                  ["Available to spend", formatUsd(status.spendable_usd)],
+                  ["Upcoming payments, in total", formatUsd(status.outstanding_exposure)],
+                  ["Deployable after reserve", formatUsd(status.deployable)],
+                  ["Purchase payouts", status.execute ? "Live on Base Sepolia" : "Simulated on this testnet"],
                   ["Purchases on file", String(status.total_purchases)],
-                  ["People Alex has seen before", String(status.wallets_with_history)],
+                  ["People TRACE has seen before", String(status.wallets_with_history)],
                 ] as const
               ).map(([k, v]) => (
                 <div key={k} className="flex flex-wrap justify-between gap-2 py-3 text-sm">
@@ -114,14 +117,23 @@ export default async function HomePage() {
         </section>
 
         <section className="mt-16">
-          <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">Without memory, you start from zero.</h2>
+          <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">Your history doesn&apos;t disappear.</h2>
           <p className="mt-4 text-[16px] leading-7 text-neutral-600">
-            Delete TRACE’s memory and the agent loses the financial history behind your current offer.
-            Same wallet, same chain — smaller limit, fewer payments. Nothing else about you changed.
+            Sibyl Memory carries your financial history across sessions, so TRACE doesn&apos;t start
+            from zero every time.
           </p>
           <p className="mt-4 text-[16px] leading-7 text-neutral-600">
-            With Sibyl Memory, previous behavior can change the next decision. Your reputation
-            compounds because your history is remembered.
+            Your past behavior can change your next offer.
+          </p>
+        </section>
+
+        <section className="mt-16">
+          <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">Without memory, you start from zero.</h2>
+          <p className="mt-4 text-[16px] leading-7 text-neutral-600">
+            Delete Sibyl Memory and TRACE loses the financial history behind your previous offers.
+          </p>
+          <p className="mt-4 text-[16px] leading-7 text-neutral-600">
+            With Sibyl Memory, previous behavior can influence what you&apos;re offered next.
           </p>
         </section>
       </article>

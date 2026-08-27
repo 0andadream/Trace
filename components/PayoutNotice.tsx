@@ -27,10 +27,10 @@ export function PayoutNotice({
         <div className="min-w-0">
           <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-neutral-400">Walkthrough</p>
           <p className="mt-0.5 font-medium text-neutral-800">
-            If Alex says yes, {amount} in ETH is sent to your wallet on Base Sepolia.
+            If eligible, TRACE finances this {amount} purchase on testnet.
           </p>
           <p className="mt-1 text-[12px] leading-4 text-neutral-500">
-            This screen is not a receipt. A real send includes a Base Sepolia explorer link.
+            This screen is not a receipt. A real purchase includes a Base Sepolia explorer link.
           </p>
         </div>
       </div>
@@ -48,7 +48,7 @@ export function PayoutNotice({
           </span>
           <div className="min-w-0">
             <p className="font-medium">
-              Alex → your wallet: {amount} in ETH sent
+              Purchase financed · {amount}
             </p>
             <p className="mt-1 break-all text-[12px]">
               <TxLink hash={hash} />
@@ -68,7 +68,7 @@ export function PayoutNotice({
       </span>
       <div className="min-w-0">
         <p className="font-medium text-neutral-700">
-          Simulated: Alex would send {amount} in ETH (not sent on this testnet)
+          Simulated: this {amount} purchase is not financed on this testnet
         </p>
       </div>
     </div>

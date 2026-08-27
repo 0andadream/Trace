@@ -117,10 +117,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <div className="grid grid-cols-2 divide-y divide-[#E8E7EC] md:grid-cols-4 md:divide-x md:divide-y-0">
                 {(
                   [
-                    ["What Alex can lend right now", status ? formatAmount(status.spendable_usd) : "—"],
-                    ["Still owed to Alex, in total", status ? formatAmount(status.outstanding_exposure) : "—"],
+                    ["Available to spend", status ? formatAmount(status.spendable_usd) : "—"],
+                    ["Upcoming payments, in total", status ? formatAmount(status.outstanding_exposure) : "—"],
                     ["Purchases on file", status ? String(status.total_purchases) : "—"],
-                    ["People Alex has seen before", status ? String(status.wallets_with_history) : "—"],
+                    ["People TRACE has seen before", status ? String(status.wallets_with_history) : "—"],
                   ] as const
                 ).map(([label, value]) => (
                   <div key={label} className="flex flex-col justify-center gap-1 p-4 sm:gap-1.5 sm:p-6 md:p-8">

@@ -259,15 +259,15 @@ export function Desk() {
     setRepayingId(purchaseId);
     setRepayingRest(remaining);
     setError(null);
-    setNote("Confirm the ETH transfer in your wallet…");
+    setNote("Confirm the payment in your wallet…");
     try {
       if (injected.wrongNetwork) await injected.switchBaseSepolia();
       const eth = getInjectedEthereum();
       if (!eth) throw new Error("No injected wallet. Connect MetaMask, Rabby, or Coinbase Wallet.");
       const agentRes = await fetch("/api/agent-status");
       const agent = await agentRes.json();
-      if (!agent.address) throw new Error("Alex’s account is not published.");
-      if (!(agent.eth_usd > 0)) throw new Error("Could not read the ETH price for this repay.");
+      if (!agent.address) throw new Error("The TRACE agent account is not published.");
+      if (!(agent.eth_usd > 0)) throw new Error("Could not read the settlement price for this repayment.");
       const sent = await sendUserRepay({
         from: injected.address,
         agent: agent.address,
@@ -348,7 +348,7 @@ export function Desk() {
   const confirmLabel = !injected.connected
     ? "Connect Wallet"
     : deciding
-      ? "Alex is thinking…"
+      ? "Checking your history…"
       : busy
         ? "Working…"
         : blocked
@@ -456,7 +456,7 @@ export function Desk() {
                   </label>
                   <span className="text-sm font-semibold text-neutral-500">USDC</span>
                 </div>
-                <p className="mt-2 text-[11px] text-neutral-400">Shown in USDC · settled in ETH</p>
+                <p className="mt-2 text-[11px] text-neutral-400">Testnet purchase amount</p>
               </div>
             ) : null}
           </div>

@@ -44,8 +44,8 @@ function PhoneBuyScreen({ live }: { live: HeroLive }) {
           <div className="grid grid-cols-2 divide-x divide-y divide-[#E8E7EC]">
             {(
               [
-                ["Alex’s cash", money(live.spendable)],
-                ["Still owed", money(live.owed)],
+                ["Available", money(live.spendable)],
+                ["Upcoming", money(live.owed)],
                 ["Purchases", count(live.purchases)],
                 ["People on file", count(live.people)],
               ] as const
@@ -118,9 +118,9 @@ export function HeroPhone({ live }: { live: HeroLive }) {
         </PhoneFrame>
       </Link>
       <div className="phone-cash">
-        <section className="glass-panel standing-hero p-6 sm:p-7" aria-label="What TRACE can still lend">
+        <section className="glass-panel standing-hero p-6 sm:p-7" aria-label="Available to spend">
           <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-neutral-500">
-            What TRACE can still lend
+            Available to spend
           </p>
           {live.error && live.deployable == null ? (
             <p className="mt-3 text-sm text-red-600">

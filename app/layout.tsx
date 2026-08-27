@@ -18,15 +18,15 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("http://localhost:3002"),
-  title: "Trace, buy now, pay later",
-  description: "Alex sends you ETH today (shown as USDC). You pay Alex back in parts. Pay on time, and the next deal gets easier.",
+  title: "TRACE, buy now, pay later",
+  description: "Reputation-weighted BNPL that remembers you. Buy now. Pay over time. Powered by Sibyl Memory.",
   icons: {
     icon: "/icon.jpg",
     apple: "/icon.jpg",
   },
   openGraph: {
     title: "Trace",
-    description: "Buy now, pay later. Alex remembers if you paid on time.",
+    description: "Buy now. Pay over time. Build a financial reputation as you go.",
     images: ["/logo.jpg"],
   },
 };
