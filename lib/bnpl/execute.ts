@@ -1,6 +1,7 @@
 /**
  * Single source of truth for whether TRACE broadcasts Base Sepolia payouts.
- * sendMerchantPayout, Under the hood, and Agent infrastructure must all use this.
+ * sendMerchantPayout, Under the hood, and Agent infrastructure (/, /buy, /demo, /log)
+ * must all read this. Do not fetch /api/agent-status just to learn execute.
  */
 export function payoutIsLive(raw = process.env.BASE_EXECUTE) {
   const v = (raw || "").toLowerCase();

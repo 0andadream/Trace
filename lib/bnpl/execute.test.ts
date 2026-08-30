@@ -14,5 +14,7 @@ describe("settlement payout status is one check", () => {
     assert.equal(settlementPayoutLabel(true), "Live on Base Sepolia");
     assert.equal(settlementPayoutLabel(false), "Simulated on this testnet");
     assert.equal(settlementPayoutLabel(true).includes("simulated"), false);
+    assert.equal(settlementPayoutLabel(true).includes("Checking"), false);
+    assert.equal(settlementPayoutLabel(false).includes("Checking"), false);
   });
 });

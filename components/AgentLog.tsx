@@ -19,7 +19,7 @@ function actorTone(actor: string) {
   return "text-neutral-700";
 }
 
-export function AgentLog() {
+export function AgentLog({ execute }: { execute: boolean }) {
   const [rows, setRows] = useState<Row[]>([]);
   const [events, setEvents] = useState<AgentEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -149,7 +149,7 @@ export function AgentLog() {
           )}
         </ul>
       </section>
-      <AgentInfrastructure />
+      <AgentInfrastructure execute={execute} />
     </div>
   );
 }

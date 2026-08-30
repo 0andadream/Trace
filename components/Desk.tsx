@@ -101,7 +101,7 @@ function lastRepaymentLabel(rel: UserRelationship | null): "On time" | "Late" | 
   return null;
 }
 
-export function Desk() {
+export function Desk({ execute }: { execute: boolean }) {
   const injected = useInjectedWallet();
   const [wallet, setWallet] = useState("");
   const [merchant, setMerchant] = useState(CUSTOM_MERCHANT);
@@ -984,7 +984,7 @@ export function Desk() {
           </section>
         ) : null}
 
-        <AgentInfrastructure job={lastPurchase?.acp} />
+        <AgentInfrastructure execute={execute} />
 
         <p className="px-1 text-[11px] leading-5 text-neutral-400">
           Testnet only, no real goods or loans are provided. Powered by Sibyl Memory.

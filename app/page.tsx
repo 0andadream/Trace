@@ -4,7 +4,7 @@ import { HeroPhone } from "@/components/HeroPhone";
 import { HowItWorks } from "@/components/HowItWorks";
 import { AgentInfrastructure } from "@/components/AgentInfrastructure";
 import { AgentRoleStack, AlexVerificationRow } from "@/components/AlexIdentity";
-import { getAgentStatus, settlementPayoutLabel } from "@/lib/bnpl/status";
+import { getAgentStatus, payoutIsLive, settlementPayoutLabel } from "@/lib/bnpl/status";
 import { formatAmount } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -157,7 +157,7 @@ export default async function HomePage() {
         </section>
 
         <section className="mt-10">
-          <AgentInfrastructure execute={status?.execute ?? null} />
+          <AgentInfrastructure execute={payoutIsLive()} />
         </section>
       </article>
     </AppShell>

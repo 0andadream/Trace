@@ -1,10 +1,6 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import { ViewOnVirtuals } from "@/components/AlexIdentity";
 import { settlementPayoutLabel } from "@/lib/bnpl/execute";
 import { ALEX_ACP_AGENT_ID } from "@/lib/virtuals/identity";
-import type { AcpJobRecord } from "@/types/bnpl";
 
 function Dot({ on }: { on: boolean }) {
   return (
@@ -15,27 +11,8 @@ function Dot({ on }: { on: boolean }) {
   );
 }
 
-export function AgentInfrastructure({
-  execute: executeHint = null,
-}: {
-  job?: AcpJobRecord | null;
-  execute?: boolean | null;
-}) {
-  const [execute, setExecute] = useState<boolean | null>(executeHint);
-
-  useEffect(() => {
-    let live = true;
-    fetch("/api/agent-status")
-      .then((r) => r.json())
-      .then((d) => {
-        if (live && typeof d.execute === "boolean") setExecute(d.execute);
-      })
-      .catch(() => {});
-    return () => {
-      live = false;
-    };
-  }, []);
-
+/** Base row is `payoutIsLive()` from the server parent. Do not fetch a second copy here. */
+export function AgentInfrastructure({ execute }: { execute: boolean }) {
   return (
     <section className="glass-panel p-6">
       <h2 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
@@ -74,12 +51,10 @@ export function AgentInfrastructure({
         </div>
         <div>
           <dt className="flex items-center gap-2 text-[13px] font-semibold text-neutral-900">
-            <Dot on={execute === true} />
+            <Dot on={execute} />
             Base
           </dt>
-          <dd className="mt-0.5 pl-4 text-[12px] text-neutral-500">
-            {execute == null ? "Checking settlement…" : settlementPayoutLabel(execute)}
-          </dd>
+          <dd className="mt-0.5 pl-4 text-[12px] text-neutral-500">{settlementPayoutLabel(execute)}</dd>
         </div>
       </dl>
     </section>

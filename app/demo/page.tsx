@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { AgentInfrastructure } from "@/components/AgentInfrastructure";
 import { DemoFlow } from "@/components/DemoFlow";
+import { payoutIsLive } from "@/lib/bnpl/execute";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,7 @@ export default function DemoPage() {
           <DemoFlow started={started} />
         </div>
         <div className="mt-10">
-          <AgentInfrastructure />
+          <AgentInfrastructure execute={payoutIsLive()} />
         </div>
       </div>
     </AppShell>
