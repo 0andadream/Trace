@@ -4,7 +4,7 @@ import { HeroPhone } from "@/components/HeroPhone";
 import { HowItWorks } from "@/components/HowItWorks";
 import { AgentInfrastructure } from "@/components/AgentInfrastructure";
 import { AgentRoleStack, AlexVerificationRow } from "@/components/AlexIdentity";
-import { getAgentStatus } from "@/lib/bnpl/status";
+import { getAgentStatus, settlementPayoutLabel } from "@/lib/bnpl/status";
 import { formatAmount } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -140,7 +140,7 @@ export default async function HomePage() {
                   ["Available to spend", formatUsd(status.spendable_usd)],
                   ["Upcoming payments, in total", formatUsd(status.outstanding_exposure)],
                   ["Deployable after reserve", formatUsd(status.deployable)],
-                  ["Purchase payouts", status.execute ? "Live on Base Sepolia" : "Simulated on this testnet"],
+                  ["Purchase payouts", settlementPayoutLabel(status.execute)],
                   ["Purchases on file", String(status.total_purchases)],
                   ["People TRACE has seen before", String(status.wallets_with_history)],
                 ] as const
@@ -157,7 +157,7 @@ export default async function HomePage() {
         </section>
 
         <section className="mt-10">
-          <AgentInfrastructure />
+          <AgentInfrastructure execute={status?.execute ?? null} />
         </section>
       </article>
     </AppShell>

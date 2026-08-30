@@ -1,5 +1,5 @@
 import { getAgentAddress } from "@/lib/wallet";
-import { payoutIsLive } from "@/lib/bnpl/status";
+import { payoutIsLive, settlementPayoutLabel } from "@/lib/bnpl/execute";
 import { bnplHealth, listRelationships } from "@/lib/bnpl/store";
 import { ACP_CONTRACT, acpExplorerJob, readAcpJobCounter } from "@/lib/virtuals/acp";
 import { fetchAlexRegistry } from "@/lib/virtuals/registry";
@@ -36,6 +36,7 @@ export type AgentInfrastructure = {
   base: {
     connected: boolean;
     execute: boolean;
+    payoutLabel: string;
     network: string;
     chainId: number;
   };
@@ -128,6 +129,7 @@ export async function getAgentInfrastructure(): Promise<AgentInfrastructure> {
     base: {
       connected: true,
       execute,
+      payoutLabel: settlementPayoutLabel(execute),
       network: chainId === 8453 ? "Base" : "Base Sepolia",
       chainId,
     },

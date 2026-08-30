@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { TxLink } from "@/components/TxLink";
 import { AgentIdentityCard, ViewOnVirtuals } from "@/components/AlexIdentity";
+import { settlementPayoutLabel } from "@/lib/bnpl/execute";
 import { formatAmount } from "@/lib/format";
 import type { AcpJobRecord } from "@/types/bnpl";
 
@@ -21,7 +22,7 @@ type Infra = {
     statusLabel: string;
     verifyUrl: string;
   };
-  base: { connected: boolean; execute: boolean; network: string };
+  base: { connected: boolean; execute: boolean; payoutLabel?: string; network: string };
 };
 
 function Dot({ on }: { on: boolean }) {
@@ -57,15 +58,31 @@ function JobCard({ job }: { job: AcpJobRecord }) {
   );
 }
 
-export function AgentInfrastructure({ job }: { job?: AcpJobRecord | null }) {
+export function AgentInfrastructure({
+  job,
+  execute: executeHint = null,
+}: {
+  job?: AcpJobRecord | null;
+  execute?: boolean | null;
+}) {
   const [infra, setInfra] = useState<Infra | null>(null);
+  const [execute, setExecute] = useState<boolean | null>(executeHint);
 
   useEffect(() => {
     let live = true;
+    fetch("/api/agent-status")
+      .then((r) => r.json())
+      .then((d) => {
+        if (live && typeof d.execute === "boolean") setExecute(d.execute);
+      })
+      .catch(() => {});
     fetch("/api/virtuals")
       .then((r) => r.json())
       .then((d) => {
-        if (live && !d.error) setInfra(d as Infra);
+        if (live && !d.error) {
+          setInfra(d as Infra);
+          if (typeof d.base?.execute === "boolean") setExecute(d.base.execute);
+        }
       })
       .catch(() => {});
     return () => {
@@ -130,11 +147,11 @@ export function AgentInfrastructure({ job }: { job?: AcpJobRecord | null }) {
         </div>
         <div>
           <dt className="flex items-center gap-2 text-[13px] font-semibold text-neutral-900">
-            <Dot on={Boolean(infra?.base.connected)} />
+            <Dot on={execute === true} />
             Base
           </dt>
           <dd className="mt-0.5 pl-4 text-[12px] text-neutral-500">
-            {infra?.base.execute ? "Settlement connected" : "Settlement simulated on this host"}
+            {execute == null ? "Checking settlement…" : settlementPayoutLabel(execute)}
             {infra ? ` · ${infra.base.network}` : ""}
             {infra?.virtuals.sepoliaContractReachable
               ? ` · ACP contract reachable${infra.virtuals.sepoliaJobCounter ? ` (network jobCounter ${infra.virtuals.sepoliaJobCounter})` : ""}`

@@ -1,9 +1,12 @@
 import { createPublicClient, http } from "viem";
 import { baseSepolia } from "viem/chains";
 import { readAgentWalletFile } from "@/lib/agent-wallet-file";
+import { payoutIsLive, settlementPayoutLabel } from "@/lib/bnpl/execute";
 import { agentOutstandingExposure, bookFromSnapshot, ethUsd, loadSolvencySnapshot } from "@/lib/bnpl/solvency";
 import { listRelationships } from "@/lib/bnpl/store";
 import { sibylHealth } from "@/lib/memory/store";
+
+export { payoutIsLive, settlementPayoutLabel } from "@/lib/bnpl/execute";
 
 export type AgentStatus = {
   network: string;
@@ -23,11 +26,6 @@ export type AgentStatus = {
   as_of: string;
   block?: string;
 };
-
-export function payoutIsLive() {
-  const v = (process.env.BASE_EXECUTE || "").toLowerCase();
-  return v === "1" || v === "true" || v === "yes";
-}
 
 export function grokConfigured() {
   return Boolean(process.env.XAI_API_KEY?.trim());
@@ -59,7 +57,7 @@ export async function getAgentStatus(): Promise<AgentStatus> {
     outstanding_exposure: book.outstanding_exposure,
     deployable: book.deployable,
     reserve: book.reserve,
-    execute: book.execute,
+    execute: payoutIsLive(),
     simulated_balance: book.simulated_balance,
     total_purchases: relationships.reduce((n, r) => n + (r.total_purchases || 0), 0),
     wallets_with_history: relationships.filter((r) => r.total_purchases > 0).length,

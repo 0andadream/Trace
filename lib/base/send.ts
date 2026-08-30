@@ -10,6 +10,7 @@ import {
 
 import { base, baseSepolia } from "viem/chains";
 import { ceilingCheck } from "@/lib/policy/ceiling";
+import { payoutIsLive } from "@/lib/bnpl/execute";
 import { getAgentAccount } from "@/lib/wallet";
 import type { TreasuryRequest } from "@/types";
 
@@ -72,8 +73,7 @@ function privateKeyPresent() {
 }
 
 function executeEnabled() {
-  const v = (process.env.BASE_EXECUTE || "").toLowerCase();
-  return v === "1" || v === "true" || v === "yes";
+  return payoutIsLive();
 }
 
 async function resolveToken(

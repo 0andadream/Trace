@@ -112,7 +112,8 @@ export type AgentBook = {
 export async function loadSolvencySnapshot(exposure: number): Promise<SolvencySnapshot> {
   const { getAgentBalance } = await import("@/lib/wallet");
   const reserve = minAgentReserve();
-  const execute = ["1", "true", "yes"].includes((process.env.BASE_EXECUTE || "").toLowerCase());
+  const { payoutIsLive } = await import("@/lib/bnpl/execute");
+  const execute = payoutIsLive();
   const simulatedFallback = Number(process.env.AGENT_SIMULATED_USDC ?? 100);
   const fallbackUsd = Number.isFinite(simulatedFallback) && simulatedFallback >= 0 ? simulatedFallback : 100;
   try {
@@ -144,7 +145,7 @@ export async function loadSolvencySnapshot(exposure: number): Promise<SolvencySn
       spendable_usd: fallbackUsd,
       exposure,
       reserve,
-      execute: false,
+      execute,
       simulated_balance: true,
       address,
     };
