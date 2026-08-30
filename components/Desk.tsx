@@ -22,9 +22,15 @@ const THINK_LINES = ["Checking your history…", "Checking capacity…", "Writin
 const CUSTOM_MERCHANT = "Test Shop";
 
 const PRODUCTS = [
-  { id: "notebook", name: "Notebook Set", price: 12 },
-  { id: "lamp", name: "Desk Lamp", price: 40 },
-  { id: "headphones", name: "Wireless Headphones", price: 150 },
+  { id: "notebook", name: "Notebook Set", price: 12, image: "/products/notebook.jpg" },
+  { id: "cable", name: "USB-C Cable", price: 16, image: "/products/cable.jpg" },
+  { id: "mug", name: "Ceramic Mug", price: 20, image: "/products/mug.jpg" },
+  { id: "pens", name: "Pen Set", price: 24, image: "/products/pens.jpg" },
+  { id: "lamp", name: "Desk Lamp", price: 40, image: "/products/lamp.jpg" },
+  { id: "mouse", name: "Wireless Mouse", price: 55, image: "/products/mouse.jpg" },
+  { id: "stand", name: "Monitor Stand", price: 75, image: "/products/stand.jpg" },
+  { id: "keyboard", name: "Mechanical Keyboard", price: 95, image: "/products/keyboard.jpg" },
+  { id: "headphones", name: "Wireless Headphones", price: 150, image: "/products/headphones.jpg" },
 ] as const;
 
 type ProductId = (typeof PRODUCTS)[number]["id"] | "custom";
@@ -414,7 +420,7 @@ export function Desk() {
             <p className="mt-1 text-[14px] font-medium leading-[1.45] text-neutral-500">
               Merchant: {merchant}. Amount sets what you&apos;re asking TRACE to front.
             </p>
-            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {PRODUCTS.map((p) => {
                 const selected = productId === p.id;
                 return (
@@ -422,17 +428,20 @@ export function Desk() {
                     key={p.id}
                     type="button"
                     onClick={() => pickProduct(p.id, p.price, p.name)}
-                    className={`rounded-2xl p-4 text-left ring-1 transition ${
+                    className={`overflow-hidden rounded-2xl text-left ring-1 transition ${
                       selected
                         ? "bg-[#7828E8]/[0.07] ring-[#7828E8]/40"
                         : "bg-black/[0.03] ring-black/5 hover:ring-black/15"
                     }`}
                   >
-                    <p className="text-[16px] font-semibold leading-snug text-neutral-900">{p.name}</p>
-                    <p className="mt-2 text-[2.5rem] font-semibold tabular-nums leading-none tracking-[-0.025em] text-neutral-900 sm:text-[2.75rem]">
-                      {formatAmount(p.price)}
-                    </p>
-                    <p className="mt-2 text-[12px] font-medium leading-[1.4] text-neutral-400">Testnet purchase</p>
+                    <img src={p.image} alt={p.name} className="aspect-square w-full object-cover bg-[#f4f1eb]" />
+                    <div className="p-4">
+                      <p className="text-[16px] font-semibold leading-snug text-neutral-900">{p.name}</p>
+                      <p className="mt-2 text-[1.75rem] font-semibold tabular-nums leading-none tracking-[-0.025em] text-neutral-900 sm:text-[2rem]">
+                        {formatAmount(p.price)}
+                      </p>
+                      <p className="mt-2 text-[12px] font-medium leading-[1.4] text-neutral-400">Testnet purchase</p>
+                    </div>
                   </button>
                 );
               })}
@@ -477,8 +486,13 @@ export function Desk() {
         {step === "plan" ? (
           <div className="mt-8 border-t border-black/5 pt-6">
             <p className="text-[12px] font-semibold uppercase tracking-[0.07em] text-neutral-500">How you&apos;ll pay</p>
-            <h3 className="mt-2 text-[1.375rem] font-semibold leading-[1.2] tracking-[-0.02em] text-neutral-900 sm:text-[1.5rem]">
-              {itemName} · {formatAmount(Number(amount) || 0)}
+            <h3 className="mt-2 flex items-center gap-3 text-[1.375rem] font-semibold leading-[1.2] tracking-[-0.02em] text-neutral-900 sm:text-[1.5rem]">
+              {product?.image ? (
+                <img src={product.image} alt="" className="h-12 w-12 shrink-0 rounded-xl object-cover ring-1 ring-black/5" />
+              ) : null}
+              <span>
+                {itemName} · {formatAmount(Number(amount) || 0)}
+              </span>
             </h3>
             <p className="mt-1 text-[14px] font-medium leading-[1.45] text-neutral-500">Merchant: {merchant}</p>
             {!injected.connected ? (
@@ -706,8 +720,11 @@ export function Desk() {
         {step === "confirm" ? (
           <div className="mt-8 border-t border-black/5 pt-6">
             <p className="text-[12px] font-semibold uppercase tracking-[0.07em] text-neutral-500">Confirm purchase</p>
-            <h3 className="mt-2 text-[1.375rem] font-semibold leading-[1.2] tracking-[-0.02em] text-neutral-900 sm:text-[1.5rem]">
-              {itemName ?? "Purchase"}
+            <h3 className="mt-2 flex items-center gap-3 text-[1.375rem] font-semibold leading-[1.2] tracking-[-0.02em] text-neutral-900 sm:text-[1.5rem]">
+              {product?.image ? (
+                <img src={product.image} alt="" className="h-12 w-12 shrink-0 rounded-xl object-cover ring-1 ring-black/5" />
+              ) : null}
+              <span>{itemName ?? "Purchase"}</span>
             </h3>
             {deciding ? (
               <div className="mt-6">

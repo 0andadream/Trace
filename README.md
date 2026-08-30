@@ -51,7 +51,7 @@ pnpm dev                 # http://localhost:3002
 ```
 
 1. Connect a wallet on Base Sepolia.
-2. Pick Notebook `$12`, Lamp `$40`, Headphones `$150`, or a custom amount.
+2. Pick a Test Shop item (`$12`–`$150`) or a custom amount. First-time band is `$12` / `$16` / `$20` / `$24`.
 3. Pay today or pay with TRACE.
 4. Confirm. Live payouts need `BASE_EXECUTE=1` and a funded agent.
 5. Repay from `/buy` or `/history`. The API writes Sibyl only after it verifies ETH to the agent.
