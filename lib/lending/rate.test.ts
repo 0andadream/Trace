@@ -33,7 +33,7 @@ const WHALE = emptyOnchainSignal(CLEAN, { wallet_age_days: 2000, tx_count: 50_00
 const GHOST = emptyOnchainSignal(CLEAN, { wallet_age_days: 0, tx_count: 0 });
 const MODERATE = emptyOnchainSignal(NEW, { wallet_age_days: 40, tx_count: 12 });
 
-describe("memory primacy — on-chain is gated in code", () => {
+describe("memory primacy, on-chain is gated in code", () => {
   it("selectRateInputs drops ONCHAIN_SIGNAL once total_loans > 0", () => {
     const rel = withLoans(CLEAN, [loan({ loan_id: "l1", outcome: "on_time" })]);
     const selected = selectRateInputs(rel, WHALE);

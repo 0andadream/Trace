@@ -4,7 +4,7 @@ Reputation-weighted BNPL that remembers you. Powered by [Sibyl Memory](https://g
 
 **TRACE** is the product. **Alex** is TRACE’s autonomous BNPL agent. **Sibyl** is the persistent memory that lets Alex remember this wallet’s purchases and repayments across sessions.
 
-You connect a wallet (that address is your login). You pick a purchase. TRACE looks up **USER_RELATIONSHIP** for that wallet — purchases it approved here, and whether those were repaid on time, late, or missed. If the book is empty, it uses a conservative on-chain baseline (wallet age and tx count, fetched fresh, never stored). Then it says yes or no.
+You connect a wallet (that address is your login). You pick a purchase. TRACE looks up **USER_RELATIONSHIP** for that wallet, purchases it approved here, and whether those were repaid on time, late, or missed. If the book is empty, it uses a conservative on-chain baseline (wallet age and tx count, fetched fresh, never stored). Then it says yes or no.
 
 On **Approve**, TRACE finances the purchase: native **ETH** to **your connected wallet** when `BASE_EXECUTE=1` (this is on at [trace-26xx.vercel.app](https://trace-26xx.vercel.app/)). Amounts on screen are **USDC-equivalent**. You repay by signing an **ETH** transfer back to the agent. The installment is written to Sibyl only after that transfer is verified on-chain.
 
@@ -23,7 +23,7 @@ WALLET HISTORY → SIBYL MEMORY → TRACE REPUTATION → ELIGIBILITY
 
 Live: [https://trace-26xx.vercel.app/](https://trace-26xx.vercel.app/) · Base Sepolia (`84532`) · Agent [`0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e`](https://sepolia.basescan.org/address/0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e).
 
-Testnet only — no real goods or loans. Merchant names are labels. Settlement is ETH to/from the connected wallet.
+Testnet only, no real goods or loans. Merchant names are labels. Settlement is ETH to/from the connected wallet.
 
 ## Core principle (enforced in code)
 
@@ -56,9 +56,9 @@ Live nav (`components/AppShell.tsx`):
 | URL | What |
 |---|---|
 | `/` | Landing: hero, How it works (one heading), Sibyl memory sections, **Under the hood** |
-| `/buy` | **Buy with TRACE** — purchase → pay today or pay with TRACE → why you’re eligible → confirm. Repay open plans. Reputation + **Sibyl Memory found** only when a real relationship was loaded. |
-| `/history` | **My History** — private to the connected wallet. Timeline, reputation breakdown, repay. |
-| `/log` | **Agent Log** — public quotes and purchases, explorer links on real payouts |
+| `/buy` | **Buy with TRACE**, purchase → pay today or pay with TRACE → why you’re eligible → confirm. Repay open plans. Reputation + **Sibyl Memory found** only when a real relationship was loaded. |
+| `/history` | **My History**, private to the connected wallet. Timeline, reputation breakdown, repay. |
+| `/log` | **Agent Log**, public quotes and purchases, explorer links on real payouts |
 | `/docs` | Product docs |
 | `/demo` | Judge path: Sibyl recall, ACP job, Base settlement, deletion test |
 | `/privacy` · `/terms` | Legal |
@@ -78,10 +78,10 @@ pnpm dev                 # http://localhost:3002
 On `/buy`:
 
 1. **Connect wallet** (MetaMask, Rabby, or Coinbase Wallet on Base Sepolia). That address is the relationship key. It is not `AGENT_PRIVATE_KEY`.
-2. **Purchase** — pick Notebook Set `$12`, Desk Lamp `$40`, Wireless Headphones `$150`, or a custom amount. Merchant is **Test Shop** (a label).
-3. **How you’ll pay** — **Pay today** (one payment of principal + TRACE interest) or **Pay with TRACE** (the quoted installment count). Schedule, first payment, total repayment, and available / purchase / remaining are from the live quote.
-4. **Why you’re eligible** — Decision, Sibyl-grounded reasoning, terms, reputation breakdown, timeline. Not hidden.
-5. **Confirm purchase** — originates the plan when the decision is Approve / Approve with reduced limit.
+2. **Purchase**, pick Notebook Set `$12`, Desk Lamp `$40`, Wireless Headphones `$150`, or a custom amount. Merchant is **Test Shop** (a label).
+3. **How you’ll pay**, **Pay today** (one payment of principal + TRACE interest) or **Pay with TRACE** (the quoted installment count). Schedule, first payment, total repayment, and available / purchase / remaining are from the live quote.
+4. **Why you’re eligible**, Decision, Sibyl-grounded reasoning, terms, reputation breakdown, timeline. Not hidden.
+5. **Confirm purchase**, originates the plan when the decision is Approve / Approve with reduced limit.
 6. If `BASE_EXECUTE=1` and the agent key can broadcast: payout is **on_chain** with a Base Sepolia explorer link (**Purchase financed**). Otherwise the approval is still stored and labeled simulated.
 7. **Upcoming payments** on `/buy` or `/history`: **Pay next** or **Pay remaining**. Confirm the transfer in your wallet. The API records the installment only after it verifies ETH to the agent.
 
@@ -190,7 +190,7 @@ Expect:
 - **Sibyl Memory found** gone
 - The improved terms are gone even though the wallet’s on-chain history is unchanged
 
-### e. Agent solvency — decline that ignores the wallet
+### e. Agent solvency, decline that ignores the wallet
 
 This beat is **not about the user**. Use any wallet that would otherwise Approve.
 
@@ -281,7 +281,7 @@ pnpm memory:export                        # backup
 
 | Block | Stored? | Contents |
 |---|---|---|
-| USER_RELATIONSHIP | yes — Redis `sibyl:{tenant}:rel:{wallet}` (or local SQLite / `.data/sibyl-memory.json`) | purchases, installment schedule, quotes, overrides, merchant labels, payout hashes. Standing and limit are **stripped** before write and recomputed on read. |
+| USER_RELATIONSHIP | yes, Redis `sibyl:{tenant}:rel:{wallet}` (or local SQLite / `.data/sibyl-memory.json`) | purchases, installment schedule, quotes, overrides, merchant labels, payout hashes. Standing and limit are **stripped** before write and recomputed on read. |
 | ONCHAIN_SIGNAL | **never** | age, tx count, fetched per quote, used only if `total_purchases == 0` |
 | standing / `current_limit` | **computed** | `standingFromHistory` / `limitFromStanding` on every read |
 | AGENT_REPUTATION / COUNTERPARTY_PROFILE | leftover treasury only | Still produced by `/alex`, `pnpm mcp`, and `GET /api/memory`’s treasury fields. **Not** what BNPL terms use. |
@@ -313,17 +313,17 @@ See `.env.example`. BNPL-relevant:
 
 ## API (BNPL)
 
-- `POST /api/purchase` — `{ wallet, amount, merchant? }` quotes (Buy preview uses `persist: false`); `{ accept: true }` originates a plan; `{ pay_in_full: true }` is one payment of principal + interest
-- `POST /api/repay` — `{ wallet, purchase_id, tx_hash }` records the next installment after verifying ETH to the agent. `{ pay_remaining: true }` pays all pending. `{ mark_default: true }` is attested, not an on-chain repay.
-- `GET /api/relationship/:wallet` — relationship + computed standing/limit; on-chain only if the book is empty
-- `GET /api/agent-status` — agent cash, reserve, deployable, `execute`; **503** if Sibyl/Redis is down
-- `GET /api/health` — store ping; **503** if unreachable
-- `GET /api/log` — public quotes, purchases, and structured agent events (MEMORY_READ, CREDIT_DECISION, ACP_JOB_*, SETTLEMENT)
-- `GET /api/virtuals` — live Virtuals registry row + honest ACP status; `?jobId=` reads Sepolia `getJob`
-- `POST /api/acp/jobs` — ACP job payload → same `computeApproval` path as `/api/purchase`
-- `DELETE /api/relationship/:wallet` — `{ confirm: true }` deletes **that wallet’s** Sibyl relationship (deletion test). Chain history is untouched.
-- `GET /api/memory` — relationships (plus leftover treasury fields if present)
-- `POST /api/pmf` — early-access waitlist row. Not a usage metric.
+- `POST /api/purchase`, `{ wallet, amount, merchant? }` quotes (Buy preview uses `persist: false`); `{ accept: true }` originates a plan; `{ pay_in_full: true }` is one payment of principal + interest
+- `POST /api/repay`, `{ wallet, purchase_id, tx_hash }` records the next installment after verifying ETH to the agent. `{ pay_remaining: true }` pays all pending. `{ mark_default: true }` is attested, not an on-chain repay.
+- `GET /api/relationship/:wallet`, relationship + computed standing/limit; on-chain only if the book is empty
+- `GET /api/agent-status`, agent cash, reserve, deployable, `execute`; **503** if Sibyl/Redis is down
+- `GET /api/health`, store ping; **503** if unreachable
+- `GET /api/log`, public quotes, purchases, and structured agent events (MEMORY_READ, CREDIT_DECISION, ACP_JOB_*, SETTLEMENT)
+- `GET /api/virtuals`, live Virtuals registry row + honest ACP status; `?jobId=` reads Sepolia `getJob`
+- `POST /api/acp/jobs`, ACP job payload → same `computeApproval` path as `/api/purchase`
+- `DELETE /api/relationship/:wallet`, `{ confirm: true }` deletes **that wallet’s** Sibyl relationship (deletion test). Chain history is untouched.
+- `GET /api/memory`, relationships (plus leftover treasury fields if present)
+- `POST /api/pmf`, early-access waitlist row. Not a usage metric.
 
 Leftover treasury/lending routes still compile (`POST /api/decide`, `/api/quote`, `/api/borrow`, `/api/supply`). They are not the product.
 
@@ -348,9 +348,9 @@ Verified against the live Virtuals registry on 2026-08-30 (`GET https://api.acp.
 | Registered | **Yes.** Name `Alex`, role `HYBRID`, id `01a05400-aea9-7f70-a67e-f558448e86e3` |
 | Portal page | [app.virtuals.io/acp/agents/…](https://app.virtuals.io/acp/agents/01a05400-aea9-7f70-a67e-f558448e86e3?tab=acp) |
 | Portal wallet | `0xf3df4e32fb19dc0456a3e59eddfa0d821e65a2c5` (Privy) |
-| TRACE Base signer | `0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e` — **a different wallet** |
+| TRACE Base signer | `0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e`, **a different wallet** |
 | Offerings | **none** (`offerings: []`) |
-| `lastActiveAt` | **null** — marketplace event listener has not connected |
+| `lastActiveAt` | **null**, marketplace event listener has not connected |
 | Sepolia ACP contract | reachable; network-wide `jobCounter` is **not** Alex’s job count |
 
 **What is wired in TRACE**

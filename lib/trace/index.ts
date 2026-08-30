@@ -3,7 +3,7 @@
  * Alex (BNPL: lib/bnpl; treasury: lib/agent, lib/desk, lib/base) consumes it.
  *
  * Persistence: Sibyl Memory (lib/memory).
- * BNPL terms: lib/bnpl/policy.ts — USER_RELATIONSHIP primary, ONCHAIN_SIGNAL only when total_purchases == 0.
+ * BNPL terms: lib/bnpl/policy.ts, USER_RELATIONSHIP primary, ONCHAIN_SIGNAL only when total_purchases == 0.
  */
 export { buildCounterpartyProfile, buildReputation, listCounterparties } from "@/lib/memory/derive";
 export { computeRiskScore } from "@/lib/risk/score";

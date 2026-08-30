@@ -212,7 +212,7 @@ export function HistoryView() {
                       ) : p.payout_mode === "on_chain" ? (
                         "Financed"
                       ) : (
-                        "Simulated — not sent"
+                        "Simulated, not sent"
                       )}
                     </td>
                     <td className="px-6 py-3 text-right">

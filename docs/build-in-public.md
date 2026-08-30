@@ -6,11 +6,11 @@ Tags required: `@sibylcap` and each claimed partner.
 
 ---
 
-## Post 1 — Introducing TRACE
+## Post 1, Introducing TRACE
 
 Financial agents forget you the moment the tab closes.
 
-TRACE is BNPL that remembers repayment. Alex is the agent. @sibylcap Memory is the book. Pay on time and the next offer can get better — including after a genuinely new session.
+TRACE is BNPL that remembers repayment. Alex is the agent. @sibylcap Memory is the book. Pay on time and the next offer can get better, including after a genuinely new session.
 
 No token. No fake merchants. Testnet on Base.
 
@@ -20,7 +20,7 @@ Live: https://trace-26xx.vercel.app/
 
 ---
 
-## Post 2 — Demo
+## Post 2, Demo
 
 Same wallet. Two sessions.
 
@@ -30,7 +30,7 @@ Repay on time. @sibylcap writes `ON_TIME`.
 
 Fresh browser, reconnect: memory is still there, limit is higher.
 
-Then Alex does not just recommend — @virtuals_io ACP creates a BNPL Settlement job, and Base Sepolia settles the ETH.
+Then Alex does not just recommend, @virtuals_io ACP creates a BNPL Settlement job, and Base Sepolia settles the ETH.
 
 Delete only the Sibyl row: same wallet, same chain, first-time terms again.
 

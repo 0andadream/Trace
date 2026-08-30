@@ -1,6 +1,6 @@
 /**
  * Trace reputation constructors. Pure functions over action records.
- * Alex does not own this file — it reads the structs these return.
+ * Alex does not own this file, it reads the structs these return.
  */
 import { AGENT_NAME } from "@/lib/counterparties";
 import { labelAddress, normalizeAddress } from "@/lib/format";

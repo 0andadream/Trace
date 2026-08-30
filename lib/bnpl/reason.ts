@@ -9,31 +9,31 @@ export function whyDecisionLine(input: {
 }): string {
   const { terms, relationship, amount } = input;
   if (terms.outcome === "insolvent_declined") {
-    return "Declined — TRACE cannot finance this purchase and still keep its reserve.";
+    return "Declined, TRACE cannot finance this purchase and still keep its reserve.";
   }
   if (terms.decision === "Ceiling blocked") {
-    return "Blocked — this amount or another open plan hits a hard cap.";
+    return "Blocked, this amount or another open plan hits a hard cap.";
   }
   if (terms.relationship_empty) {
     if (terms.decision === "Approve with reduced limit") {
-      return "Approved with reduced limit — TRACE hasn't built up a relationship with you yet, so this stays a small first offer.";
+      return "Approved with reduced limit, TRACE hasn't built up a relationship with you yet, so this stays a small first offer.";
     }
     if (terms.decision === "Approve") {
-      return "Approved — TRACE hasn't built up a relationship with you yet, so this stays a cautious first purchase.";
+      return "Approved, TRACE hasn't built up a relationship with you yet, so this stays a cautious first purchase.";
     }
-    return "Declined — TRACE hasn't built up a relationship with you yet, and this ask is outside a first offer.";
+    return "Declined, TRACE hasn't built up a relationship with you yet, and this ask is outside a first offer.";
   }
   if (terms.decision === "Decline") {
     if (relationship.default_count >= 1) {
-      return "Declined — a missed payment cut your TRACE reputation.";
+      return "Declined, a missed payment cut your TRACE reputation.";
     }
     if (relationship.late_count >= 1) {
-      return "Declined — a late payment made the next deal harder.";
+      return "Declined, a late payment made the next deal harder.";
     }
     if (terms.available <= 0) {
-      return "Declined — you already have as much open as your TRACE limit allows.";
+      return "Declined, you already have as much open as your TRACE limit allows.";
     }
-    return "Declined — your TRACE reputation is too low for this purchase.";
+    return "Declined, your TRACE reputation is too low for this purchase.";
   }
   const closed = [...(relationship.purchases || [])]
     .filter((p) => p.outcome !== "active")
@@ -41,20 +41,20 @@ export function whyDecisionLine(input: {
   const last = closed[0];
   if (terms.decision === "Approve with reduced limit") {
     if (relationship.active_count >= 1) {
-      return "Approved with reduced limit — you still have an open plan.";
+      return "Approved with reduced limit, you still have an open plan.";
     }
     if (amount > terms.available) {
-      return "Approved with reduced limit — this is more than your TRACE limit allows right now.";
+      return "Approved with reduced limit, this is more than your TRACE limit allows right now.";
     }
-    return "Approved with reduced limit — this is outside your usual purchase size.";
+    return "Approved with reduced limit, this is outside your usual purchase size.";
   }
   if (last?.outcome === "completed_on_time") {
-    return "Approved — your last purchase was repaid on time, so your limit went up.";
+    return "Approved, your last purchase was repaid on time, so your limit went up.";
   }
   if (last?.outcome === "completed_late") {
-    return "Approved — TRACE has your history on file, with a late payment still remembered.";
+    return "Approved, TRACE has your history on file, with a late payment still remembered.";
   }
-  return "Approved — TRACE already has a relationship with you.";
+  return "Approved, TRACE already has a relationship with you.";
 }
 
 export function formatTermsLine(terms: ApprovalTerms) {
@@ -153,7 +153,7 @@ export function deterministicBnplReasoning(input: {
     facts.push(`${EMPTY_RELATIONSHIP_LINE} Terms use ONCHAIN_SIGNAL only.`);
     const age = input.onchain?.wallet_age_days ?? 0;
     const txs = input.onchain?.tx_count ?? 0;
-    facts.push(`Wallet age ${age} days, ${txs} transactions — conservative new-buyer baseline.`);
+    facts.push(`Wallet age ${age} days, ${txs} transactions, conservative new-buyer baseline.`);
     facts.push(
       `Limit ${formatAmount(terms.limit)} with ${terms.installments} installment${terms.installments === 1 ? "" : "s"} (short plan).`,
     );
@@ -164,7 +164,7 @@ export function deterministicBnplReasoning(input: {
     facts.push(citeSpecificPurchase(relationship));
     facts.push(
       terms.decision === "Decline"
-        ? `Standing ${terms.standing_score.toFixed(2)} after default history. Limit cut to ${formatAmount(terms.available)} — declined.`
+        ? `Standing ${terms.standing_score.toFixed(2)} after default history. Limit cut to ${formatAmount(terms.available)}, declined.`
         : `Limit ${formatAmount(terms.available)} available of ${formatAmount(terms.limit)} gross · ${terms.installments} installments (standing ${terms.standing_score.toFixed(2)}).`,
     );
   }

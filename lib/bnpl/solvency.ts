@@ -1,5 +1,5 @@
 /**
- * Agent solvency — hard ceiling, independent of user reputation.
+ * Agent solvency, hard ceiling, independent of user reputation.
  *
  * The agent fronts merchant payouts from its own wallet. It cannot approve
  * a purchase that would leave cash below MIN_AGENT_RESERVE, or that would

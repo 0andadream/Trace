@@ -54,7 +54,7 @@ const WHALE = emptyOnchainSignal(CLEAN, { wallet_age_days: 2000, tx_count: 50_00
 const GHOST = emptyOnchainSignal(CLEAN, { wallet_age_days: 0, tx_count: 0 });
 const MODERATE = emptyOnchainSignal(NEW, { wallet_age_days: 40, tx_count: 12 });
 
-describe("BNPL memory primacy — on-chain is gated in code", () => {
+describe("BNPL memory primacy, on-chain is gated in code", () => {
   it("selectPolicyInputs drops ONCHAIN_SIGNAL once total_purchases > 0", () => {
     const rel = withPurchases(CLEAN, [purchase({ purchase_id: "p1", outcome: "completed_on_time" })]);
     const selected = selectPolicyInputs(rel, WHALE);

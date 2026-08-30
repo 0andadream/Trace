@@ -116,7 +116,7 @@ export async function sendTransfer(
     }
   }
   if (!privateKeyPresent()) {
-    return skipped("AGENT_PRIVATE_KEY is missing. Run pnpm wallet:create. The agent signs with an env key — there is no wallet connect.");
+    return skipped("AGENT_PRIVATE_KEY is missing. Run pnpm wallet:create. The agent signs with an env key, there is no wallet connect.");
   }
   if (!isAddress(request.recipient, { strict: false })) {
     return skipped("Recipient is not a valid address.");

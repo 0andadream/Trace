@@ -1,5 +1,5 @@
 /**
- * APPROVAL_POLICY (deterministic — code, not LLM)
+ * APPROVAL_POLICY (deterministic, code, not LLM)
  *
  * Memory primacy: on-chain wallet history may only set terms when
  * USER_RELATIONSHIP.total_purchases === 0. The moment this agent has

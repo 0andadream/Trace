@@ -189,7 +189,7 @@ export function DocsView() {
             </div>
           </div>
           <Callout>
-            Testnet only — no real goods or loans are provided. This site is Base Sepolia. Mainnet is
+            Testnet only, no real goods or loans are provided. This site is Base Sepolia. Mainnet is
             not turned on.
           </Callout>
           <Sub>What problem does it solve?</Sub>

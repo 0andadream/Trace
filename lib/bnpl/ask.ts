@@ -36,7 +36,7 @@ export async function askBnplReasoning(input: {
   const userPayload = [
     ...blocks,
     "",
-    "COMPUTED_TERMS (immutable — copy Decision and Terms exactly)",
+    "COMPUTED_TERMS (immutable, copy Decision and Terms exactly)",
     JSON.stringify(
       {
         decision: input.terms.decision,

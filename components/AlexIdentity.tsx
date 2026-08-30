@@ -78,7 +78,7 @@ export function AgentRoleStack() {
   const rows: { label: string; note?: string; badge?: boolean }[] = [
     { label: "User" },
     { label: "TRACE" },
-    { label: "Alex — autonomous agent", badge: true },
+    { label: "Alex, autonomous agent", badge: true },
     { label: "Sibyl Memory / risk context" },
     { label: "BNPL decision" },
     { label: "On-chain execution", note: "Base Sepolia" },

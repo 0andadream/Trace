@@ -34,7 +34,7 @@ export async function askLendingReasoning(input: {
   const userPayload = [
     ...blocks,
     "",
-    "COMPUTED_QUOTE (immutable — copy Decision and Score exactly)",
+    "COMPUTED_QUOTE (immutable, copy Decision and Score exactly)",
     JSON.stringify(
       {
         decision: input.quote.decision,

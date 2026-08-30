@@ -962,7 +962,7 @@ export function Desk() {
               })}
             </div>
             <p className="mt-3 text-[11px] text-neutral-400">
-              Pay on time and your future capacity can increase — TRACE remembers the repayment.
+              Pay on time and your future capacity can increase, TRACE remembers the repayment.
             </p>
           </section>
         ) : null}
@@ -970,7 +970,7 @@ export function Desk() {
         <AgentInfrastructure job={lastPurchase?.acp} />
 
         <p className="px-1 text-[11px] leading-5 text-neutral-400">
-          Testnet only — no real goods or loans are provided. Powered by Sibyl Memory.
+          Testnet only, no real goods or loans are provided. Powered by Sibyl Memory.
           {wallet && injected.address && wallet !== injected.address
             ? ` Quoting ${shortAddress(wallet)}.`
             : null}

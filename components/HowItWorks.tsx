@@ -22,7 +22,7 @@ const STEPS = [
     n: "03",
     title: "Repay",
     line: ["Repay", "over time"],
-    body: "Each payment is on time, late, or missed. Sibyl remembers that — and your reputation can grow.",
+    body: "Each payment is on time, late, or missed. Sibyl remembers that, and your reputation can grow.",
   },
 ] as const;
 
@@ -103,7 +103,7 @@ function StepVisual({
             }`}
           >
             {first
-              ? "No history yet — TRACE starts cautious."
+              ? "No history yet, TRACE starts cautious."
               : "The next offer depends on whether you paid on time."}
           </div>
         </div>
@@ -190,7 +190,7 @@ function StepVisual({
             <p className={`mt-1 text-[14px] font-normal leading-[1.45] sm:text-[15px] ${nextUp ? "text-emerald-800" : "text-red-800"}`}>
               {nextUp
                 ? "Your on-time repayment was remembered."
-                : "A late payment was remembered — the next offer got harder."}
+                : "A late payment was remembered, the next offer got harder."}
             </p>
           </div>
         </div>

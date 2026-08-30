@@ -1,5 +1,5 @@
 /**
- * Virtuals Protocol ACP v2 — on-chain job execution for TRACE.
+ * Virtuals Protocol ACP v2, on-chain job execution for TRACE.
  *
  * Contract addresses and ABI match @virtuals-protocol/acp-node-v2
  * (src/core/constants.ts, src/core/acpAbi.ts). TRACE talks to the
@@ -8,7 +8,7 @@
  *
  * ACP job: "BNPL Settlement". Alex is the client and evaluator.
  * The provider is a second TRACE address (ACP forbids client == provider
- * via ClientIsProvider). Budget is 0 — user funds never move through
+ * via ClientIsProvider). Budget is 0, user funds never move through
  * ACP escrow. Base ETH settlement stays on sendMerchantPayout.
  */
 import {

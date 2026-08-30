@@ -7,7 +7,7 @@ const SCENES = [
   {
     n: "1",
     title: "First-time user",
-    body: "Connect the wallet. If Sibyl has no book, Alex starts from a cautious on-chain baseline. TRACE — not Virtuals — sets the number.",
+    body: "Connect the wallet. If Sibyl has no book, Alex starts from a cautious on-chain baseline. TRACE, not Virtuals, sets the number.",
   },
   {
     n: "2",

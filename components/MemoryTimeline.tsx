@@ -32,7 +32,7 @@ export function MemoryTimeline({
           />
           <p className={`min-w-0 leading-snug text-neutral-700 ${compact ? "text-[13px]" : "text-sm"}`}>
             <span className="font-medium text-neutral-500">{formatWhen(e.at, e.kind)}</span>
-            <span className="text-neutral-400"> — </span>
+            <span className="text-neutral-400">, </span>
             <span>{e.label}</span>
           </p>
         </li>

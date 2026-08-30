@@ -98,7 +98,7 @@ export default async function HomePage() {
           </h2>
           <p className="mt-2 max-w-[38.75rem] text-[13px] leading-[1.45] text-neutral-500">
             Alex is TRACE&apos;s autonomous agent. Virtuals ACP is his registered identity. Memory is
-            Sibyl. Settlement is Base Sepolia — not Virtuals.
+            Sibyl. Settlement is Base Sepolia, not Virtuals.
           </p>
           <div className="glass-panel mt-6 p-5">
             <AgentRoleStack />
@@ -129,7 +129,7 @@ export default async function HomePage() {
         <section id="agent-status" className="mt-16 scroll-mt-28">
           <h2 className="text-[1.125rem] font-semibold leading-[1.2] tracking-[-0.02em] text-neutral-900 sm:text-[1.25rem]">Under the hood</h2>
           <p className="mt-2 max-w-[38.75rem] text-[13px] font-normal leading-[1.45] text-neutral-500">
-            Live testnet figures. Testnet only — no real goods or loans are provided.
+            Live testnet figures. Testnet only, no real goods or loans are provided.
           </p>
           {status ? (
             <dl className="glass-panel mt-6 divide-y divide-[#E8E7EC] px-6">

@@ -69,7 +69,7 @@ export function deterministicLendingReasoning(input: {
     facts.push(`${EMPTY_RELATIONSHIP_LINE} Terms use ONCHAIN_SIGNAL only.`);
     const age = input.onchain?.wallet_age_days ?? 0;
     const txs = input.onchain?.tx_count ?? 0;
-    facts.push(`Wallet age ${age} days, ${txs} transactions — conservative new-borrower baseline.`);
+    facts.push(`Wallet age ${age} days, ${txs} transactions, conservative new-borrower baseline.`);
     facts.push(
       `Quoted ${formatApr(quote.apr)} with ${quote.collateral_ratio.toFixed(2)}x collateral. Max borrow for this baseline ${formatAmount(quote.max_borrow_for_user, input.asset)}.`,
     );
@@ -80,7 +80,7 @@ export function deterministicLendingReasoning(input: {
     facts.push(citeSpecificRepayment(relationship));
     const extra =
       quote.decision === "Decline"
-        ? `Standing ${quote.standing_score.toFixed(2)} after default history. Quoted ${formatApr(quote.apr)} — declined.`
+        ? `Standing ${quote.standing_score.toFixed(2)} after default history. Quoted ${formatApr(quote.apr)}, declined.`
         : `Quoted ${formatApr(quote.apr)} with ${quote.collateral_ratio.toFixed(2)}x collateral (standing ${quote.standing_score.toFixed(2)}).`;
     facts.push(extra);
   }

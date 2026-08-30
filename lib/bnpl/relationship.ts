@@ -177,7 +177,7 @@ export function onchainBaseline(ageDays: number, txCount: number): OnchainBaseli
       standing: 0.32,
       limit: 20,
       installments: 2,
-      detail: `Moderate on-chain baseline: age ${age}d, ${txs} txs. Conservative — no purchases this agent has approved.`,
+      detail: `Moderate on-chain baseline: age ${age}d, ${txs} txs. Conservative, no purchases this agent has approved.`,
     };
   }
   return {
@@ -232,7 +232,7 @@ export function memoryTimeline(rel: UserRelationship): TimelineEvent[] {
     }
     if (p.outcome === "defaulted") {
       const last = [...(p.schedule || [])].reverse().find((i) => i.due_date)?.due_date || p.approved_date;
-      events.push({ at: last, label: "Missed — plan defaulted", kind: "default" });
+      events.push({ at: last, label: "Missed, plan defaulted", kind: "default" });
     }
   }
   events.sort((a, b) => a.at.localeCompare(b.at));

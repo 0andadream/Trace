@@ -1,6 +1,6 @@
 {
   "kind": "lending",
-  "note": "USER_RELATIONSHIP only — loans this agent originated. Standing is recomputed on read, not stored. A third wallet (any unlisted address) is the on-chain-only baseline.",
+  "note": "USER_RELATIONSHIP only, loans this agent originated. Standing is recomputed on read, not stored. A third wallet (any unlisted address) is the on-chain-only baseline.",
   "relationships": [
     {
       "wallet_address": "0x111111111111111111111111111111111111c1ea",
@@ -136,7 +136,7 @@
           "reasoning": [
             "3 loans this agent originated with this wallet (2 on_time, 0 late, 1 defaulted). ONCHAIN_SIGNAL not used.",
             "Loan loan-pen-3: 20 USDC originated 2026-06-01, outcome defaulted.",
-            "Standing 0.12 after default history. Quoted 32.6% APR — declined."
+            "Standing 0.12 after default history. Quoted 32.6% APR, declined."
           ]
         }
       ],

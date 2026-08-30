@@ -8,7 +8,7 @@
  *
  * Prefer Hold when evidence is thin. Unknown counterparties are high risk.
  * Size vs historical average matters. Verification is a modest nudge only
- * when an explicit status exists — address-only counterparties are unchanged.
+ * when an explicit status exists, address-only counterparties are unchanged.
  * High user-override rates on Holds defer to a person, not to the model.
  */
 import { clamp01, formatAmount, round2 } from "@/lib/format";
@@ -24,7 +24,7 @@ export function computeRiskScore(
 ): RiskAssessment {
   const factors: RiskFactor[] = [];
 
-  // 0.28 / 0.20 / 0.12 — empty books cannot support Proceed. <3 actions
+  // 0.28 / 0.20 / 0.12, empty books cannot support Proceed. <3 actions
   // forces Hold via prefer_hold_thin below; <8 still adds caution.
   if (reputation.totalActions < 3) {
     factors.push({
@@ -46,7 +46,7 @@ export function computeRiskScore(
   }
 
   if (!profile || profile.interactionCount === 0) {
-    // 0.45 — a new address is the largest single risk. Alone this is Flag;
+    // 0.45, a new address is the largest single risk. Alone this is Flag;
     // plus similar rejections it crosses Hold (>0.60).
     factors.push({
       id: "unknown_counterparty",
@@ -54,7 +54,7 @@ export function computeRiskScore(
       reason: "No prior interactions with this counterparty.",
     });
     if (reputation.rejectedUnverifiedCount > 0) {
-      // 0.08 each, cap 0.20 — prior failed unknowns are evidence, not vibes.
+      // 0.08 each, cap 0.20, prior failed unknowns are evidence, not vibes.
       const extra = Math.min(0.2, reputation.rejectedUnverifiedCount * 0.08);
       factors.push({
         id: "similar_unverified_rejected",
@@ -64,7 +64,7 @@ export function computeRiskScore(
     }
   } else {
     if (profile.interactionCount === 1) {
-      // 0.10 — one datapoint is not a pattern.
+      // 0.10, one datapoint is not a pattern.
       factors.push({
         id: "sparse_counterparty",
         delta: 0.1,
@@ -72,7 +72,7 @@ export function computeRiskScore(
       });
     }
     if (profile.rejected > 0) {
-      // up to 0.22 — scale by how often this address itself failed.
+      // up to 0.22, scale by how often this address itself failed.
       factors.push({
         id: "cp_rejections",
         delta: round2(0.22 * (profile.rejected / profile.interactionCount)),
@@ -80,7 +80,7 @@ export function computeRiskScore(
       });
     }
     if (profile.incidents > 0) {
-      // 0.20 — an incident is rarer and more serious than a clean reject.
+      // 0.20, an incident is rarer and more serious than a clean reject.
       factors.push({
         id: "cp_incidents",
         delta: 0.2,
@@ -90,21 +90,21 @@ export function computeRiskScore(
 
     // Modest only, and only when a status was stored. Address-only profiles skip this.
     if (profile.verification === "verified") {
-      // −0.05 — explicit verification is a small credit, not a trust slogan.
+      // −0.05, explicit verification is a small credit, not a trust slogan.
       factors.push({
         id: "verification_verified",
         delta: -0.05,
         reason: `Counterparty ${profile.label} is verified.`,
       });
     } else if (profile.verification === "unverified") {
-      // +0.06 — labeled but not cleared.
+      // +0.06, labeled but not cleared.
       factors.push({
         id: "verification_unverified",
         delta: 0.06,
         reason: `Counterparty ${profile.label} is unverified.`,
       });
     } else if (profile.verification === "rejected") {
-      // +0.14 — a recorded failed verification; still not enough alone to Hold.
+      // +0.14, a recorded failed verification; still not enough alone to Hold.
       factors.push({
         id: "verification_rejected",
         delta: 0.14,
@@ -124,7 +124,7 @@ export function computeRiskScore(
   if (avg > 0 && request.amount > 0) {
     const ratio = request.amount / avg;
     if (ratio >= 4) {
-      // 0.38 — ~5× typical vault size lands in Flag (0.30–0.60), not Hold.
+      // 0.38, ~5× typical vault size lands in Flag (0.30–0.60), not Hold.
       factors.push({
         id: "amount_deviation",
         delta: 0.38,
@@ -146,21 +146,21 @@ export function computeRiskScore(
   }
 
   if (!typeStats || typeStats.count === 0) {
-    // 0.18 — a new action type has no envelope. Broadcast still only supports transfer.
+    // 0.18, a new action type has no envelope. Broadcast still only supports transfer.
     factors.push({
       id: "unseen_action",
       delta: 0.18,
       reason: `No prior ${request.action} actions in agent history.`,
     });
   } else if (typeStats.count < 3) {
-    // 0.06 — some history, not enough to treat the type as routine.
+    // 0.06, some history, not enough to treat the type as routine.
     factors.push({
       id: "sparse_action",
       delta: 0.06,
-      reason: `Only ${typeStats.count} prior ${request.action} action${typeStats.count === 1 ? "" : "s"} in agent history — too few to treat as a reliable pattern.`,
+      reason: `Only ${typeStats.count} prior ${request.action} action${typeStats.count === 1 ? "" : "s"} in agent history, too few to treat as a reliable pattern.`,
     });
   } else if (typeStats.rejected / typeStats.count >= 0.3) {
-    // 0.12 — this action type fails often enough to mention.
+    // 0.12, this action type fails often enough to mention.
     factors.push({
       id: "action_failure_rate",
       delta: 0.12,
@@ -172,7 +172,7 @@ export function computeRiskScore(
     reputation.holdOverrideRate >= HIGH_OVERRIDE_THRESHOLD &&
     reputation.holdDecisions >= MIN_HOLDS_FOR_OVERRIDE_SIGNAL
   ) {
-    // 0.12 — operators who often override Holds: defer, don't get bolder.
+    // 0.12, operators who often override Holds: defer, don't get bolder.
     factors.push({
       id: "high_override_rate",
       delta: 0.12,
@@ -187,7 +187,7 @@ export function computeRiskScore(
     factors.push({
       id: "prefer_hold_thin",
       delta: round2(0.61 - score),
-      reason: "Insufficient evidence — Hold for approval.",
+      reason: "Insufficient evidence, Hold for approval.",
     });
     score = 0.61;
   }
@@ -202,7 +202,7 @@ export function computeRiskScore(
     factors.push({
       id: "override_upgrade_hold",
       delta: round2(0.61 - score),
-      reason: "High user-override rate on similar decisions — Hold for approval.",
+      reason: "High user-override rate on similar decisions, Hold for approval.",
     });
     score = 0.61;
   }

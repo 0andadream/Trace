@@ -1,5 +1,5 @@
 /**
- * RATE_POLICY (deterministic — code, not LLM)
+ * RATE_POLICY (deterministic, code, not LLM)
  *
  * Memory primacy: on-chain wallet history may only set terms when
  * USER_RELATIONSHIP.total_loans === 0. The moment this agent has originated
@@ -10,7 +10,7 @@
  *
  * Asymmetry: a single default caps standing at 0.12 even with large volume.
  * Clean repeat borrowers get cheaper APR / lower collateral, down to the
- * MIN_COLLATERAL_RATIO floor and MIN_APR. New wallets stay conservative —
+ * MIN_COLLATERAL_RATIO floor and MIN_APR. New wallets stay conservative ,
  * even a high-activity chain history cannot beat one on-time repayment
  * this agent recorded.
  */
@@ -77,7 +77,7 @@ function onchainTier(signal: OnchainSignal) {
       collateral: 2.0,
       limitFrac: 0.4,
       standing: 0.32,
-      detail: `Moderate on-chain baseline: age ${age}d, ${txs} txs. Still conservative — no loans originated by this agent.`,
+      detail: `Moderate on-chain baseline: age ${age}d, ${txs} txs. Still conservative, no loans originated by this agent.`,
     };
   }
   return {

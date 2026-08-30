@@ -1,5 +1,5 @@
 /**
- * ONCHAIN_SIGNAL — fetched fresh on every quote. Never written to Sibyl.
+ * ONCHAIN_SIGNAL, fetched fresh on every quote. Never written to Sibyl.
  * Only consumed by APPROVAL_POLICY when USER_RELATIONSHIP.total_purchases === 0.
  */
 import { createPublicClient, http, isAddress, type Address } from "viem";

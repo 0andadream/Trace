@@ -11,8 +11,8 @@ export type {
 } from "./bnpl";
 
 /**
- * transfer — fully supported (decide + broadcast).
- * approve / swap / contract — experimental: scored and stored, not broadcast.
+ * transfer, fully supported (decide + broadcast).
+ * approve / swap / contract, experimental: scored and stored, not broadcast.
  */
 export type TxAction = "transfer" | "approve" | "swap" | "contract";
 export const BROADCAST_ACTIONS: TxAction[] = ["transfer"];

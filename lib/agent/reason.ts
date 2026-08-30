@@ -61,7 +61,7 @@ export function deterministicReasoning(input: {
     facts.push(
       typeCount === 0
         ? `No prior ${input.request.action} actions in agent history.`
-        : `Only ${typeCount} prior ${input.request.action} action${typeCount === 1 ? "" : "s"} in agent history — too few to treat as a reliable pattern.`,
+        : `Only ${typeCount} prior ${input.request.action} action${typeCount === 1 ? "" : "s"} in agent history, too few to treat as a reliable pattern.`,
     );
   }
 

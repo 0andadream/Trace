@@ -1,6 +1,6 @@
 {
   "kind": "bnpl",
-  "note": "USER_RELATIONSHIP only — purchases this agent approved. Standing and current_limit are recomputed on read. A third wallet (any unlisted address) is the on-chain-only baseline.",
+  "note": "USER_RELATIONSHIP only, purchases this agent approved. Standing and current_limit are recomputed on read. A third wallet (any unlisted address) is the on-chain-only baseline.",
   "relationships": [
     {
       "wallet_address": "0x111111111111111111111111111111111111c1ea",
@@ -134,7 +134,7 @@
           "reasoning": [
             "3 purchases this agent approved (2 completed_on_time, 0 completed_late, 1 defaulted). ONCHAIN_SIGNAL not used.",
             "Purchase buy-pen-3: 30 at Base Supply on 2026-06-01, outcome defaulted.",
-            "Standing 0.12 after default history. Limit cut — declined."
+            "Standing 0.12 after default history. Limit cut, declined."
           ]
         }
       ],

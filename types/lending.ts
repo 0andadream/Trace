@@ -80,7 +80,7 @@ export type OnchainSignal = {
   tx_count: number;
   known_protocol_interactions: string[];
   fetched_at: string;
-  /** Always false — this object is never written to Sibyl. */
+  /** Always false, this object is never written to Sibyl. */
   cached: false;
   used_only_when: "USER_RELATIONSHIP.total_loans == 0";
   fetch_error?: boolean;

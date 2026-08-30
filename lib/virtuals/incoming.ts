@@ -3,7 +3,7 @@
  *
  * ACP job payloads are mapped onto runPurchaseQuote / runAcceptPurchase.
  * Numbers still come from computeApproval. USER_RELATIONSHIP is still
- * keyed by a 0x wallet — if ACP only sends an agent UUID, TRACE cannot
+ * keyed by a 0x wallet, if ACP only sends an agent UUID, TRACE cannot
  * score it.
  */
 import { runAcceptPurchase, runPurchaseQuote } from "@/lib/bnpl/run";
