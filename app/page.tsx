@@ -3,6 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { HeroPhone } from "@/components/HeroPhone";
 import { HowItWorks } from "@/components/HowItWorks";
 import { AgentInfrastructure } from "@/components/AgentInfrastructure";
+import { AgentRoleStack, AlexVerificationRow } from "@/components/AlexIdentity";
 import { getAgentStatus } from "@/lib/bnpl/status";
 import { formatAmount } from "@/lib/format";
 
@@ -41,10 +42,21 @@ export default async function HomePage() {
           <p className="mt-3 max-w-[38.75rem] text-[15px] font-normal leading-[1.5] text-neutral-500">
             Buy now. Pay over time. Build a financial reputation as you go.
           </p>
-          <p className="mt-3 max-w-[38.75rem] text-[13px] font-medium leading-[1.4] text-neutral-400">
-            Alex is TRACE&apos;s autonomous BNPL agent. Sibyl provides the persistent memory that
-            lets Alex remember your financial history across sessions.
-          </p>
+          <div className="mt-4 max-w-[38.75rem]">
+            <p className="text-[15px] font-semibold leading-[1.3] text-neutral-900">Alex</p>
+            <p className="mt-0.5 text-[13px] font-medium leading-[1.4] text-neutral-500">
+              TRACE&apos;s autonomous BNPL agent
+            </p>
+            <AlexVerificationRow />
+            <p className="mt-3 text-[13px] font-medium leading-[1.45] text-neutral-400">
+              Sibyl provides the persistent memory that lets Alex remember your financial history
+              across sessions.
+            </p>
+            <p className="mt-2 text-[13px] leading-[1.45] text-neutral-400">
+              Alex is a registered autonomous agent on Virtuals ACP, giving TRACE a verifiable agent
+              identity while TRACE&apos;s transaction execution remains independently controlled.
+            </p>
+          </div>
           <div className="mt-10 flex flex-wrap gap-3">
             <Link
               href="/buy"
@@ -81,6 +93,19 @@ export default async function HomePage() {
 
       <article className="mx-auto mt-24 max-w-3xl">
         <section className="scroll-mt-28">
+          <h2 className="text-[1.125rem] font-semibold leading-[1.2] tracking-[-0.02em] text-neutral-900 sm:text-[1.25rem]">
+            Who acts
+          </h2>
+          <p className="mt-2 max-w-[38.75rem] text-[13px] leading-[1.45] text-neutral-500">
+            Alex is TRACE&apos;s autonomous agent. Virtuals ACP is his registered identity. Memory is
+            Sibyl. Settlement is Base Sepolia — not Virtuals.
+          </p>
+          <div className="glass-panel mt-6 p-5">
+            <AgentRoleStack />
+          </div>
+        </section>
+
+        <section className="mt-16 scroll-mt-28">
           <h2 className="text-[2rem] font-semibold leading-[1.15] tracking-[-0.02em] text-neutral-900 sm:text-[2.25rem]">Your history doesn&apos;t disappear.</h2>
           <p className="mt-4 max-w-[38.75rem] text-[15px] font-normal leading-[1.5] text-neutral-600 sm:text-base">
             Sibyl Memory carries your financial history across sessions, so TRACE doesn&apos;t start

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { TxLink } from "@/components/TxLink";
+import { AgentIdentityCard, ViewOnVirtuals } from "@/components/AlexIdentity";
 import { formatAmount } from "@/lib/format";
 import type { AcpJobRecord } from "@/types/bnpl";
 
@@ -92,14 +93,14 @@ export function AgentInfrastructure({ job }: { job?: AcpJobRecord | null }) {
             <Dot on={Boolean(infra?.virtuals.reachable)} />
             Virtuals
           </dt>
-          <dd className="mt-0.5 space-y-0.5 pl-4 text-[12px] text-neutral-500">
-            <p>{infra?.virtuals.agentRegistered ? "Agent registered" : "Agent address unpublished"}</p>
-            <p>{infra?.virtuals.acpEnabled ? "ACP enabled" : infra?.virtuals.reason || "ACP unreachable"}</p>
-            {infra?.virtuals.jobCounter != null ? (
-              <p className="font-mono text-[11px]">jobCounter {infra.virtuals.jobCounter}</p>
-            ) : null}
+          <dd className="mt-0.5 space-y-2 pl-4 text-[12px] text-neutral-500">
+            <p>Alex registered on Virtuals ACP</p>
+            <p>{infra?.virtuals.acpEnabled ? "ACP contract reachable" : infra?.virtuals.reason || "ACP contract unreachable"}</p>
+            <div className="pt-1">
+              <AgentIdentityCard />
+            </div>
+            {shown ? <JobCard job={shown} /> : null}
           </dd>
-          {shown ? <JobCard job={shown} /> : null}
         </div>
         <div>
           <dt className="flex items-center gap-2 text-[13px] font-semibold text-neutral-900">
@@ -112,16 +113,19 @@ export function AgentInfrastructure({ job }: { job?: AcpJobRecord | null }) {
           </dd>
         </div>
       </dl>
-      {infra?.virtuals.verifyUrl ? (
-        <a
-          href={infra.virtuals.verifyUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-4 inline-block text-[12px] font-medium text-[#7828E8] hover:underline"
-        >
-          Verify ACP contract →
-        </a>
-      ) : null}
+      <div className="mt-4 flex min-w-0 flex-wrap gap-x-4 gap-y-1">
+        <ViewOnVirtuals label="View Alex on Virtuals" />
+        {infra?.virtuals.verifyUrl ? (
+          <a
+            href={infra.virtuals.verifyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center text-[12px] font-medium text-neutral-500 hover:text-neutral-800 hover:underline"
+          >
+            ACP contract on Base Sepolia
+          </a>
+        ) : null}
+      </div>
     </section>
   );
 }

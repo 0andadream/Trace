@@ -10,7 +10,7 @@ const STEPS = [
     n: "01",
     title: "Buy",
     line: ["Buy", "now"],
-    body: "Connect your wallet and choose a purchase. TRACE checks Sibyl Memory for this wallet.",
+    body: "Connect your wallet and choose a purchase. Alex, TRACE's autonomous agent, checks Sibyl Memory for this wallet.",
   },
   {
     n: "02",

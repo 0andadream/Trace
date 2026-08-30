@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { TraceMark } from "@/components/Logo";
+import { ALEX_ACP_PROFILE_URL } from "@/lib/virtuals/identity";
 
 const COLS: { heading: string; links: { href: string; label: string; external?: boolean }[] }[] = [
   {
@@ -14,6 +15,7 @@ const COLS: { heading: string; links: { href: string; label: string; external?: 
     heading: "Verify",
     links: [
       { href: "/#agent-status", label: "Agent status" },
+      { href: ALEX_ACP_PROFILE_URL, label: "Alex on Virtuals", external: true },
       { href: "/demo", label: "Judge demo" },
       { href: "/docs", label: "Docs" },
     ],
@@ -72,7 +74,7 @@ export function SiteFooter({ explorerHref }: { explorerHref?: string }) {
                     <a
                       href={l.href}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="text-sm text-[#F4EFE4] hover:text-white"
                     >
                       {l.label}
@@ -89,8 +91,16 @@ export function SiteFooter({ explorerHref }: { explorerHref?: string }) {
         ))}
       </div>
       <div className="border-t border-white/10">
-        <p className="mx-auto max-w-7xl px-6 py-5 text-[11px] text-[#6B6578]">
-          Trace · Base Sepolia testnet · not a real loan
+        <p className="mx-auto flex max-w-7xl min-w-0 flex-wrap items-center gap-x-3 gap-y-1 px-6 py-5 text-[11px] text-[#6B6578]">
+          <span>Trace · Base Sepolia testnet · not a real loan</span>
+          <a
+            href={ALEX_ACP_PROFILE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#9B96AB] hover:text-white"
+          >
+            Agent identity: Virtuals ACP
+          </a>
         </p>
       </div>
     </footer>

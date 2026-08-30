@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { AgentIdentityCard, AgentRoleStack, AlexVerificationRow } from "@/components/AlexIdentity";
 
 const NAV = [
   { id: "overview", label: "Overview" },
@@ -173,8 +174,20 @@ export function DocsView() {
         <Section id="overview" title="What is Trace?">
           <Lead>
             TRACE is reputation-weighted BNPL. Buy now. Pay over time. Build a financial reputation as
-            you go. Powered by Sibyl Memory.
+            you go. Powered by Sibyl Memory. Alex is TRACE&apos;s autonomous BNPL agent.
           </Lead>
+          <div className="mt-5 rounded-2xl ring-1 ring-black/5 px-5 py-4">
+            <p className="text-[15px] font-semibold text-neutral-900">Alex</p>
+            <p className="text-[13px] text-neutral-500">TRACE&apos;s autonomous BNPL agent</p>
+            <AlexVerificationRow />
+            <p className="mt-3 text-[13px] leading-relaxed text-neutral-500">
+              Alex is a registered autonomous agent on Virtuals ACP, giving TRACE a verifiable agent
+              identity while TRACE&apos;s transaction execution remains independently controlled.
+            </p>
+            <div className="mt-4">
+              <AgentIdentityCard />
+            </div>
+          </div>
           <Callout>
             Testnet only — no real goods or loans are provided. This site is Base Sepolia. Mainnet is
             not turned on.
@@ -210,8 +223,8 @@ export function DocsView() {
           <Lead>Three steps. Connect is your login. Nothing else is an account.</Lead>
           <ol className="mt-4 list-none space-y-3">
             {[
-              "You connect and ask to buy something. TRACE checks Sibyl Memory for this wallet.",
-              "TRACE finances the purchase if you are eligible. You see the amount, how many payments, and when they are due.",
+              "You connect and ask to buy something. Alex, TRACE's autonomous agent, checks Sibyl Memory for this wallet.",
+              "TRACE finances the purchase if you are eligible. You see the amount, how many payments, and when they are due. Settlement is Base Sepolia.",
               "You repay in parts. Each payment is on time, late, or missed. That is what the next deal is based on.",
             ].map((line, i) => (
               <li key={line} className="flex gap-3 text-sm leading-relaxed text-neutral-600">
@@ -222,6 +235,10 @@ export function DocsView() {
               </li>
             ))}
           </ol>
+          <div className="mt-8 rounded-2xl ring-1 ring-black/5 p-5">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-neutral-500">Role split</p>
+            <AgentRoleStack />
+          </div>
         </Section>
 
         <Section id="standing" title="Reputation and limits">
