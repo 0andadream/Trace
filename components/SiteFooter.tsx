@@ -31,7 +31,6 @@ const COLS: { heading: string; links: { href: string; label: string; external?: 
     heading: "Network",
     links: [
       { href: "https://sepolia.basescan.org", label: "Base Sepolia explorer", external: true },
-      { href: "https://sepolia.basescan.org/address/0x0b93793923CD5De81850aF8604a233f3f24d461e", label: "Virtuals ACP contract", external: true },
       { href: "https://www.base.org/", label: "About Base", external: true },
     ],
   },
