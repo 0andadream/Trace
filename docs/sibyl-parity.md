@@ -10,9 +10,10 @@ and run the same code on laptop and Vercel. Sibyl only **stores and recalls** en
 
 | Op | Effect |
 |---|---|
-| `get_relationship` / `upsert_relationship` / `list_relationships` | `relationship` entities keyed by wallet |
+| `get_relationship` / `upsert_relationship` / `list_relationships` / `delete_relationship` | `relationship` entities keyed by wallet |
 | `append` / `update` / `list` | treasury `action` entities + warm counterparty/agent |
 | `wipe` / `replace` / `replace_relationships` | reset + seed |
+| `waitlist_add` | optional early-access row |
 | `health` | counts + `loadBearing: true` |
 
 It does **not** compute score, `MAX_PURCHASE_AMOUNT`, `MAX_ACTIVE_PLANS`, `MIN_AGENT_RESERVE`, installment lateness, interest, or rounding.

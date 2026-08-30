@@ -199,6 +199,26 @@ export async function getRel(tenant: string, wallet: string): Promise<Body | nul
   return { ...(row as Body) };
 }
 
+export async function deleteRel(tenant: string, wallet: string): Promise<boolean> {
+  const addr = wallet.trim().toLowerCase();
+  if (!addr) return false;
+  const redis = kvClient();
+  if (!redis) {
+    const root = fileRoot();
+    const table = root.tenants[tenant]?.entities?.relationship;
+    if (!table || !table[addr]) return false;
+    delete table[addr];
+    writeFileRoot(root);
+    return true;
+  }
+  await migrateLegacyBlob(redis);
+  const key = k(tenant, "rel", addr);
+  const existed = (await redis.get(key)) != null;
+  await redis.del(key);
+  await redis.srem(k(tenant, "rel", "index"), addr);
+  return existed;
+}
+
 export async function putRel(tenant: string, rel: Body): Promise<Body> {
   const addr = String(rel.wallet_address || "").trim().toLowerCase();
   if (!addr) throw new Error("relationship.wallet_address required");
@@ -264,7 +284,8 @@ export async function getEntity(tenant: string, category: string, name: string):
     const row = await redis.get<Body>(k(tenant, "agent"));
     return row ? { ...row } : null;
   }
-  return null;
+  const row = await redis.get<Body>(k(tenant, category, name));
+  return row ? { ...row } : null;
 }
 
 export async function setEntity(tenant: string, category: string, name: string, body: Body) {
@@ -295,7 +316,10 @@ export async function setEntity(tenant: string, category: string, name: string, 
   }
   if (category === "agent") {
     await redis.set(k(tenant, "agent"), body);
+    return;
   }
+  await redis.set(k(tenant, category, name), body);
+  await redis.sadd(k(tenant, category, "index"), name);
 }
 
 export async function listCategory(tenant: string, category: string, limit = 400): Promise<Body[]> {
@@ -322,7 +346,10 @@ export async function listCategory(tenant: string, category: string, limit = 400
     const row = await redis.get<Body>(k(tenant, "agent"));
     return row ? [row] : [];
   }
-  return [];
+  const ids = (await redis.smembers(k(tenant, category, "index"))) as string[];
+  if (!ids.length) return [];
+  const rows = (await redis.mget(...ids.map((id) => k(tenant, category, String(id))))) as (Body | null)[];
+  return (rows || []).filter(Boolean).slice(0, limit) as Body[];
 }
 
 export async function appendEvent(tenant: string, event: Body) {

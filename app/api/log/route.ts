@@ -1,6 +1,7 @@
 import { bnplSnapshot } from "@/lib/bnpl/run";
 import { memorySnapshot } from "@/lib/desk/run";
 import { SibylUnavailable } from "@/lib/memory/sibyl";
+import { collectAgentEvents } from "@/lib/trace/agentEvents";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -24,6 +25,7 @@ export async function GET() {
       active: purchases.filter((p) => p.outcome === "active").length,
       purchases,
       quotes,
+      events: collectAgentEvents({ quotes, purchases }),
       items: actions,
       pending: actions.filter((a) => a.outcome === "pending").length,
       sibyl: bnpl.sibyl,

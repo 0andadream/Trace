@@ -36,5 +36,19 @@ describe("node Sibyl engine (Vercel fallback)", () => {
     assert.equal((got.health as { engine: string }).engine, "sibyl-memory-node");
     const listed = await handleSibylMessage({ op: "list_relationships", tenant: "trace-node-test" });
     assert.equal((listed.relationships as unknown[]).length, 1);
+
+    const gone = await handleSibylMessage({
+      op: "delete_relationship",
+      tenant: "trace-node-test",
+      wallet: "0xAbC",
+    });
+    assert.equal(gone.ok, true);
+    assert.equal(gone.deleted, true);
+    const after = await handleSibylMessage({
+      op: "get_relationship",
+      tenant: "trace-node-test",
+      wallet: "0xabc",
+    });
+    assert.equal(after.relationship, null);
   });
 });

@@ -102,7 +102,7 @@ def list_actions(mem: MemoryClient) -> list[dict]:
 
 
 def wipe(mem: MemoryClient) -> None:
-    for category in ("action", "counterparty", "agent", "relationship", "loan", "collateral", "quote", "purchase"):
+    for category in ("action", "counterparty", "agent", "relationship", "loan", "collateral", "quote", "purchase", "waitlist"):
         for row in mem.list_entities(category, limit=1000):
             name = row.get("name")
             if name:
@@ -258,6 +258,25 @@ def handle(msg: dict) -> dict:
         rel = persist_relationship(mem, msg["relationship"])
         return {"ok": True, "relationship": rel, "health": health(mem)}
 
+    if op == "delete_relationship":
+        addr = str(msg.get("wallet") or "").strip().lower()
+        if not addr:
+            raise ValueError("wallet required")
+        existed = False
+        try:
+            mem.get_entity("relationship", addr)
+            existed = True
+        except NotFoundError:
+            existed = False
+        if existed:
+            mem.delete_entity("relationship", addr)
+        mem.write_event(
+            acted=[f"deleted Sibyl relationship {addr} existed={existed}"],
+            extra={"wallet": addr, "kind": "MEMORY_DELETED"},
+        )
+        mem.set_state("last_relationship", {"wallet": addr, "deleted": True})
+        return {"ok": True, "deleted": existed, "wallet": addr, "health": health(mem)}
+
     if op == "replace_relationships":
         wipe(mem)
         rows = msg.get("relationships") or []
@@ -275,6 +294,15 @@ def handle(msg: dict) -> dict:
         )
         mem.write_event(acted=[f"replaced Sibyl memory with {len(stored)} BNPL relationships"])
         return {"ok": True, "health": health(mem), "relationships": list_relationships(mem)}
+
+    if op == "waitlist_add":
+        row = msg.get("row") or {}
+        email = str(row.get("email") or "").strip().lower()
+        if not email:
+            raise ValueError("waitlist email required")
+        mem.set_entity("waitlist", email, {**row, "email": email})
+        mem.write_event(acted=[f"waitlist {email}"], extra={"kind": "WAITLIST"})
+        return {"ok": True, "health": health(mem)}
 
     if op == "wipe":
         wipe(mem)

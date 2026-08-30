@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { HeroPhone } from "@/components/HeroPhone";
 import { HowItWorks } from "@/components/HowItWorks";
+import { AgentInfrastructure } from "@/components/AgentInfrastructure";
 import { getAgentStatus } from "@/lib/bnpl/status";
 import { formatAmount } from "@/lib/format";
 
@@ -128,6 +129,10 @@ export default async function HomePage() {
           ) : (
             <p className="mt-6 text-sm text-red-600">{statusError}</p>
           )}
+        </section>
+
+        <section className="mt-10">
+          <AgentInfrastructure />
         </section>
       </article>
     </AppShell>

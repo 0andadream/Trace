@@ -16,7 +16,10 @@ import {
   loadSolvencySnapshot,
 } from "@/lib/bnpl/solvency";
 import { bnplHealth, getRelationship, listRelationships, saveRelationship } from "@/lib/bnpl/store";
+import { executeBnplSettlementJob, type AcpJobResult } from "@/lib/virtuals/acp";
+import { decisionReasonFromBook, repaymentStatusFromRel } from "@/lib/virtuals/metadata";
 import type {
+  AcpJobRecord,
   Installment,
   OnchainSignal,
   OverrideOutcome,
@@ -133,6 +136,7 @@ export async function runAcceptPurchase(input: {
   quote: PurchaseResult;
   tx: Execution;
   payout_mode: "on_chain" | "simulated";
+  acp: AcpJobRecord;
 }> {
   const wallet = requireWallet(input.wallet);
   const merchant = (input.merchant || "Test Shop").trim() || "Test Shop";
@@ -182,6 +186,16 @@ export async function runAcceptPurchase(input: {
   const origin = new Date().toISOString();
   const payoutTo = wallet as `0x${string}`;
 
+  const acpLive = await executeBnplSettlementJob({
+    wallet,
+    loanAmount: acceptedAmount,
+    creditDecision: terms.limit || terms.available || acceptedAmount,
+    memoryVerified: quoted.relationship.total_purchases > 0,
+    repaymentStatus: repaymentStatusFromRel(quoted.relationship),
+    decisionReason: decisionReasonFromBook(quoted.relationship),
+  });
+  const acp: AcpJobRecord = toAcpRecord(acpLive);
+
   let tx: Execution = skipped("simulated");
   let payoutMode: "on_chain" | "simulated" = "simulated";
   try {
@@ -211,6 +225,7 @@ export async function runAcceptPurchase(input: {
     payout_mode: payoutMode,
     payout_to: payoutTo,
     payout_explorer: tx.explorerUrl,
+    acp,
     principal: terms.principal || acceptedAmount,
     interest_rate: terms.interest_rate || 0,
     interest_amount: terms.interest_amount || 0,
@@ -240,7 +255,23 @@ export async function runAcceptPurchase(input: {
 
   const saved = await saveRelationship(drafted);
   const stored = saved.purchases.find((p) => p.purchase_id === purchase.purchase_id) || purchase;
-  return { relationship: saved, purchase: stored, quote: quoted, tx, payout_mode: payoutMode };
+  return { relationship: saved, purchase: stored, quote: quoted, tx, payout_mode: payoutMode, acp };
+}
+
+function toAcpRecord(job: AcpJobResult): AcpJobRecord {
+  return {
+    offering: "BNPL Settlement",
+    status: job.status,
+    jobId: job.jobId,
+    onchainStatus: job.onchainStatus,
+    createTxHash: job.createTxHash,
+    executeTxHash: job.executeTxHash,
+    explorerUrl: job.explorerUrl,
+    contract: job.contract,
+    chainId: job.chainId,
+    reason: job.reason,
+    metadata: job.metadata,
+  };
 }
 
 export async function runRepayInstallment(input: {

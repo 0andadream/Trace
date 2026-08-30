@@ -26,6 +26,30 @@ export type Installment = {
 
 export type PayoutMode = "on_chain" | "simulated";
 
+export type AcpJobRecord = {
+  offering: "BNPL Settlement";
+  status: "created" | "executed" | "skipped" | "failed";
+  jobId?: string;
+  onchainStatus?: number;
+  createTxHash?: string;
+  executeTxHash?: string;
+  explorerUrl?: string;
+  contract?: string;
+  chainId?: number;
+  reason?: string;
+  metadata?: {
+    product: "TRACE";
+    agent: "Alex";
+    purpose: "BNPL settlement";
+    user: string;
+    amount: number;
+    memoryVerified: boolean;
+    memoryProvider: "Sibyl";
+    creditLimit: number;
+    decisionReason: string;
+  };
+};
+
 export type PurchaseRecord = {
   purchase_id: string;
   amount: number;
@@ -40,6 +64,7 @@ export type PurchaseRecord = {
   payout_mode?: PayoutMode;
   payout_to?: string;
   payout_explorer?: string;
+  acp?: AcpJobRecord;
   score_before?: number;
   score_after?: number;
   limit_before?: number;

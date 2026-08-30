@@ -14,6 +14,7 @@ import {
 } from "@/lib/bnpl/relationship";
 import { formatAmount, shortAddress } from "@/lib/format";
 import { PayoutNotice } from "@/components/PayoutNotice";
+import { AgentInfrastructure } from "@/components/AgentInfrastructure";
 import type { PurchaseRecord, PurchaseResult, UserRelationship } from "@/types/bnpl";
 import Link from "next/link";
 
@@ -788,6 +789,39 @@ export function Desk() {
             {lastPurchase ? (
               <PayoutNotice amountUsd={lastPurchase.amount} hash={payoutHash} live={payoutLive} />
             ) : null}
+            {lastPurchase?.acp ? (
+              <div className="rounded-xl bg-black/[0.03] px-4 py-3 ring-1 ring-black/5">
+                <p className="text-[12px] font-semibold uppercase tracking-[0.07em] text-neutral-500">
+                  Virtuals ACP
+                </p>
+                <p className="mt-1 text-[15px] font-semibold text-neutral-900">{lastPurchase.acp.offering}</p>
+                <p className="text-[13px] text-neutral-600">
+                  {lastPurchase.acp.status === "executed"
+                    ? "Job created · Job executed"
+                    : lastPurchase.acp.status === "created"
+                      ? "Job created"
+                      : lastPurchase.acp.status === "failed"
+                        ? "Job failed"
+                        : "Not broadcast"}
+                </p>
+                {lastPurchase.acp.jobId ? (
+                  <p className="mt-1 font-mono text-[12px] text-neutral-500">Job {lastPurchase.acp.jobId}</p>
+                ) : null}
+                {lastPurchase.acp.executeTxHash || lastPurchase.acp.createTxHash ? (
+                  <p className="mt-1 text-[12px]">
+                    <Link
+                      href={`https://sepolia.basescan.org/tx/${lastPurchase.acp.executeTxHash || lastPurchase.acp.createTxHash}`}
+                      target="_blank"
+                      className="font-medium text-[#7828E8] hover:underline"
+                    >
+                      ACP transaction →
+                    </Link>
+                  </p>
+                ) : lastPurchase.acp.reason ? (
+                  <p className="mt-1 text-[12px] text-neutral-500">{lastPurchase.acp.reason}</p>
+                ) : null}
+              </div>
+            ) : null}
             {quote ? (
               <div>
                 <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">Decision</p>
@@ -932,6 +966,8 @@ export function Desk() {
             </p>
           </section>
         ) : null}
+
+        <AgentInfrastructure job={lastPurchase?.acp} />
 
         <p className="px-1 text-[11px] leading-5 text-neutral-400">
           Testnet only — no real goods or loans are provided. Powered by Sibyl Memory.

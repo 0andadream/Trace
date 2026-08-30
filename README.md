@@ -11,8 +11,14 @@ On **Approve**, TRACE finances the purchase: native **ETH** to **your connected 
 Pay on time and the next limit and plan can get better. Miss a payment and it gets harder, fast. Delete Sibyl and TRACE starts from zero; the chain still looks the same. That is the [Sibyl Labs Hackathon](https://hack.sibyllabs.org/) load-bearing gate.
 
 ```
+USER → ALEX → SIBYL MEMORY → CREDIT DECISION → VIRTUALS / ACP → BASE SEPOLIA SETTLEMENT
+```
+
+Sibyl determines what Alex remembers. TRACE determines the credit decision. Virtuals enables Alex to execute the agent job. Base settles the transaction.
+
+```
 WALLET HISTORY → SIBYL MEMORY → TRACE REPUTATION → ELIGIBILITY
-        → PURCHASE → REPAY → SIBYL UPDATED → NEXT OFFER
+        → PURCHASE → ACP JOB → REPAY → SIBYL UPDATED → NEXT OFFER
 ```
 
 Live: [https://trace-26xx.vercel.app/](https://trace-26xx.vercel.app/) · Base Sepolia (`84532`) · Agent [`0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e`](https://sepolia.basescan.org/address/0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e).
@@ -54,6 +60,7 @@ Live nav (`components/AppShell.tsx`):
 | `/history` | **My History** — private to the connected wallet. Timeline, reputation breakdown, repay. |
 | `/log` | **Agent Log** — public quotes and purchases, explorer links on real payouts |
 | `/docs` | Product docs |
+| `/demo` | Judge path: Sibyl recall, ACP job, Base settlement, deletion test |
 | `/privacy` · `/terms` | Legal |
 
 Redirects: `/lend` → `/buy`, `/memory` → `/history`, `/agent-log` → `/log`, `/developers` → `/`, `/desk` → `/alex`.
@@ -302,6 +309,7 @@ See `.env.example`. BNPL-relevant:
 | `XAI_API_KEY` | Optional. TRACE still quotes without it. |
 | `KV_REST_API_URL` / `KV_REST_API_TOKEN` | Vercel Redis. Required in production. |
 | `SIBYL_PYTHON` / `SIBYL_MEMORY_DB` / `SIBYL_TENANT` | Local Python Sibyl |
+| `VIRTUALS_ACP` | Set `0` to skip ACP jobs. Default: ACP broadcasts when `BASE_EXECUTE=1`. Never fakes a job id. |
 
 ## API (BNPL)
 
@@ -310,8 +318,11 @@ See `.env.example`. BNPL-relevant:
 - `GET /api/relationship/:wallet` — relationship + computed standing/limit; on-chain only if the book is empty
 - `GET /api/agent-status` — agent cash, reserve, deployable, `execute`; **503** if Sibyl/Redis is down
 - `GET /api/health` — store ping; **503** if unreachable
-- `GET /api/log` — public quotes + purchases
+- `GET /api/log` — public quotes, purchases, and structured agent events (MEMORY_READ, CREDIT_DECISION, ACP_JOB_*, SETTLEMENT)
+- `GET /api/virtuals` — ACP contract reachability + last real job; `?jobId=` reads `getJob` on-chain
+- `DELETE /api/relationship/:wallet` — `{ confirm: true }` deletes **that wallet’s** Sibyl relationship (deletion test). Chain history is untouched.
 - `GET /api/memory` — relationships (plus leftover treasury fields if present)
+- `POST /api/pmf` — early-access waitlist row. Not a usage metric.
 
 Leftover treasury/lending routes still compile (`POST /api/decide`, `/api/quote`, `/api/borrow`, `/api/supply`). They are not the product.
 
@@ -326,6 +337,72 @@ pnpm memory:seed | memory:reset | memory:export
 pnpm sibyl:health     # Python bridge ping
 pnpm mcp              # leftover treasury MCP (alex_decide / alex_memory / alex_log / alex_resolve)
 ```
+
+## Virtuals Protocol Integration
+
+Alex is TRACE’s BNPL agent. TRACE registers that agent identity as the **client / provider / evaluator** on the Virtuals ACP v2 contract and uses ACP as the **autonomous execution** step after a deterministic credit decision.
+
+Virtuals does **not** remember the user. Virtuals does **not** choose the credit amount. Sibyl Memory remains the persistent financial book. Base remains settlement.
+
+Flow on Confirm purchase (`runAcceptPurchase`):
+
+1. Sibyl `get_relationship` (memory read)
+2. `computeApproval` in `lib/bnpl/policy.ts` (numbers)
+3. ACP job `createJob` on Base Sepolia — offering **BNPL Settlement**, budget `0` (no user funds in ACP escrow)
+4. `setBudget` / `fund` / `submit` / `complete` when the contract accepts a 0-budget self-eval
+5. Existing Base ETH payout to the connected wallet
+6. Later: user-signed repay → Sibyl write
+
+If `BASE_EXECUTE` is off, or the agent key is missing, ACP is **skipped** with a real reason. The UI never marks a job completed unless `getJob` reports COMPLETED or `complete()` was mined.
+
+Public job metadata (on-chain description + Sibyl `purchase.acp.metadata`) is only:
+
+`product, agent, purpose, user (wallet), amount, memoryVerified, memoryProvider, creditLimit, decisionReason`
+
+No private keys, API secrets, or personal data.
+
+### Judge links (under two minutes)
+
+Repo: [https://github.com/0andadream/Trace](https://github.com/0andadream/Trace) · Live: [https://trace-26xx.vercel.app/](https://trace-26xx.vercel.app/) · Demo path: [/demo](https://trace-26xx.vercel.app/demo)
+
+| # | What | Where |
+|---|---|---|
+| 1 | Virtuals agent identity (Alex signer) | [`config/agent-wallet.json`](https://github.com/0andadream/Trace/blob/main/config/agent-wallet.json) · [`0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e`](https://sepolia.basescan.org/address/0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e) |
+| 2 | ACP integration (official v2 contract) | [`lib/virtuals/acp.ts`](https://github.com/0andadream/Trace/blob/main/lib/virtuals/acp.ts) · contract [`0x0b93793923CD5De81850aF8604a233f3f24d461e`](https://sepolia.basescan.org/address/0x0b93793923CD5De81850aF8604a233f3f24d461e) (addresses from `@virtuals-protocol/acp-node-v2`) |
+| 3 | ACP job creation | [`executeBnplSettlementJob`](https://github.com/0andadream/Trace/blob/main/lib/virtuals/acp.ts#L307) called from [`runAcceptPurchase`](https://github.com/0andadream/Trace/blob/main/lib/bnpl/run.ts#L126) |
+| 4 | ACP job execution | same function: `setBudget` → `fund` → `submit` → `complete`; status `executed` only after on-chain COMPLETED |
+| 5 | Base settlement | [`sendMerchantPayout`](https://github.com/0andadream/Trace/blob/main/lib/base/send.ts#L172) |
+| 6 | Sibyl writeMemory | Node [`upsert_relationship`](https://github.com/0andadream/Trace/blob/main/lib/memory/engine.ts#L215) · Python [`persist_relationship`](https://github.com/0andadream/Trace/blob/main/sibyl/bridge.py#L129) |
+| 7 | Sibyl readMemory | Node [`get_relationship`](https://github.com/0andadream/Trace/blob/main/lib/memory/engine.ts#L205) · [`getRelationship`](https://github.com/0andadream/Trace/blob/main/lib/bnpl/store.ts) |
+| 8 | Deterministic credit decision | [`selectPolicyInputs`](https://github.com/0andadream/Trace/blob/main/lib/bnpl/policy.ts#L41) · [`computeApproval`](https://github.com/0andadream/Trace/blob/main/lib/bnpl/policy.ts#L389) |
+
+Verify a live job: Agent Log → ACP_JOB_CREATED / EXECUTED, then `GET /api/virtuals?jobId=<id>` (reads `getJob` on the contract).
+
+## Partner stack
+
+| Partner | Role | Where used |
+|---------|------|------------|
+| Sibyl | Persistent financial memory | Credit history (`USER_RELATIONSHIP`) |
+| Virtuals | Agent identity / ACP execution | BNPL Settlement job |
+| Base | Onchain settlement | Loan payout / repayment |
+
+Sibyl determines what Alex remembers. TRACE determines the credit decision. Virtuals enables Alex to execute the agent job. Base settles the transaction.
+
+Sibyl Memory is mandatory for the hackathon gate and is **not** a multiplier. Base and Virtuals are claimed only because they do real work in the product loop (executed ETH tx; executed or created ACP job with an on-chain id).
+
+## Prior Work
+
+- **Pre-existing TRACE work:** product UI, Alex as BNPL agent, Sibyl-backed `USER_RELATIONSHIP`, deterministic `computeApproval` (on-chain baseline when the book is empty; relationship standing after that), Base Sepolia ETH payout/repay, Agent Log of quotes/purchases.
+- **This Sibyl Labs hackathon pass:** Virtuals ACP v2 job on Confirm purchase; Agent Infrastructure panel; structured Agent Log (MEMORY_READ / CREDIT_DECISION / ACP / SETTLEMENT); single-wallet Sibyl deletion for the load-bearing test; `/demo`; waitlist form; this README section.
+- **Third-party infrastructure:** [Sibyl Memory](https://github.com/Sibyl-Labs/Sibyl-Memory), Virtuals Protocol ACP v2 contracts, Base Sepolia.
+- **Virtuals integration:** new. Not a logo. `createJob` is a contract call from the agent key.
+- **Sibyl integration:** already load-bearing before this pass; not replaced and not moved into Virtuals.
+
+Do not read the homepage How-it-works `$75 → $300` walkthrough as the live policy. Live first-time limits are the on-chain band **$12 / $20 / $24**; one on-time repayment in Sibyl lifts the book into relationship standing (about **$2,358** after a completed on-time $12). The deletion test still returns the same wallet to that first-time band.
+
+## Build in public
+
+Prepared posts (not published from this repo): [`docs/build-in-public.md`](./docs/build-in-public.md). They tag `@sibylcap` and `@virtuals_io`. They do not invent users or volume.
 
 ## License
 

@@ -18,6 +18,8 @@ export function HistoryView() {
   const [repayingId, setRepayingId] = useState<string | null>(null);
   const [repayingRest, setRepayingRest] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [forgetting, setForgetting] = useState(false);
+  const [forgot, setForgot] = useState(false);
 
   const load = useCallback(async (addr: string) => {
     const res = await fetch(`/api/relationship/${addr}`);
@@ -95,6 +97,31 @@ export function HistoryView() {
     }
   }
 
+  async function forgetWallet() {
+    if (!injected.address) return;
+    const ok = window.confirm(
+      "Delete Sibyl memory for this wallet only? On-chain history stays. TRACE will treat you as a first-time user.",
+    );
+    if (!ok) return;
+    setForgetting(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/relationship/${injected.address}`, {
+        method: "DELETE",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ confirm: true }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "delete failed");
+      setForgot(true);
+      await load(injected.address);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "delete failed");
+    } finally {
+      setForgetting(false);
+    }
+  }
+
   const rows = rel?.purchases ?? [];
 
   if (!injected.connected) {
@@ -111,10 +138,25 @@ export function HistoryView() {
 
   return (
     <section className="glass-panel overflow-hidden rounded-2xl">
-      <div className="flex items-center justify-between px-6 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
         <h2 className="text-sm font-semibold tracking-tight text-neutral-900">My history</h2>
-        <p className="font-mono text-[11px] text-neutral-500">{shortAddress(injected.address!)}</p>
+        <div className="flex items-center gap-3">
+          <p className="font-mono text-[11px] text-neutral-500">{shortAddress(injected.address!)}</p>
+          <button
+            type="button"
+            disabled={forgetting || !rel || rel.total_purchases === 0}
+            onClick={forgetWallet}
+            className="rounded-full border border-black/10 px-3 py-1.5 text-[11px] font-medium text-neutral-600 hover:bg-black/5 disabled:opacity-40"
+          >
+            {forgetting ? "Deleting…" : "Delete Sibyl memory"}
+          </button>
+        </div>
       </div>
+      {forgot ? (
+        <p className="px-6 pb-3 text-[13px] text-neutral-600">
+          Same wallet. Same onchain history. Different memory.
+        </p>
+      ) : null}
       {error ? <p className="px-6 pb-3 text-sm text-red-600">{error}</p> : null}
       {rel && rel.total_purchases > 0 ? (
         <div className="border-t border-black/5 px-6 py-5">

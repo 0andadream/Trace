@@ -29,6 +29,14 @@ export async function saveRelationship(rel: UserRelationship): Promise<UserRelat
   return recomputeRelationship(normalize(result.relationship || computed));
 }
 
+export async function deleteRelationship(wallet: string): Promise<{ deleted: boolean; wallet: string }> {
+  const addr = wallet.trim().toLowerCase();
+  const result = await callSibyl<{ deleted?: boolean; wallet?: string }>("delete_relationship", {
+    wallet: addr,
+  });
+  return { deleted: Boolean(result.deleted), wallet: addr };
+}
+
 export async function replaceRelationships(relationships: UserRelationship[]): Promise<UserRelationship[]> {
   const rows = relationships.map((rel) => stripComputedForStorage(recomputeRelationship(rel)));
   const result = await callSibyl<{ relationships: UserRelationship[] }>("replace_relationships", {

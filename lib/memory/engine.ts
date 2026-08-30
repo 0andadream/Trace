@@ -1,6 +1,6 @@
 import {
   appendEvent,
-  emptyBucket,
+  deleteRel,
   getEntity,
   getRel,
   listCategory,
@@ -217,6 +217,19 @@ export async function handleSibylMessage(msg: Msg) {
     return { ok: true, relationship: rel, health: await health(tenant) };
   }
 
+  if (op === "delete_relationship") {
+    const addr = String(msg.wallet || "").trim().toLowerCase();
+    if (!addr) throw new Error("wallet required");
+    const existed = await deleteRel(tenant, addr);
+    await appendEvent(tenant, {
+      acted: [`deleted Sibyl relationship ${addr} existed=${existed}`],
+      extra: { wallet: addr, kind: "MEMORY_DELETED" },
+      ts: new Date().toISOString(),
+    });
+    await patchState(tenant, "last_relationship", { wallet: addr, deleted: true });
+    return { ok: true, deleted: existed, wallet: addr, health: await health(tenant) };
+  }
+
   if (op === "replace_relationships") {
     await wipeTenant(tenant);
     const rows = (msg.relationships as Body[]) || [];
@@ -231,6 +244,19 @@ export async function handleSibylMessage(msg: Msg) {
     const rels = (await listRels(tenant)).map(bodyRel);
     rels.sort((a, b) => String(b.last_seen || "").localeCompare(String(a.last_seen || "")));
     return { ok: true, health: await health(tenant), relationships: rels };
+  }
+
+  if (op === "waitlist_add") {
+    const row = (msg.row || {}) as Body;
+    const email = String(row.email || "").trim().toLowerCase();
+    if (!email) throw new Error("waitlist email required");
+    await setEntity(tenant, "waitlist", email, { ...row, email });
+    await appendEvent(tenant, {
+      acted: [`waitlist ${email}`],
+      extra: { kind: "WAITLIST" },
+      ts: row.at,
+    });
+    return { ok: true, health: await health(tenant) };
   }
 
   if (op === "wipe") {
