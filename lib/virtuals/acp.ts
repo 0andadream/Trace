@@ -6,22 +6,26 @@
  * AgenticCommerceV3 contract with viem. The LLM and this module do
  * not choose credit amounts.
  *
- * ACP job: "BNPL Settlement". Caller (Alex) is client + provider +
- * evaluator (self-evaluation). Budget is 0 — user funds never move
- * through ACP escrow. Base ETH settlement stays on the existing
- * sendMerchantPayout path after the user confirms.
+ * ACP job: "BNPL Settlement". Alex is the client and evaluator.
+ * The provider is a second TRACE address (ACP forbids client == provider
+ * via ClientIsProvider). Budget is 0 — user funds never move through
+ * ACP escrow. Base ETH settlement stays on sendMerchantPayout.
  */
 import {
+  concat,
   createPublicClient,
   createWalletClient,
   http,
   keccak256,
+  parseEther,
   stringToHex,
   toEventHash,
+  toHex,
   zeroAddress,
   type Address,
   type Hex,
 } from "viem";
+import { privateKeyToAccount, type PrivateKeyAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
 import { getAgentAccount, getAgentAddress } from "@/lib/wallet";
 import { publicJobMetadata, type PublicJobMetadata } from "@/lib/virtuals/metadata";
@@ -33,18 +37,29 @@ export const ACP_CONTRACT: Record<number, Address> = {
 
 export const ACP_OFFERING = "BNPL Settlement";
 
-/** Official ACP v2 JobStatus (AgenticCommerceV3). */
+/** JobStatus on the live Base Sepolia AgenticCommerceV3 contract. */
 export const ACP_JOB_STATUS = {
   OPEN: 0,
   BUDGET_SET: 1,
   FUNDED: 2,
-  SUBMITTED: 3,
-  COMPLETED: 4,
-  REJECTED: 5,
-  EXPIRED: 6,
+  COMPLETED: 3,
+  REJECTED: 4,
+  EXPIRED: 5,
 } as const;
 
+export function acpJobIsCompleted(status?: number) {
+  return status === ACP_JOB_STATUS.COMPLETED;
+}
+
 export const ACP_ABI = [
+  { type: "error", name: "ClientIsProvider", inputs: [] },
+  { type: "error", name: "ExpiryTooShort", inputs: [] },
+  { type: "error", name: "ZeroAddress", inputs: [] },
+  { type: "error", name: "Unauthorized", inputs: [] },
+  { type: "error", name: "WrongStatus", inputs: [] },
+  { type: "error", name: "BudgetMismatch", inputs: [] },
+  { type: "error", name: "ProviderNotSet", inputs: [] },
+  { type: "error", name: "HookNotWhitelisted", inputs: [] },
   {
     type: "function",
     name: "createJob",
@@ -195,6 +210,25 @@ function executeEnabled() {
   return v === "1" || v === "true" || v === "yes";
 }
 
+function sourceKey(): Hex {
+  const raw = (process.env.AGENT_PRIVATE_KEY || process.env.BASE_PRIVATE_KEY || "").trim();
+  if (!raw) throw new Error("AGENT_PRIVATE_KEY is missing.");
+  return (raw.startsWith("0x") ? raw : `0x${raw}`) as Hex;
+}
+
+/** Second TRACE wallet. ACP reverts ClientIsProvider if client === provider. */
+export function getAcpProviderAccount(): PrivateKeyAccount {
+  return privateKeyToAccount(keccak256(concat([sourceKey(), toHex("TRACE_ACP_PROVIDER_v1")])));
+}
+
+export function getAcpProviderAddress(): Address {
+  try {
+    return getAcpProviderAccount().address;
+  } catch {
+    return zeroAddress;
+  }
+}
+
 function skippedResult(reason: string, metadata: PublicJobMetadata): AcpJobResult {
   const cfg = chainConfig();
   return {
@@ -312,38 +346,54 @@ export async function executeBnplSettlementJob(input: BnplSettlementInput): Prom
   }
 
   try {
-    const account = getAgentAccount();
+    const client = getAgentAccount();
+    const provider = getAcpProviderAccount();
     const publicClient = createPublicClient({ chain: cfg.chain, transport: http(cfg.rpc, { timeout: 30_000 }) });
-    const wallet = createWalletClient({
-      account,
+    const clientWallet = createWalletClient({
+      account: client,
       chain: cfg.chain,
       transport: http(cfg.rpc, { timeout: 30_000 }),
     });
-    const agent = account.address;
+    const providerWallet = createWalletClient({
+      account: provider,
+      chain: cfg.chain,
+      transport: http(cfg.rpc, { timeout: 30_000 }),
+    });
     const expiredAt = BigInt(Math.floor(Date.now() / 1000) + 30 * 60);
     const description = jobDescription(metadata);
+
+    const providerBal = await publicClient.getBalance({ address: provider.address });
+    if (providerBal < parseEther("0.00004")) {
+      const fundHash = await clientWallet.sendTransaction({
+        account: client,
+        chain: cfg.chain,
+        to: provider.address,
+        value: parseEther("0.00008"),
+      });
+      await waitReceipt(publicClient, fundHash);
+    }
 
     let predictedId: bigint | null = null;
     try {
       const sim = await publicClient.simulateContract({
-        account,
+        account: client,
         address: cfg.contract,
         abi: ACP_ABI,
         functionName: "createJob",
-        args: [agent, agent, expiredAt, description, zeroAddress],
+        args: [provider.address, client.address, expiredAt, description, zeroAddress],
       });
       predictedId = sim.result;
     } catch {
       predictedId = null;
     }
 
-    const createHash = await wallet.writeContract({
-      account,
+    const createHash = await clientWallet.writeContract({
+      account: client,
       chain: cfg.chain,
       address: cfg.contract,
       abi: ACP_ABI,
       functionName: "createJob",
-      args: [agent, agent, expiredAt, description, zeroAddress],
+      args: [provider.address, client.address, expiredAt, description, zeroAddress],
     });
     const createdReceipt = await waitReceipt(publicClient, createHash);
     if (createdReceipt.status !== "success") {
@@ -388,14 +438,20 @@ export async function executeBnplSettlementJob(input: BnplSettlementInput): Prom
     const deliverable = keccak256(stringToHex(JSON.stringify(metadata)));
     const done = keccak256(stringToHex("BNPL_SETTLEMENT_OK"));
     let executeTx: Hex | undefined;
-    const steps: Array<{ name: "setBudget" | "fund" | "submit" | "complete"; args: readonly unknown[] }> = [
-      { name: "setBudget", args: [jobId, 0n, "0x"] },
-      { name: "fund", args: [jobId, 0n, "0x"] },
-      { name: "submit", args: [jobId, deliverable, "0x"] },
-      { name: "complete", args: [jobId, done, "0x"] },
+    const steps: Array<{
+      name: "setBudget" | "fund" | "submit" | "complete";
+      signer: "client" | "provider";
+      args: readonly unknown[];
+    }> = [
+      { name: "setBudget", signer: "provider", args: [jobId, 0n, "0x"] },
+      { name: "fund", signer: "client", args: [jobId, 0n, "0x"] },
+      { name: "submit", signer: "provider", args: [jobId, deliverable, "0x"] },
+      { name: "complete", signer: "client", args: [jobId, done, "0x"] },
     ];
 
     for (const step of steps) {
+      const account = step.signer === "provider" ? provider : client;
+      const wallet = step.signer === "provider" ? providerWallet : clientWallet;
       try {
         const hash = await wallet.writeContract({
           account,
@@ -430,7 +486,7 @@ export async function executeBnplSettlementJob(input: BnplSettlementInput): Prom
       onchainStatus = undefined;
     }
 
-    const executed = onchainStatus === ACP_JOB_STATUS.COMPLETED;
+    const executed = acpJobIsCompleted(onchainStatus);
     return {
       ...created,
       status: executed ? "executed" : "created",

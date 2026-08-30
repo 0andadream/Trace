@@ -13,7 +13,8 @@
     "wallet:create": "npx tsx scripts/create-wallet.ts",
     "memory:seed": "npx tsx scripts/seed-memory.ts",
     "memory:reset": "npx tsx scripts/reset-memory-empty.ts",
-    "memory:export": "npx tsx scripts/export-memory.ts"
+    "memory:export": "npx tsx scripts/export-memory.ts",
+    "acp:job": "npx tsx scripts/acp-bnpl-settlement.ts"
   },
   "engines": {
     "node": "20.x"
