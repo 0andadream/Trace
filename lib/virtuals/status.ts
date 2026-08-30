@@ -2,21 +2,36 @@ import { getAgentAddress } from "@/lib/wallet";
 import { payoutIsLive } from "@/lib/bnpl/status";
 import { bnplHealth, listRelationships } from "@/lib/bnpl/store";
 import { ACP_CONTRACT, acpExplorerJob, readAcpJobCounter } from "@/lib/virtuals/acp";
+import { fetchAlexRegistry } from "@/lib/virtuals/registry";
+import { ALEX_ACP_PROFILE_URL } from "@/lib/virtuals/identity";
 import type { AcpJobRecord } from "@/types/bnpl";
 
 export type AgentInfrastructure = {
   sibyl: { connected: boolean; loadBearing: boolean; engine?: string; db?: string };
   virtuals: {
-    agentRegistered: boolean;
-    acpEnabled: boolean;
-    reachable: boolean;
+    /** Live GET of the Virtuals registry row. */
+    profileRegistered: boolean;
+    profileName?: string;
+    profileWallet?: string | null;
+    profileRole?: string | null;
+    offerings: number;
+    lastActiveAt: string | null;
+    profileUrl: string;
+    /** TRACE HTTP adapter POST /api/acp/jobs → computeApproval. */
+    jobEndpoint: boolean;
+    inboundHandled: number;
+    /** Virtuals SSE/SDK seller listener. Requires Privy signer of the portal wallet. */
+    marketplaceListener: boolean;
+    /** Base Sepolia AgenticCommerce contract, not Alex's job count. */
+    sepoliaContractReachable: boolean;
+    sepoliaJobCounter?: string;
     contract: string;
     chainId: number;
-    jobCounter?: string;
-    agent?: string;
+    settlementAgent?: string;
     lastJob?: AcpJobRecord | null;
     reason?: string;
     verifyUrl: string;
+    statusLabel: string;
   };
   base: {
     connected: boolean;
@@ -26,18 +41,37 @@ export type AgentInfrastructure = {
   };
 };
 
+function statusLabel(input: {
+  profileRegistered: boolean;
+  offerings: number;
+  marketplaceListener: boolean;
+  jobEndpoint: boolean;
+}): string {
+  if (input.profileRegistered && input.marketplaceListener) {
+    return "Agent registered. Marketplace listener connected.";
+  }
+  if (input.profileRegistered && input.jobEndpoint) {
+    return "Agent registered on Virtuals ACP. Marketplace listener is not connected. TRACE ACP job endpoint uses the existing decision engine.";
+  }
+  if (input.profileRegistered) {
+    return "Agent registered on Virtuals ACP. ACP job handling is not connected.";
+  }
+  return "Virtuals registry not confirmed.";
+}
+
 export async function getAgentInfrastructure(): Promise<AgentInfrastructure> {
   const chainId = Number(process.env.BASE_CHAIN_ID || 84532);
   const contract = ACP_CONTRACT[chainId] || ACP_CONTRACT[84532];
-  let agent: string | undefined;
+  let settlementAgent: string | undefined;
   try {
-    agent = getAgentAddress();
+    settlementAgent = getAgentAddress();
   } catch {
-    agent = undefined;
+    settlementAgent = undefined;
   }
 
   let sibyl = { connected: false, loadBearing: false, engine: undefined as string | undefined, db: undefined as string | undefined };
   let lastJob: AcpJobRecord | null = null;
+  let inboundHandled = 0;
   try {
     const health = await bnplHealth();
     sibyl = {
@@ -47,8 +81,9 @@ export async function getAgentInfrastructure(): Promise<AgentInfrastructure> {
       db: String(health.db || ""),
     };
     const rels = await listRelationships();
-    const withJob = rels
-      .flatMap((r) => r.purchases || [])
+    const purchases = rels.flatMap((r) => r.purchases || []);
+    inboundHandled = purchases.filter((p) => p.channel === "acp").length;
+    const withJob = purchases
       .filter((p) => p.acp?.jobId)
       .sort((a, b) => String(b.approved_date).localeCompare(String(a.approved_date)));
     lastJob = withJob[0]?.acp || null;
@@ -56,23 +91,40 @@ export async function getAgentInfrastructure(): Promise<AgentInfrastructure> {
     sibyl = { connected: false, loadBearing: false, engine: undefined, db: undefined };
   }
 
-  const acp = await readAcpJobCounter();
+  const [acp, profile] = await Promise.all([readAcpJobCounter(), fetchAlexRegistry()]);
   const execute = payoutIsLive();
+  const marketplaceListener = false;
+  const jobEndpoint = true;
+  const virtuals = {
+    profileRegistered: profile.ok,
+    profileName: profile.name,
+    profileWallet: profile.walletAddress,
+    profileRole: profile.role,
+    offerings: profile.offerings,
+    lastActiveAt: profile.lastActiveAt,
+    profileUrl: profile.profileUrl || ALEX_ACP_PROFILE_URL,
+    jobEndpoint,
+    inboundHandled,
+    marketplaceListener,
+    sepoliaContractReachable: acp.reachable,
+    sepoliaJobCounter: acp.jobCounter,
+    contract,
+    chainId: acp.chainId,
+    settlementAgent,
+    lastJob,
+    reason: profile.ok ? acp.reason : profile.reason,
+    verifyUrl: acpExplorerJob(contract, chainId),
+    statusLabel: statusLabel({
+      profileRegistered: profile.ok,
+      offerings: profile.offerings,
+      marketplaceListener,
+      jobEndpoint,
+    }),
+  };
 
   return {
     sibyl,
-    virtuals: {
-      agentRegistered: Boolean(agent),
-      acpEnabled: acp.reachable,
-      reachable: acp.reachable,
-      contract,
-      chainId: acp.chainId,
-      jobCounter: acp.jobCounter,
-      agent,
-      lastJob,
-      reason: acp.reason,
-      verifyUrl: acpExplorerJob(contract, chainId),
-    },
+    virtuals,
     base: {
       connected: true,
       execute,

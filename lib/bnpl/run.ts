@@ -23,6 +23,7 @@ import type {
   Installment,
   OnchainSignal,
   OverrideOutcome,
+  PurchaseChannel,
   PurchaseRecord,
   PurchaseResult,
   QuoteRecord,
@@ -51,6 +52,8 @@ export async function runPurchaseQuote(input: {
   onchainOverride?: OnchainSignal;
   pay_in_full?: boolean;
   installments?: number;
+  channel?: PurchaseChannel;
+  acp_job_ref?: string | null;
 }): Promise<PurchaseResult> {
   const wallet = requireWallet(input.wallet);
   const merchant = (input.merchant || "Test Shop").trim() || "Test Shop";
@@ -93,6 +96,8 @@ export async function runPurchaseQuote(input: {
       standing_score: terms.standing_score,
       primary_signal: terms.primary_signal,
       reasoning: verdict.reasoning,
+      channel: input.channel || "buy",
+      acp_job_ref: input.acp_job_ref || null,
     };
     const base =
       relationship.total_purchases === 0 && relationship.quotes.length === 0
@@ -130,6 +135,8 @@ export async function runAcceptPurchase(input: {
   override?: boolean;
   pay_in_full?: boolean;
   installments?: number;
+  channel?: PurchaseChannel;
+  acp_job_ref?: string | null;
 }): Promise<{
   relationship: UserRelationship;
   purchase: PurchaseRecord;
@@ -148,6 +155,8 @@ export async function runAcceptPurchase(input: {
     persist: true,
     pay_in_full: input.pay_in_full,
     installments: input.installments,
+    channel: input.channel,
+    acp_job_ref: input.acp_job_ref,
   });
   const { terms } = quoted;
 
@@ -231,6 +240,8 @@ export async function runAcceptPurchase(input: {
     interest_amount: terms.interest_amount || 0,
     total_due: terms.total_due || acceptedAmount,
     pay_in_full: terms.pay_in_full,
+    channel: input.channel || "buy",
+    acp_job_ref: input.acp_job_ref || acp.jobId || null,
   };
 
   const rel = quoted.relationship;

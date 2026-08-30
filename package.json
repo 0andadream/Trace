@@ -14,7 +14,8 @@
     "memory:seed": "npx tsx scripts/seed-memory.ts",
     "memory:reset": "npx tsx scripts/reset-memory-empty.ts",
     "memory:export": "npx tsx scripts/export-memory.ts",
-    "acp:job": "npx tsx scripts/acp-bnpl-settlement.ts"
+    "acp:job": "npx tsx scripts/acp-bnpl-settlement.ts",
+    "acp:request": "npx tsx scripts/acp-request-credit.ts"
   },
   "engines": {
     "node": "20.x"

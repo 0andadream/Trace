@@ -9,12 +9,16 @@ import type { AcpJobRecord } from "@/types/bnpl";
 type Infra = {
   sibyl: { connected: boolean; loadBearing: boolean };
   virtuals: {
-    agentRegistered: boolean;
-    acpEnabled: boolean;
-    reachable: boolean;
-    jobCounter?: string;
+    profileRegistered: boolean;
+    profileWallet?: string | null;
+    offerings: number;
+    jobEndpoint: boolean;
+    inboundHandled: number;
+    marketplaceListener: boolean;
+    sepoliaContractReachable: boolean;
+    sepoliaJobCounter?: string;
     lastJob?: AcpJobRecord | null;
-    reason?: string;
+    statusLabel: string;
     verifyUrl: string;
   };
   base: { connected: boolean; execute: boolean; network: string };
@@ -35,11 +39,9 @@ function JobCard({ job }: { job: AcpJobRecord }) {
   const hash = job.executeTxHash || job.createTxHash;
   return (
     <div className="mt-3 rounded-xl bg-black/[0.03] px-3 py-3">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">ACP job</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">ACP settlement job</p>
       <p className="mt-1 text-[14px] font-semibold text-neutral-900">{job.offering}</p>
-      <p className="text-[13px] tabular-nums text-neutral-600">
-        {formatAmount(job.metadata?.amount ?? 0)}
-      </p>
+      <p className="text-[13px] tabular-nums text-neutral-600">{formatAmount(job.metadata?.amount ?? 0)}</p>
       <ul className="mt-2 space-y-0.5 text-[12px] text-neutral-600">
         <li>{created ? "✓" : "○"} Job created{job.jobId ? ` · ${job.jobId}` : ""}</li>
         <li>{executed ? "✓ Job executed" : job.status === "failed" ? "× Job failed" : "○ Job executed"}</li>
@@ -90,12 +92,36 @@ export function AgentInfrastructure({ job }: { job?: AcpJobRecord | null }) {
         </div>
         <div>
           <dt className="flex items-center gap-2 text-[13px] font-semibold text-neutral-900">
-            <Dot on={Boolean(infra?.virtuals.reachable)} />
+            <Dot on={Boolean(infra?.virtuals.profileRegistered)} />
             Virtuals
           </dt>
           <dd className="mt-0.5 space-y-2 pl-4 text-[12px] text-neutral-500">
-            <p>Alex registered on Virtuals ACP</p>
-            <p>{infra?.virtuals.acpEnabled ? "ACP contract reachable" : infra?.virtuals.reason || "ACP contract unreachable"}</p>
+            <p>
+              {infra?.virtuals.profileRegistered
+                ? "Agent registered on Virtuals ACP"
+                : infra
+                  ? "Registry not confirmed"
+                  : "Checking…"}
+            </p>
+            {infra?.virtuals.profileWallet ? (
+              <p className="break-all font-mono text-[11px]">{infra.virtuals.profileWallet}</p>
+            ) : null}
+            <p>
+              Job offerings listed: {infra ? String(infra.virtuals.offerings) : "—"}
+            </p>
+            <p>
+              {infra?.virtuals.marketplaceListener
+                ? "Marketplace listener connected"
+                : "Marketplace listener not connected"}
+            </p>
+            <p>
+              {infra?.virtuals.jobEndpoint
+                ? `TRACE ACP job endpoint live · ${infra.virtuals.inboundHandled} inbound job${infra.virtuals.inboundHandled === 1 ? "" : "s"} recorded`
+                : "TRACE ACP job endpoint off"}
+            </p>
+            {infra?.virtuals.statusLabel ? (
+              <p className="leading-5 text-neutral-600">{infra.virtuals.statusLabel}</p>
+            ) : null}
             <div className="pt-1">
               <AgentIdentityCard />
             </div>
@@ -110,6 +136,9 @@ export function AgentInfrastructure({ job }: { job?: AcpJobRecord | null }) {
           <dd className="mt-0.5 pl-4 text-[12px] text-neutral-500">
             {infra?.base.execute ? "Settlement connected" : "Settlement simulated on this host"}
             {infra ? ` · ${infra.base.network}` : ""}
+            {infra?.virtuals.sepoliaContractReachable
+              ? ` · ACP contract reachable${infra.virtuals.sepoliaJobCounter ? ` (network jobCounter ${infra.virtuals.sepoliaJobCounter})` : ""}`
+              : ""}
           </dd>
         </div>
       </dl>
@@ -122,7 +151,7 @@ export function AgentInfrastructure({ job }: { job?: AcpJobRecord | null }) {
             rel="noopener noreferrer"
             className="inline-flex items-center text-[12px] font-medium text-neutral-500 hover:text-neutral-800 hover:underline"
           >
-            ACP contract on Base Sepolia
+            Sepolia ACP contract
           </a>
         ) : null}
       </div>

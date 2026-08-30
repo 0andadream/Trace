@@ -319,7 +319,8 @@ See `.env.example`. BNPL-relevant:
 - `GET /api/agent-status` — agent cash, reserve, deployable, `execute`; **503** if Sibyl/Redis is down
 - `GET /api/health` — store ping; **503** if unreachable
 - `GET /api/log` — public quotes, purchases, and structured agent events (MEMORY_READ, CREDIT_DECISION, ACP_JOB_*, SETTLEMENT)
-- `GET /api/virtuals` — ACP contract reachability + last real job; `?jobId=` reads `getJob` on-chain
+- `GET /api/virtuals` — live Virtuals registry row + honest ACP status; `?jobId=` reads Sepolia `getJob`
+- `POST /api/acp/jobs` — ACP job payload → same `computeApproval` path as `/api/purchase`
 - `DELETE /api/relationship/:wallet` — `{ confirm: true }` deletes **that wallet’s** Sibyl relationship (deletion test). Chain history is untouched.
 - `GET /api/memory` — relationships (plus leftover treasury fields if present)
 - `POST /api/pmf` — early-access waitlist row. Not a usage metric.
@@ -340,20 +341,61 @@ pnpm mcp              # leftover treasury MCP (alex_decide / alex_memory / alex_
 
 ## Virtuals Protocol Integration
 
-Alex is TRACE’s BNPL agent. TRACE registers that agent identity as the **client / provider / evaluator** on the Virtuals ACP v2 contract and uses ACP as the **autonomous execution** step after a deterministic credit decision.
+Verified against the live Virtuals registry on 2026-08-30 (`GET https://api.acp.virtuals.io/agents/01a05400-aea9-7f70-a67e-f558448e86e3`):
 
-Virtuals does **not** remember the user. Virtuals does **not** choose the credit amount. Sibyl Memory remains the persistent financial book. Base remains settlement.
+| Fact | Value |
+|---|---|
+| Registered | **Yes.** Name `Alex`, role `HYBRID`, id `01a05400-aea9-7f70-a67e-f558448e86e3` |
+| Portal page | [app.virtuals.io/acp/agents/…](https://app.virtuals.io/acp/agents/01a05400-aea9-7f70-a67e-f558448e86e3?tab=acp) |
+| Portal wallet | `0xf3df4e32fb19dc0456a3e59eddfa0d821e65a2c5` (Privy) |
+| TRACE Base signer | `0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e` — **a different wallet** |
+| Offerings | **none** (`offerings: []`) |
+| `lastActiveAt` | **null** — marketplace event listener has not connected |
+| Sepolia ACP contract | reachable; network-wide `jobCounter` is **not** Alex’s job count |
 
-Flow on Confirm purchase (`runAcceptPurchase`):
+**What is wired in TRACE**
 
-1. Sibyl `get_relationship` (memory read)
-2. `computeApproval` in `lib/bnpl/policy.ts` (numbers)
-3. ACP job `createJob` on Base Sepolia — offering **BNPL Settlement**, budget `0` (no user funds in ACP escrow)
-4. `setBudget` / `fund` / `submit` / `complete` when the contract accepts a 0-budget self-eval
-5. Existing Base ETH payout to the connected wallet
-6. Later: user-signed repay → Sibyl write
+1. **Identity.** The UI links the official agent page. Status copies the live registry row (name, portal wallet, offering count).
+2. **Second entry into the existing engine.** `POST /api/acp/jobs` maps an ACP job payload onto `runPurchaseQuote` / `runAcceptPurchase`, which call `computeApproval` in `lib/bnpl/policy.ts`. USER_RELATIONSHIP is still keyed by a **0x wallet**. A Virtuals agent UUID is rejected. Ceilings, standing, and payouts are the same as `/buy`.
+3. **Sibyl.** An accepted ACP job writes the same `USER_RELATIONSHIP` purchase schema (`channel: "acp"` is stored for the log; standing ignores it).
+4. **Outbound Sepolia settlement job.** After an **approved** purchase, TRACE may still call `createJob` on the Base Sepolia ACP contract as the TRACE signer. That is TRACE acting as client, not Virtuals routing a marketplace job to the Privy portal wallet.
 
-If `BASE_EXECUTE` is off, or the agent key is missing, ACP is **skipped** with a real reason. The UI never marks a job completed unless `getJob` reports COMPLETED or `complete()` was mined.
+**What is not claimed**
+
+- TRACE is **not** running Virtuals’ SSE/SDK seller listener. That needs the Privy signer for `0xf3df…`, which is not in this repo.
+- Alex has **no** Virtuals job offering, so Butler/marketplace cannot hire him yet.
+- The Sepolia `jobCounter` is the **contract’s global counter**, not “jobs Alex handled”.
+- Base Sepolia ETH payouts are TRACE settlement, not Virtuals infrastructure.
+
+Virtuals does **not** remember the user and does **not** choose the credit amount.
+
+### Demo: ACP job → same decision engine
+
+Needs the app (or the script) and Sibyl. Use a wallet that is **not** a secret.
+
+Quote only (no payout):
+
+```bash
+pnpm acp:request 0xYourWallet 12
+```
+
+Or HTTP, same body the engine expects from an ACP requirement:
+
+```bash
+curl -sS http://localhost:3002/api/acp/jobs \
+  -H 'content-type: application/json' \
+  -d '{"wallet":"0xYourWallet","loanAmount":12}'
+```
+
+Expect the **same** `decision` / `limit` / `primary_signal` as `POST /api/purchase` for that wallet and amount. That is the proof the ACP path did not grow a second policy.
+
+To originate a plan (same payout rules as `/buy`, including `BASE_EXECUTE`):
+
+```bash
+pnpm acp:request 0xYourWallet 12 --accept
+```
+
+`--accept` only proceeds when `computeApproval` returns Approve / Approve with reduced limit. Decline and ceiling-blocked stay quotes.
 
 Public job metadata (on-chain description + Sibyl `purchase.acp.metadata`) is only:
 

@@ -26,6 +26,9 @@ export type Installment = {
 
 export type PayoutMode = "on_chain" | "simulated";
 
+/** How the quote/purchase entered TRACE. Standing ignores this. */
+export type PurchaseChannel = "buy" | "acp";
+
 export type AcpJobRecord = {
   offering: "BNPL Settlement";
   status: "created" | "executed" | "skipped" | "failed";
@@ -74,6 +77,8 @@ export type PurchaseRecord = {
   interest_amount?: number;
   total_due?: number;
   pay_in_full?: boolean;
+  channel?: PurchaseChannel;
+  acp_job_ref?: string | null;
 };
 
 export type QuoteRecord = {
@@ -88,6 +93,8 @@ export type QuoteRecord = {
   standing_score: number;
   primary_signal: PolicyPrimary;
   reasoning: string[];
+  channel?: PurchaseChannel;
+  acp_job_ref?: string | null;
 };
 
 export type OverrideOutcome = {
