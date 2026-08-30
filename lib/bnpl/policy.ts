@@ -278,16 +278,23 @@ function fromRelationship(
 ): ApprovalTerms {
   const max = maxPurchaseAmount();
   const standing = standingFromHistory(rel);
-  const gross = limitFromStanding(standing, rel.default_count, rel.on_time_count);
+  const gross = limitFromStanding(standing, rel.default_count, rel.on_time_count, rel.late_count);
   const outstanding = outstandingBalance(rel);
   const available = round2(Math.max(0, gross - outstanding));
   const maxN = planLength(standing, rel.late_count, rel.default_count);
+  const snap = rel.snapshot;
   const factors = [
     {
       id: "relationship_history",
       detail: `${rel.total_purchases} purchase${rel.total_purchases === 1 ? "" : "s"} this agent approved: ${rel.on_time_count} completed_on_time, ${rel.late_count} completed_late, ${rel.default_count} defaulted. ONCHAIN_SIGNAL not used.`,
     },
   ];
+  if (snap?.trust_note) {
+    factors.push({
+      id: "relationship_snapshot",
+      detail: `Snapshot last_outcome=${snap.last_outcome ?? "none"} open_plans=${snap.open_plans} standing=${snap.standing}. ${snap.trust_note}`,
+    });
+  }
 
   if (rel.default_count >= 1) {
     factors.push({

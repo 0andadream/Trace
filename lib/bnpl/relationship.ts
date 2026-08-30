@@ -4,6 +4,7 @@ import type {
   InstallmentStatus,
   PurchaseOutcome,
   PurchaseRecord,
+  RelationshipSnapshot,
   UserRelationship,
 } from "@/types/bnpl";
 import { maxPurchaseAmount } from "@/lib/bnpl/ceiling";
@@ -16,6 +17,13 @@ export const MAX_STANDING = 0.95;
 export const LIMIT_AT_MID_STANDING = 3_000;
 /** After a default, limit is cut to this regardless of prior volume. */
 export const DEFAULT_LIMIT_CAP = 8;
+/** Open plan / no completed on-time stays at the established first-time cap. */
+export const OPEN_PLAN_LIMIT_CAP = 24;
+/** After one completed on-time plan, lift into this band instead of the $2k standing curve. */
+export const FIRST_CLEAN_LIMIT_MIN = 40;
+export const FIRST_CLEAN_LIMIT_MAX = 80;
+/** Per late completion. Soft enough that one late still quotes, hard enough to move numbers. */
+export const LATE_STANDING_PENALTY = 0.08;
 
 export type StandingLine = {
   id: string;
@@ -53,8 +61,8 @@ function pts(standingDelta: number) {
  * Open plans do not mint reputation: until a plan is finished, standing
  * stays at the on-chain cap (0.38). Displayed score is standing × 100.
  * Each completed on-time plan adds 0.005 (~1 point every 1–2 finishes).
- * Limit is gated by score: 0–50 maps up to $3k (50 = $3k, below is lower),
- * then to MAX_PURCHASE_AMOUNT ($10k) at standing 0.95.
+ * Limit is gated by completed on-time count first (one clean plan → $40–$80),
+ * then by score: 0–50 maps up to $3k (50 = $3k), then $10k at standing 0.95.
  * Asymmetry: one default caps standing at 0.12 regardless of volume.
  *
  * The lines on StandingBreakdown are the same additives this function applies,
@@ -89,7 +97,7 @@ export function standingBreakdown(rel: HistoryCounts): StandingBreakdown {
     lines.push({
       id: "late",
       label: `Late completions (${rel.late_count})`,
-      points: pts(-rel.late_count * 0.25),
+      points: pts(-rel.late_count * LATE_STANDING_PENALTY),
     });
   }
   if (rel.total_purchased > 0) {
@@ -113,7 +121,7 @@ export function standingBreakdown(rel: HistoryCounts): StandingBreakdown {
 
   let s = STARTER_STANDING;
   s += rel.on_time_count * 0.005;
-  s -= rel.late_count * 0.25;
+  s -= rel.late_count * LATE_STANDING_PENALTY;
   if (rel.total_purchased > 0) {
     s += 0.008 * Math.min(1, rel.total_repaid / rel.total_purchased);
   }
@@ -262,20 +270,68 @@ export function outstandingBalance(rel: UserRelationship): number {
   return round2(sum);
 }
 
-export function limitFromStanding(standing: number, defaultCount = 0, _onTimeCount = 0) {
+export function limitFromStanding(standing: number, defaultCount = 0, onTimeCount = 0, lateCount = 0) {
   if (standing <= 0) return 0;
   const unlocked = maxPurchaseAmount();
   const at50 = Math.min(LIMIT_AT_MID_STANDING, unlocked);
-  let n: number;
+  let curve: number;
   if (standing <= MID_STANDING) {
-    n = round2(at50 * (standing / MID_STANDING));
+    curve = round2(at50 * (standing / MID_STANDING));
   } else {
     const span = MAX_STANDING - MID_STANDING;
     const t = span > 0 ? Math.min(1, (standing - MID_STANDING) / span) : 1;
-    n = round2(at50 + (unlocked - at50) * t);
+    curve = round2(at50 + (unlocked - at50) * t);
   }
-  if (defaultCount >= 1) n = round2(Math.min(n, DEFAULT_LIMIT_CAP));
+  if (defaultCount >= 1) return round2(Math.min(curve, DEFAULT_LIMIT_CAP, unlocked));
+
+  let n: number;
+  if (onTimeCount <= 0) {
+    n = lateCount >= 1 ? 16 : OPEN_PLAN_LIMIT_CAP;
+  } else if (onTimeCount === 1) {
+    const t = Math.min(1, Math.max(0, (standing - STARTER_STANDING) / 0.12));
+    const band = round2(FIRST_CLEAN_LIMIT_MIN + (FIRST_CLEAN_LIMIT_MAX - FIRST_CLEAN_LIMIT_MIN) * t);
+    n = lateCount >= 1 ? round2(Math.min(band, 32)) : band;
+  } else if (onTimeCount === 2) {
+    n = Math.min(curve, lateCount >= 1 ? 90 : 180);
+  } else if (onTimeCount === 3) {
+    n = Math.min(curve, lateCount >= 1 ? 180 : 420);
+  } else {
+    n = lateCount >= 1 ? round2(curve * 0.55) : curve;
+  }
   return Math.min(n, unlocked);
+}
+
+export function emptySnapshot(): RelationshipSnapshot {
+  return {
+    last_outcome: null,
+    open_plans: 0,
+    standing: 0,
+    trust_note: "No history with this agent.",
+  };
+}
+
+export function trustNoteFromHistory(rel: HistoryCounts & { active_count?: number; purchases?: PurchaseRecord[] }): string {
+  if (!rel.total_purchases) return "No history with this agent.";
+  const completed = rel.on_time_count + rel.late_count + rel.default_count;
+  if (completed === 0) {
+    return "Open plan. Standing capped at 0.38 until the plan is finished.";
+  }
+  if (rel.default_count >= 1) return "Default on file. Limit cut, then Decline.";
+  if (rel.late_count >= 1) {
+    return "A late completion is on file. Limit, installment count, and interest are worse than a clean book.";
+  }
+  return "Last completed plan was on time. USER_RELATIONSHIP is the primary signal.";
+}
+
+export function relationshipSnapshot(rel: UserRelationship): RelationshipSnapshot {
+  const standing = standingFromHistory(rel);
+  const last = [...(rel.purchases || [])].sort((a, b) => a.approved_date.localeCompare(b.approved_date)).at(-1);
+  return {
+    last_outcome: last?.outcome ?? null,
+    open_plans: rel.active_count || 0,
+    standing,
+    trust_note: trustNoteFromHistory(rel),
+  };
 }
 
 export function emptyRelationship(wallet: string, at = new Date().toISOString()): UserRelationship {
@@ -295,6 +351,7 @@ export function emptyRelationship(wallet: string, at = new Date().toISOString())
     total_repaid: 0,
     override_count: 0,
     override_outcomes: [],
+    snapshot: emptySnapshot(),
     current_limit: 0,
     current_standing_score: 0,
   };
@@ -335,7 +392,13 @@ export function recomputeRelationship(rel: UserRelationship): UserRelationship {
     current_limit:
       counts.total_purchases === 0
         ? 0
-        : limitFromStanding(standing, counts.default_count, counts.on_time_count),
+        : limitFromStanding(standing, counts.default_count, counts.on_time_count, counts.late_count),
+    snapshot: {
+      last_outcome: [...purchases].sort((a, b) => a.approved_date.localeCompare(b.approved_date)).at(-1)?.outcome ?? null,
+      open_plans: active_count,
+      standing,
+      trust_note: trustNoteFromHistory({ ...counts, active_count, purchases }),
+    },
   };
 }
 

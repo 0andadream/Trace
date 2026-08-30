@@ -104,6 +104,14 @@ export type OverrideOutcome = {
   purchase_id?: string;
 };
 
+/** Compact book Sibyl persists. Standing is still recomputed from purchases on read. */
+export type RelationshipSnapshot = {
+  last_outcome: PurchaseOutcome | null;
+  open_plans: number;
+  standing: number;
+  trust_note: string;
+};
+
 export type UserRelationship = {
   wallet_address: string;
   first_seen: string;
@@ -119,6 +127,7 @@ export type UserRelationship = {
   total_repaid: number;
   override_count: number;
   override_outcomes: OverrideOutcome[];
+  snapshot: RelationshipSnapshot;
   /** Computed from history on every read. Never treated as a stored primitive. */
   current_limit: number;
   current_standing_score: number;

@@ -15,6 +15,7 @@ import {
 import { formatAmount, shortAddress } from "@/lib/format";
 import { PayoutNotice } from "@/components/PayoutNotice";
 import { AgentInfrastructure } from "@/components/AgentInfrastructure";
+import { DecisionTrace } from "@/components/DecisionTrace";
 import type { PurchaseRecord, PurchaseResult, UserRelationship } from "@/types/bnpl";
 import Link from "next/link";
 
@@ -73,7 +74,10 @@ function standingCopy(rel: UserRelationship | null, quote: PurchaseResult | null
     return `Sibyl has no financial history for this wallet yet. TRACE starts from a cautious onchain baseline.${chain} That signal is fetched fresh and is not stored. After one on-time repayment, memory takes over.`;
   }
   const completed = rel.on_time_count + rel.late_count + rel.default_count;
-  return `Sibyl remembers ${completed} purchase${completed === 1 ? "" : "s"} with TRACE (${rel.on_time_count} on time, ${rel.late_count} late, ${rel.default_count} defaulted). Your TRACE limit is ${formatAmount(rel.current_limit)} across up to 2 open plans.`;
+  if (completed === 0) {
+    return `Open plan. Standing is capped at 0.38 until this plan is finished. Limit ${formatAmount(rel.current_limit)} across up to 2 open plans.`;
+  }
+  return `Sibyl remembers ${completed} purchase${completed === 1 ? "" : "s"} with TRACE (${rel.on_time_count} on time, ${rel.late_count} late, ${rel.default_count} defaulted). Your TRACE limit is ${formatAmount(rel.current_limit)} across up to 2 open plans. ${rel.snapshot?.trust_note || ""}`;
 }
 
 function formatDue(iso: string) {
@@ -569,6 +573,23 @@ export function Desk({ execute }: { execute: boolean }) {
                     </div>
                   ))}
                 </div>
+                {quote ? (
+                  <div className="mt-5">
+                    <DecisionTrace
+                      primary={quote.terms.primary_signal}
+                      standing={quote.terms.standing_score}
+                      limit={quote.terms.limit}
+                      installments={quote.terms.installments}
+                      interestRate={quote.terms.interest_rate}
+                      keysRead={
+                        quote.terms.used_onchain
+                          ? "USER_RELATIONSHIP (empty), ONCHAIN_SIGNAL (age, tx_count)"
+                          : "USER_RELATIONSHIP (purchases, schedules, outcomes, snapshot)"
+                      }
+                      acpJobId={lastPurchase?.acp?.jobId}
+                    />
+                  </div>
+                ) : null}
                 <p className="mt-3 text-[12px] text-neutral-500">Your TRACE limit</p>
                 {quote.terms.reduced_limit != null ? (
                   <p className="mt-2 text-sm text-amber-800">
@@ -746,6 +767,7 @@ export function Desk({ execute }: { execute: boolean }) {
                     ],
                     ["Total repayment", formatAmount(quote.terms.total_due || 0)],
                     ["Schedule", schedule.map(formatDue).join(" · ") || "—"],
+                    ["Virtuals", lastPurchase?.acp?.jobId ? `job ${lastPurchase.acp.jobId}` : "Alex identity request"],
                   ] as const
                 ).map(([k, v]) => (
                   <div key={k} className="flex justify-between gap-4 px-4 py-3 text-sm">
@@ -754,6 +776,25 @@ export function Desk({ execute }: { execute: boolean }) {
                   </div>
                 ))}
               </dl>
+            ) : null}
+            {quote && !deciding ? (
+              <div className="mt-4">
+                <DecisionTrace
+                  primary={quote.terms.primary_signal}
+                  standing={quote.terms.standing_score}
+                  limit={quote.terms.limit}
+                  installments={quote.terms.installments}
+                  interestRate={quote.terms.interest_rate}
+                  keysRead={
+                    quote.terms.used_onchain
+                      ? "USER_RELATIONSHIP (empty), ONCHAIN_SIGNAL (age, tx_count)"
+                      : "USER_RELATIONSHIP (purchases, schedules, outcomes, snapshot)"
+                  }
+                  keysWritten="USER_RELATIONSHIP.purchases, snapshot (after confirm)"
+                  txHash={payoutHash}
+                  acpJobId={lastPurchase?.acp?.jobId}
+                />
+              </div>
             ) : null}
             <div className="mt-6 flex flex-wrap gap-3">
               <button

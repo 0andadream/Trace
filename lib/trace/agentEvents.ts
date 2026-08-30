@@ -1,8 +1,11 @@
 import type { AcpJobRecord, PurchaseRecord, QuoteRecord } from "@/types/bnpl";
 
+import { ALEX_ACP_AGENT_ID } from "@/lib/virtuals/identity";
+
 export type AgentEventKind =
   | "MEMORY_READ"
   | "CREDIT_DECISION"
+  | "ACP_REQUEST"
   | "ACP_JOB_CREATED"
   | "ACP_JOB_EXECUTED"
   | "SETTLEMENT"
@@ -51,6 +54,15 @@ export function eventsFromQuote(q: QuoteRecord & { wallet_address: string }): Ag
       detail: empty
         ? "USER_RELATIONSHIP empty. On-chain baseline used for this quote."
         : `Primary ${q.primary_signal}. Standing ${(q.standing_score * 100).toFixed(0)}.`,
+    },
+    {
+      id: `${q.quote_id}-acp-request`,
+      at: q.at,
+      wallet,
+      kind: "ACP_REQUEST",
+      actor: "VIRTUALS",
+      title: "Alex identity request",
+      detail: `Alex ${ALEX_ACP_AGENT_ID} requested this quote. TRACE set the numbers. Virtuals did not.`,
     },
     {
       id: `${q.quote_id}-decision`,
@@ -131,6 +143,15 @@ export function eventsFromPurchase(p: PurchaseRecord & { wallet_address: string 
 
   const paid = lastPaid(p);
   if (paid) {
+    out.push({
+      id: `${p.purchase_id}-acp-repay`,
+      at: paid.at,
+      wallet,
+      kind: "ACP_REQUEST",
+      actor: "VIRTUALS",
+      title: "Alex identity request",
+      detail: `Alex ${ALEX_ACP_AGENT_ID}${p.acp?.jobId ? ` · job ${p.acp.jobId}` : ""} noted this repayment. TRACE wrote Sibyl after the ETH was verified.`,
+    });
     out.push({
       id: `${p.purchase_id}-memory-write`,
       at: paid.at,

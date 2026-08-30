@@ -98,7 +98,7 @@ export function AgentLog({ execute }: { execute: boolean }) {
         <div className="px-6 py-4">
           <h2 className="text-sm font-semibold tracking-tight text-neutral-900">Agent log</h2>
           <p className="mt-1 text-xs text-neutral-500">
-            Sibyl remembers. TRACE decides. Virtuals executes the job. Base settles.
+            Sibyl remembers. TRACE decides. Virtuals identifies Alex. Base settles.
           </p>
         </div>
         {error ? <p className="px-6 pb-3 text-sm text-red-600">{error}</p> : null}

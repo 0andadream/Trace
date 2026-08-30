@@ -36,6 +36,11 @@ export function ScoreBreakdown({
         <span className="font-sans font-medium">Current score</span>
         <span>{breakdown.score}</span>
       </div>
+      {breakdown.source === "open_plan" ? (
+        <p className="mt-2 text-[12px] font-normal leading-[1.4] text-amber-800">
+          Standing capped at 0.38 while a plan is open. Finishing on time is what lifts the next limit.
+        </p>
+      ) : null}
     </>
   );
   if (open) {

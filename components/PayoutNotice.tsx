@@ -14,7 +14,7 @@ export function PayoutNotice({
   example?: boolean;
   className?: string;
 }) {
-  const amount = amountUsd != null ? formatAmount(amountUsd) : "$150";
+  const amount = amountUsd != null ? formatAmount(amountUsd) : "$12";
 
   if (example) {
     return (

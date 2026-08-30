@@ -22,8 +22,8 @@ export default function DemoPage() {
           <span className="font-mono text-[13px] text-neutral-800">{started}</span>.
         </p>
         <p className="mt-2 text-[14px] text-neutral-500">
-          Use the same wallet the whole way. Fresh browser for scene 4. Delete memory in scene 7
-          without changing the wallet or the chain.
+          Five steps, same wallet. Notebook $12. Delete memory in step 5 without changing the wallet
+          or the chain. You do not need GitHub for this path.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
@@ -39,10 +39,10 @@ export default function DemoPage() {
             Agent log
           </Link>
           <Link
-            href="/history"
+            href="/docs"
             className="inline-flex h-10 items-center rounded-full border border-black/10 px-5 text-[14px] font-medium text-neutral-800"
           >
-            History / delete memory
+            Docs
           </Link>
         </div>
         <div className="mt-10">

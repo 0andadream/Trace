@@ -4,6 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { PayoutNotice } from "@/components/PayoutNotice";
 import { buildHowStory } from "@/components/howStory";
+import { liveWalkthrough } from "@/lib/bnpl/walkthrough";
+import { formatAmount } from "@/lib/format";
+
+const LIVE = liveWalkthrough();
 
 const STEPS = [
   {
@@ -30,12 +34,7 @@ type Visitor = "first" | "returning";
 type PayMark = "on_time" | "late";
 type StepN = 1 | 2 | 3;
 
-const SCHEDULE: { id: 1 | 2 | 3 | 4; date: string; amount: string; locked?: "Paid" | "Due" }[] = [
-  { id: 1, date: "Sep 1", amount: "$37.50", locked: "Paid" },
-  { id: 2, date: "Oct 1", amount: "$37.50", locked: "Paid" },
-  { id: 3, date: "Nov 1", amount: "$37.50" },
-  { id: 4, date: "Dec 1", amount: "$37.50", locked: "Due" },
-];
+const DATES = ["Sep 1", "Sep 15", "Sep 29", "Oct 13"] as const;
 
 function pill(active: boolean) {
   return active
@@ -67,8 +66,16 @@ function StepVisual({
   setMark: (m: PayMark) => void;
 }) {
   const first = visitor === "first";
-  const nextLimit = mark === "on_time" ? 350 : 120;
+  const quote = first ? LIVE.moderate : LIVE.afterOnTime;
+  const next = mark === "on_time" ? LIVE.afterOnTime : LIVE.afterLate;
   const nextUp = mark === "on_time";
+  const n = Math.max(1, quote.installments);
+  const rows = Array.from({ length: n }, (_, i) => ({
+    id: i + 1,
+    date: DATES[i] || `Pay ${i + 1}`,
+    amount: formatAmount(quote.installment_amount),
+    locked: i === 0 ? ("Paid" as const) : i === n - 1 ? ("Due" as const) : undefined,
+  }));
 
   return (
     <>
@@ -76,18 +83,21 @@ function StepVisual({
         <div>
           <div className="rounded-2xl bg-black/[0.03] p-4">
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-[12px] font-medium text-neutral-500">Purchase</span>
+              <span className="text-[12px] font-medium text-neutral-500">{LIVE.sku.name}</span>
               <span className="text-[12px] font-medium text-neutral-400">USDC</span>
             </div>
-            <p className="text-[2.5rem] font-semibold tabular-nums leading-none tracking-[-0.025em] text-neutral-900">$150</p>
+            <p className="text-[2.5rem] font-semibold tabular-nums leading-none tracking-[-0.025em] text-neutral-900">
+              {formatAmount(LIVE.sku.price)}
+            </p>
             <p className="mt-3 text-[15px] font-medium text-neutral-900">Pay with TRACE</p>
-            <p className="mt-1 text-[14px] font-normal text-neutral-600">4 payments of $37.50</p>
+            <p className="mt-1 text-[14px] font-normal text-neutral-600">{quote.installmentLabel}</p>
             <p className="mt-3 text-[12px] font-medium text-neutral-500">
               Merchant <span className="font-semibold text-neutral-900">Test Shop</span>
             </p>
           </div>
 
           <p className="mt-5 text-[12px] font-semibold uppercase tracking-[0.06em] text-neutral-500">Try the memory</p>
+          <p className="mt-1 text-[11px] text-neutral-400">Live policy from computeApproval, not illustrated numbers.</p>
           <div className="mt-2 flex w-fit items-center gap-1 rounded-full bg-black/5 p-1">
             <button type="button" className={pill(first)} onClick={() => setVisitor("first")}>
               First time
@@ -103,8 +113,8 @@ function StepVisual({
             }`}
           >
             {first
-              ? "No history yet, TRACE starts cautious."
-              : "The next offer depends on whether you paid on time."}
+              ? `No history yet. ONCHAIN_SIGNAL only. First-time band ${LIVE.firstTimeBandLabel}.`
+              : `One on-time ${formatAmount(LIVE.sku.price)} is on file. USER_RELATIONSHIP, ONCHAIN_SIGNAL not used. Limit ${LIVE.afterOnTime.limitLabel}.`}
           </div>
         </div>
       ) : null}
@@ -113,45 +123,44 @@ function StepVisual({
         <div>
           <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-neutral-500">Decision</p>
           <p className="mt-2 text-[16px] font-semibold leading-snug text-neutral-800">
-            Decision: {first ? "Approve with reduced limit" : "Approve"}
+            Decision: {quote.decision}
           </p>
           <p className="mt-4 text-[12px] font-semibold uppercase tracking-[0.06em] text-neutral-500">Reasoning</p>
           <ul className="mt-2 space-y-1 text-[13px] font-normal leading-[1.45] text-neutral-700">
             {(first
               ? [
                   "No purchase history with this agent",
-                  "No prior repayment history available",
-                  "Starting limit: $75",
+                  `inputs: ${quote.primary}`,
+                  `First-time band ${LIVE.firstTimeBandLabel} (thin / moderate / established)`,
+                  `This wallet (moderate): limit ${quote.limitLabel}, ${quote.installmentLabel}, interest ${quote.interestLabel}`,
                 ]
               : [
-                  "3 purchases with this agent",
-                  "3/3 on-time payments",
-                  "Relationship memory, not a bureau file",
+                  "1 purchase completed on time with this agent",
+                  `inputs: ${quote.primary}`,
+                  "ONCHAIN_SIGNAL not used",
+                  `Limit ${quote.limitLabel}, ${quote.installmentLabel}, interest ${quote.interestLabel}`,
                 ]
             ).map((line) => (
               <li key={line}>– {line}</li>
             ))}
           </ul>
-          {first ? (
-            <div className="mt-3 text-[13px] font-medium text-neutral-600">
-              <p>Starting limit: $75</p>
-              <p className="mt-1 font-normal">Based on available wallet history; no prior repayment history yet.</p>
-            </div>
-          ) : (
-            <p className="mt-3 text-[13px] font-medium text-neutral-600">
-              Limit: $300 (3/3 on-time payments)
-            </p>
-          )}
-          <PayoutNotice example amountUsd={150} />
+          <p className="mt-3 text-[13px] font-medium text-neutral-600">
+            {first
+              ? `Starting limit ${quote.limitLabel}. After one on-time ${formatAmount(LIVE.sku.price)}, limit becomes ${LIVE.afterOnTime.limitLabel}.`
+              : `Limit ${quote.limitLabel} after 1/1 on-time. Late would be ${LIVE.afterLate.limitLabel}, ${LIVE.afterLate.installments} payments, interest ${LIVE.afterLate.interestLabel}.`}
+          </p>
+          <PayoutNotice example amountUsd={LIVE.sku.price} />
         </div>
       ) : null}
 
       {step === 3 ? (
         <div>
           <p className="text-[1.5rem] font-semibold leading-[1.2] tracking-[-0.02em] text-neutral-900">Upcoming payments</p>
-          <p className="mt-1 text-[13px] font-normal text-neutral-500">Tap payment 3 to mark it on time or late.</p>
+          <p className="mt-1 text-[13px] font-normal text-neutral-500">
+            Tap a due row to mark the plan on time or late. Next limit is live policy.
+          </p>
           <ul className="mt-3 divide-y divide-black/5 rounded-xl ring-1 ring-black/5">
-            {SCHEDULE.map((row) => {
+            {rows.map((row) => {
               const interactive = !row.locked;
               const label = row.locked ?? (mark === "late" ? "Late" : "On time");
               return (
@@ -180,17 +189,17 @@ function StepVisual({
           >
             <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-neutral-500">Your next limit</p>
             <p
-              key={nextLimit}
+              key={next.limit}
               className={`mt-1 text-[1.75rem] font-semibold tabular-nums tracking-[-0.025em] sm:text-[2rem] ${
                 nextUp ? "text-emerald-800" : "text-red-800"
               }`}
             >
-              $300 → ${nextLimit}
+              {LIVE.moderate.limitLabel} → {next.limitLabel}
             </p>
-            <p className={`mt-1 text-[14px] font-normal leading-[1.45] sm:text-[15px] ${nextUp ? "text-emerald-800" : "text-red-800"}`}>
+            <p className={`mt-1 text-[13px] font-normal leading-[1.45] ${nextUp ? "text-emerald-800" : "text-red-800"}`}>
               {nextUp
-                ? "Your on-time repayment was remembered."
-                : "A late payment was remembered, the next offer got harder."}
+                ? `On time: ${next.installmentLabel}, interest ${next.interestLabel}. Standing no longer uses ONCHAIN_SIGNAL.`
+                : `Late: ${next.installmentLabel}, interest ${next.interestLabel}. Limit, installment count, and interest all moved.`}
             </p>
           </div>
         </div>

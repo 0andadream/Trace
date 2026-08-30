@@ -162,6 +162,10 @@ describe("APPROVAL_POLICY", () => {
     const open = withPurchases(NEW, [purchase({ purchase_id: "open-1", amount: 12, outcome: "active" })]);
     assert.equal(open.on_time_count, 0);
     assert.ok(open.current_standing_score <= 0.38);
+    assert.equal(open.snapshot.open_plans, 1);
+    assert.equal(open.snapshot.standing, 0.38);
+    assert.match(open.snapshot.trust_note, /Standing capped at 0\.38/);
+    assert.ok(open.current_limit <= 24);
   });
 
   it("score 50 is a $3k limit; scores below 50 stay under $3k", () => {
@@ -193,6 +197,33 @@ describe("APPROVAL_POLICY", () => {
     assert.equal(q.decision, "Approve");
     assert.equal(q.limit, 10000);
     assert.equal(q.skipped_scoring, false);
+  });
+
+  it("one on-time $12 lifts into a modest $40–$80 band, not the $2k standing curve", () => {
+    const after = withPurchases(NEW, [
+      purchase({ purchase_id: "live-1", amount: 12, outcome: "completed_on_time" }),
+    ]);
+    assert.ok(after.current_limit >= 40, `first clean limit ${after.current_limit} below $40`);
+    assert.ok(after.current_limit <= 80, `first clean limit ${after.current_limit} above $80`);
+    assert.equal(after.snapshot.last_outcome, "completed_on_time");
+    assert.match(after.snapshot.trust_note, /on time/i);
+  });
+
+  it("a late completion changes limit, installment count, and interest vs a clean book", () => {
+    const clean = withPurchases(NEW, [
+      purchase({ purchase_id: "c1", amount: 12, outcome: "completed_on_time" }),
+    ]);
+    const late = withPurchases(NEW, [
+      purchase({ purchase_id: "l1", amount: 12, outcome: "completed_late" }),
+    ]);
+    const cleanQ = computeApproval({ amount: 12, relationship: clean, onchain: MODERATE });
+    const lateQ = computeApproval({ amount: 12, relationship: late, onchain: MODERATE });
+    assert.equal(cleanQ.used_onchain, false);
+    assert.equal(lateQ.used_onchain, false);
+    assert.ok(lateQ.limit < cleanQ.limit, `late limit ${lateQ.limit} should be below clean ${cleanQ.limit}`);
+    assert.ok(lateQ.installments < cleanQ.installments, `late n=${lateQ.installments} vs clean n=${cleanQ.installments}`);
+    assert.ok(lateQ.interest_rate > cleanQ.interest_rate, `late rate ${lateQ.interest_rate} vs clean ${cleanQ.interest_rate}`);
+    assert.equal(lateQ.decision === "Decline", false);
   });
 
   it("standing rises slowly while limit still increases after on-time completions", () => {
@@ -392,6 +423,23 @@ describe("standing breakdown matches standingFromHistory", () => {
     assert.equal(b.standing, 0.38);
     assert.equal(b.lines.length, 1);
     assert.equal(b.lines[0].id, "open_plan");
+  });
+});
+
+describe("homepage walkthrough matches live policy", () => {
+  it("exposes the first-time band and a $40–$80 first-repeat limit from computeApproval", async () => {
+    const { liveWalkthrough } = await import("@/lib/bnpl/walkthrough");
+    const live = liveWalkthrough();
+    assert.equal(live.sku.price, 12);
+    assert.deepEqual([...live.firstTimeBand], [12, 20, 24]);
+    assert.equal(live.moderate.primary, "ONCHAIN_SIGNAL");
+    assert.equal(live.afterOnTime.used_onchain, false);
+    assert.equal(live.afterOnTime.primary, "USER_RELATIONSHIP");
+    assert.ok(live.afterOnTime.limit >= 40 && live.afterOnTime.limit <= 80);
+    assert.ok(live.afterOnTime.installments > live.moderate.installments);
+    assert.ok(live.afterLate.limit < live.afterOnTime.limit);
+    assert.ok(live.afterLate.installments < live.afterOnTime.installments);
+    assert.ok(live.afterLate.interest_rate > live.afterOnTime.interest_rate);
   });
 });
 

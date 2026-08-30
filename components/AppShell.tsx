@@ -11,6 +11,7 @@ import type { AgentStatus } from "@/lib/bnpl/status";
 
 const NAV: { href: string; label: string; ownerOnly?: boolean }[] = [
   { href: "/buy", label: "Buy" },
+  { href: "/demo", label: "Demo" },
   { href: "/history", label: "My History", ownerOnly: true },
   { href: "/log", label: "Agent Log" },
 ];
@@ -67,12 +68,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
             {isLanding ? (
-              <Link
-                href="/docs"
-                className="px-2 py-2 text-[14px] font-medium text-neutral-500 hover:text-neutral-900 sm:px-3"
-              >
-                Docs
-              </Link>
+              <>
+                <Link
+                  href="/demo"
+                  className="px-2 py-2 text-[14px] font-medium text-neutral-500 hover:text-neutral-900 sm:px-3"
+                >
+                  Demo
+                </Link>
+                <Link
+                  href="/docs"
+                  className="px-2 py-2 text-[14px] font-medium text-neutral-500 hover:text-neutral-900 sm:px-3"
+                >
+                  Docs
+                </Link>
+              </>
             ) : null}
             <span className="hidden items-center gap-1.5 rounded-full bg-[#7828E8] px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.07em] text-white shadow-sm sm:inline-flex">
               <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden />

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AgentIdentityCard, AgentRoleStack, AlexVerificationRow } from "@/components/AlexIdentity";
+import { PartnerColumns } from "@/components/DecisionTrace";
 
 const NAV = [
   { id: "overview", label: "Overview" },
@@ -235,6 +236,13 @@ export function DocsView() {
               </li>
             ))}
           </ol>
+          <div className="mt-8">
+            <PartnerColumns
+              remembered="This wallet’s purchases, schedules, and outcomes (on_time / late / defaulted), plus a compact snapshot: last_outcome, open_plans, standing, trust_note."
+              requested="Alex’s Virtuals ACP identity asked TRACE to quote. TRACE set limit, schedule, and yes or no. Virtuals does not move funds."
+              settled="ETH on Base Sepolia from the agent to your wallet, then your repay back to the agent. Sibyl writes only after that transfer is verified."
+            />
+          </div>
           <div className="mt-8 rounded-2xl ring-1 ring-black/5 p-5">
             <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-neutral-500">Role split</p>
             <AgentRoleStack />
