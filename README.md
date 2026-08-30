@@ -367,14 +367,14 @@ Repo: [https://github.com/0andadream/Trace](https://github.com/0andadream/Trace)
 
 | # | What | Where |
 |---|---|---|
-| 1 | Virtuals agent identity (Alex signer) | [`config/agent-wallet.json`](https://github.com/0andadream/Trace/blob/main/config/agent-wallet.json) · [`0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e`](https://sepolia.basescan.org/address/0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e) |
-| 2 | ACP integration (official v2 contract) | [`lib/virtuals/acp.ts`](https://github.com/0andadream/Trace/blob/main/lib/virtuals/acp.ts) · contract [`0x0b93793923CD5De81850aF8604a233f3f24d461e`](https://sepolia.basescan.org/address/0x0b93793923CD5De81850aF8604a233f3f24d461e) (addresses from `@virtuals-protocol/acp-node-v2`) |
-| 3 | ACP job creation | [`executeBnplSettlementJob`](https://github.com/0andadream/Trace/blob/main/lib/virtuals/acp.ts#L307) called from [`runAcceptPurchase`](https://github.com/0andadream/Trace/blob/main/lib/bnpl/run.ts#L126) |
+| 1 | Virtuals agent identity (Alex signer) | [`config/agent-wallet.json`](https://github.com/0andadream/Trace/blob/fb0d2cdc038e99f682e02d218bdc5c4eb437ae12/config/agent-wallet.json) · [`0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e`](https://sepolia.basescan.org/address/0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e) |
+| 2 | ACP integration (official v2 contract) | [`lib/virtuals/acp.ts`](https://github.com/0andadream/Trace/blob/fb0d2cdc038e99f682e02d218bdc5c4eb437ae12/lib/virtuals/acp.ts) · contract [`0x0b93793923CD5De81850aF8604a233f3f24d461e`](https://sepolia.basescan.org/address/0x0b93793923CD5De81850aF8604a233f3f24d461e) (addresses from `@virtuals-protocol/acp-node-v2`) |
+| 3 | ACP job creation | [`executeBnplSettlementJob`](https://github.com/0andadream/Trace/blob/fb0d2cdc038e99f682e02d218bdc5c4eb437ae12/lib/virtuals/acp.ts#L297) called from [`runAcceptPurchase`](https://github.com/0andadream/Trace/blob/fb0d2cdc038e99f682e02d218bdc5c4eb437ae12/lib/bnpl/run.ts#L126) |
 | 4 | ACP job execution | same function: `setBudget` → `fund` → `submit` → `complete`; status `executed` only after on-chain COMPLETED |
-| 5 | Base settlement | [`sendMerchantPayout`](https://github.com/0andadream/Trace/blob/main/lib/base/send.ts#L172) |
-| 6 | Sibyl writeMemory | Node [`upsert_relationship`](https://github.com/0andadream/Trace/blob/main/lib/memory/engine.ts#L215) · Python [`persist_relationship`](https://github.com/0andadream/Trace/blob/main/sibyl/bridge.py#L129) |
-| 7 | Sibyl readMemory | Node [`get_relationship`](https://github.com/0andadream/Trace/blob/main/lib/memory/engine.ts#L205) · [`getRelationship`](https://github.com/0andadream/Trace/blob/main/lib/bnpl/store.ts) |
-| 8 | Deterministic credit decision | [`selectPolicyInputs`](https://github.com/0andadream/Trace/blob/main/lib/bnpl/policy.ts#L41) · [`computeApproval`](https://github.com/0andadream/Trace/blob/main/lib/bnpl/policy.ts#L389) |
+| 5 | Base settlement | [`sendMerchantPayout`](https://github.com/0andadream/Trace/blob/fb0d2cdc038e99f682e02d218bdc5c4eb437ae12/lib/base/send.ts#L172) |
+| 6 | Sibyl writeMemory | Node [`upsert_relationship`](https://github.com/0andadream/Trace/blob/fb0d2cdc038e99f682e02d218bdc5c4eb437ae12/lib/memory/engine.ts#L215) · Python [`persist_relationship`](https://github.com/0andadream/Trace/blob/fb0d2cdc038e99f682e02d218bdc5c4eb437ae12/sibyl/bridge.py#L129) |
+| 7 | Sibyl readMemory | Node [`get_relationship`](https://github.com/0andadream/Trace/blob/fb0d2cdc038e99f682e02d218bdc5c4eb437ae12/lib/memory/engine.ts#L205) · [`getRelationship`](https://github.com/0andadream/Trace/blob/fb0d2cdc038e99f682e02d218bdc5c4eb437ae12/lib/bnpl/store.ts) |
+| 8 | Deterministic credit decision | [`selectPolicyInputs`](https://github.com/0andadream/Trace/blob/fb0d2cdc038e99f682e02d218bdc5c4eb437ae12/lib/bnpl/policy.ts#L41) · [`computeApproval`](https://github.com/0andadream/Trace/blob/fb0d2cdc038e99f682e02d218bdc5c4eb437ae12/lib/bnpl/policy.ts#L389) |
 
 Verify a live job: Agent Log → ACP_JOB_CREATED / EXECUTED, then `GET /api/virtuals?jobId=<id>` (reads `getJob` on the contract).
 
