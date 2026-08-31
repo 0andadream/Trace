@@ -2,6 +2,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
+ScrollTrigger.config({ ignoreMobileResize: true });
 
 const BLOCK_SCROLL_VH = 240;
 const SCRUB_SMOOTHING = 0.45;
@@ -20,6 +21,8 @@ const PHONE_MOVE_FRACTION = 0.58;
 const SNAP_DELAY = 0.12;
 const MOVE = 0.3;
 const REST_DEG = 12;
+const MOBILE_BLOCK_VH = 200;
+const MOBILE_SCRUB = 0.55;
 
 const SCREEN_STEPS: ({ from: "right" | "bottom"; dim: number } | null)[] = [
   null,
@@ -36,12 +39,14 @@ function reduced() {
 }
 
 export function buildHowStory(holdEl: HTMLElement) {
-  holdEl.classList.remove("how-story");
-  if (!desktop() || reduced()) {
+  holdEl.classList.remove("how-story", "how-story-mobile");
+  if (reduced()) {
     return () => {};
   }
 
+  const isDesktop = desktop();
   holdEl.classList.add("how-story");
+  if (!isDesktop) holdEl.classList.add("how-story-mobile");
 
   const slotEl = holdEl.querySelector<HTMLElement>(".how-slot");
   const maskEl = holdEl.querySelector<HTMLElement>(".how-mask");
@@ -183,7 +188,7 @@ export function buildHowStory(holdEl: HTMLElement) {
     }
 
     settleLayers(0);
-    if (leanEl) gsap.set(leanEl, { rotateY: leanFor(-1) });
+    if (isDesktop && leanEl) gsap.set(leanEl, { rotateY: leanFor(-1) });
 
     gsap
       .timeline({
@@ -191,7 +196,7 @@ export function buildHowStory(holdEl: HTMLElement) {
         scrollTrigger: {
           trigger: holdEl,
           start: "top 95%",
-          end: "top -15%",
+          end: isDesktop ? "top -15%" : "top 8%",
           scrub: true,
           invalidateOnRefresh: true,
         },
@@ -214,27 +219,31 @@ export function buildHowStory(holdEl: HTMLElement) {
       defaults: { ease: "none" },
       onUpdate: () => {
         showScreen(screenPose.i);
-        syncCopyLanes();
+        if (isDesktop) syncCopyLanes();
       },
       scrollTrigger: {
         trigger: holdEl,
-        start: "top -15%",
-        end: () => `+=${BLOCK_SCROLL_VH}%`,
+        start: isDesktop ? "top -15%" : "top 8%",
+        end: () => `+=${isDesktop ? BLOCK_SCROLL_VH : MOBILE_BLOCK_VH}%`,
         pin: true,
         pinSpacing: true,
         anticipatePin: 1,
-        scrub: SCRUB_SMOOTHING,
-        snap: {
-          snapTo: "labelsDirectional",
-          duration: { min: 0.25, max: 0.65 },
-          delay: SNAP_DELAY,
-          inertia: true,
-          ease: "power2.inOut",
-        },
+        scrub: isDesktop ? SCRUB_SMOOTHING : MOBILE_SCRUB,
+        ...(isDesktop
+          ? {
+              snap: {
+                snapTo: "labelsDirectional" as const,
+                duration: { min: 0.25, max: 0.65 },
+                delay: SNAP_DELAY,
+                inertia: true,
+                ease: "power2.inOut",
+              },
+            }
+          : {}),
         invalidateOnRefresh: true,
         onRefresh: () => {
           blockTimeline.render(blockTimeline.time(), false, true);
-          syncCopyLanes();
+          if (isDesktop) syncCopyLanes();
         },
       },
     });
@@ -242,8 +251,8 @@ export function buildHowStory(holdEl: HTMLElement) {
     blockTimeline
       .set(slot, { visibility: "hidden" }, 0.001)
       .set(mask, { opacity: 1 }, 0.001)
-      .set(phone, { x: () => -D() }, 0.001)
-      .set(leanEl || phone, { rotateY: leanFor(-1) }, 0.001)
+      .set(phone, { x: isDesktop ? () => -D() : 0 }, 0.001)
+      .set(leanEl || phone, { rotateY: isDesktop ? leanFor(-1) : 0 }, 0.001)
       .fromTo(
         unfoldProxy,
         { p: 0 },
@@ -273,8 +282,8 @@ export function buildHowStory(holdEl: HTMLElement) {
       )
       .fromTo(
         lines[0],
-        { opacity: 0, x: 28 },
-        { opacity: 1, x: 0, duration: BENEFIT_ENTRY_WEIGHT, ease: "power2.out" },
+        { opacity: 0, x: isDesktop ? 28 : 0, y: isDesktop ? 0 : 16 },
+        { opacity: 1, x: 0, y: 0, duration: BENEFIT_ENTRY_WEIGHT, ease: "power2.out" },
         BENEFIT_ENTRY_AT,
       )
       .addLabel("s0", S0_AT);
@@ -284,25 +293,28 @@ export function buildHowStory(holdEl: HTMLElement) {
       const to = sideOf(i);
       const weight = BENEFIT_MOVE_WEIGHTS[moveIndex];
       const moveEnd = moveAt + weight;
+      if (isDesktop) {
+        blockTimeline
+          .to(
+            phone,
+            {
+              x: () => to * D(),
+              duration: weight * PHONE_MOVE_FRACTION,
+              ease: "power1.inOut",
+            },
+            moveAt + weight * MOVE_LEAD_FRACTION,
+          )
+          .to(
+            leanEl || phone,
+            {
+              rotateY: leanFor(to),
+              duration: weight * PHONE_MOVE_FRACTION,
+              ease: "power1.inOut",
+            },
+            moveAt + weight * MOVE_LEAD_FRACTION,
+          );
+      }
       blockTimeline
-        .to(
-          phone,
-          {
-            x: () => to * D(),
-            duration: weight * PHONE_MOVE_FRACTION,
-            ease: "power1.inOut",
-          },
-          moveAt + weight * MOVE_LEAD_FRACTION,
-        )
-        .to(
-          leanEl || phone,
-          {
-            rotateY: leanFor(to),
-            duration: weight * PHONE_MOVE_FRACTION,
-            ease: "power1.inOut",
-          },
-          moveAt + weight * MOVE_LEAD_FRACTION,
-        )
         .fromTo(
           lines[i - 1],
           { opacity: 1 },
@@ -316,10 +328,11 @@ export function buildHowStory(holdEl: HTMLElement) {
         )
         .fromTo(
           lines[i],
-          { opacity: 0, x: -to * 28 },
+          { opacity: 0, x: isDesktop ? -to * 28 : 0, y: isDesktop ? 0 : 16 },
           {
             opacity: 1,
             x: 0,
+            y: 0,
             duration: weight * COPY_IN_FRACTION,
             ease: "power2.out",
             immediateRender: false,
@@ -329,11 +342,15 @@ export function buildHowStory(holdEl: HTMLElement) {
         .set(screenPose, { i }, moveAt + weight * COPY_IN_AT);
 
       if (i === 2) {
-        blockTimeline.to(
-          phone,
-          { x: () => to * D(), duration: FINAL_DWELL_WEIGHT, ease: "none" },
-          moveEnd,
-        );
+        if (isDesktop) {
+          blockTimeline.to(
+            phone,
+            { x: () => to * D(), duration: FINAL_DWELL_WEIGHT, ease: "none" },
+            moveEnd,
+          );
+        } else {
+          blockTimeline.to(phone, { y: 0, duration: FINAL_DWELL_WEIGHT, ease: "none" }, moveEnd);
+        }
         blockTimeline.addLabel("s2", moveEnd + FINAL_DWELL_WEIGHT);
       } else {
         blockTimeline.addLabel("s1", moveEnd);
@@ -341,13 +358,13 @@ export function buildHowStory(holdEl: HTMLElement) {
       moveAt = moveEnd;
     });
 
-    syncCopyLanes();
+    if (isDesktop) syncCopyLanes();
     ScrollTrigger.refresh();
   }, holdEl);
 
   return () => {
     ctx.revert();
-    holdEl.classList.remove("how-story");
+    holdEl.classList.remove("how-story", "how-story-mobile");
     holdEl.style.removeProperty("--lane-left");
     holdEl.style.removeProperty("--lane-right");
   };

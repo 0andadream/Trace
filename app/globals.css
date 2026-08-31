@@ -474,6 +474,10 @@ html:has(.app-light) {
   .app-light .how-mask-phone .how-screen-layer:not([data-screen="1"]) {
     display: none;
   }
+
+  .app-light .how-reveal.how-story .how-mask-phone .how-screen-layer:not([data-screen="1"]) {
+    display: block;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -633,4 +637,56 @@ html:has(.app-light) {
   .app-light .how-reveal.how-story .how-phone-float {
     animation: none;
   }
+}
+
+.app-light .how-reveal.how-story-mobile .how-title {
+  font-size: min(56px, 13vw);
+}
+
+.app-light .how-reveal.how-story-mobile .how-mask {
+  min-height: 100svh;
+  --benefit-center-y: 48svh;
+}
+
+.app-light .how-reveal.how-story-mobile .how-mask-content {
+  padding-top: 18svh;
+  padding-bottom: 0;
+}
+
+.app-light .how-reveal.how-story-mobile .how-name {
+  font-size: 22px;
+  margin-bottom: 0;
+}
+
+.app-light .how-reveal.how-story-mobile .how-mask-content > .how-mask-phone {
+  top: var(--benefit-center-y);
+  --phone-w: min(72vw, 300px);
+  width: var(--phone-w);
+  margin-top: calc(var(--phone-w) * -1.0344);
+}
+
+.app-light .how-reveal.how-story-mobile .how-copy-lines > p,
+.app-light .how-reveal.how-story-mobile .how-copy-lines > p:nth-of-type(odd),
+.app-light .how-reveal.how-story-mobile .how-copy-lines > p:nth-of-type(2) {
+  left: 1.25rem;
+  right: 1.25rem;
+  top: auto;
+  bottom: 7svh;
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  translate: 0 0;
+  text-align: center;
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.app-light .how-reveal.how-story-mobile .how-step-2 {
+  text-align: center;
+}
+
+.app-light .how-reveal.how-story-mobile .how-note {
+  margin: 10px auto 0;
+  max-width: 34rem;
+  font-size: 14px;
 }

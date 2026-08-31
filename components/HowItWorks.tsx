@@ -297,7 +297,7 @@ export function HowItWorks() {
                 <PhoneScreen
                   layers={
                     <div className="how-screen relative h-full">
-                      {(wide ? ([1, 2, 3] as const) : ([1] as const)).map((n) => (
+                      {([1, 2, 3] as const).map((n) => (
                         <div key={n} className="how-screen-layer" data-screen={n}>
                           <StepVisual step={n} {...visuals} />
                         </div>
