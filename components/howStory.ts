@@ -53,7 +53,7 @@ export function buildHowStory(holdEl: HTMLElement) {
   const line1 = holdEl.querySelector<HTMLElement>(".how-line-1");
   const line2 = holdEl.querySelector<HTMLElement>(".how-line-2");
   const maskCopy = holdEl.querySelector<HTMLElement>(".how-mask-copy");
-  const maskPhone = holdEl.querySelector<HTMLElement>(".how-mask-phone");
+  const maskPhone = holdEl.querySelector<HTMLElement>(".how-hero-visual") || holdEl.querySelector<HTMLElement>(".how-mask-phone");
   const leanEl = holdEl.querySelector<HTMLElement>(".how-phone-lean");
   const lines = holdEl.querySelectorAll<HTMLElement>(".how-copy-lines > p");
   const layers = Array.from(holdEl.querySelectorAll<HTMLElement>(".how-screen-layer"));

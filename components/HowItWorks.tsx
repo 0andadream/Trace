@@ -370,8 +370,8 @@ export function HowItWorks() {
             </p>
           </div>
 
-          <div className="how-mask-phone">
-            <div className="how-phone-lean">
+          <div className="how-hero-visual how-phone-lean">
+            <div className="how-mask-phone">
               <div className="how-phone-float">
                 <PhoneScreen
                   layers={
@@ -387,8 +387,8 @@ export function HowItWorks() {
                 />
               </div>
             </div>
+            <HowPosters />
           </div>
-          <HowPosters />
 
           <div className="how-copy-lines">
             <p>
