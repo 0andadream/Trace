@@ -101,7 +101,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
       </header>
 
-      <div className="mx-auto w-full max-w-7xl px-4 pb-16 pt-32 sm:px-6 sm:pt-28">
+      <div className="mx-auto w-full max-w-7xl px-4 pb-16 pt-40 sm:px-6 sm:pt-36">
         {!isLanding && !isDocs ? (
           <div className="relative z-10">
             <div className="glass-panel stats-float overflow-hidden">
@@ -129,7 +129,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         ) : null}
-        <div className={!isLanding && !isDocs ? "relative z-20 -mt-4 pt-2 md:-mt-5" : undefined}>{children}</div>
+        <div className={!isLanding && !isDocs ? "relative z-10 mt-6" : undefined}>{children}</div>
       </div>
       <SiteFooter
         build={buildSha()}
