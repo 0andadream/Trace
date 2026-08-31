@@ -12,6 +12,8 @@ export function DecisionTrace({
   keysWritten,
   txHash,
   acpJobId,
+  onchainAge,
+  onchainTxs,
 }: {
   primary: PolicyPrimary;
   standing: number;
@@ -22,6 +24,8 @@ export function DecisionTrace({
   keysWritten?: string;
   txHash?: string | null;
   acpJobId?: string | null;
+  onchainAge?: number | null;
+  onchainTxs?: number | null;
 }) {
   return (
     <dl className="rounded-xl bg-black/[0.03] px-4 py-3 font-mono text-[11px] leading-[1.55] text-neutral-700 ring-1 ring-black/5">
@@ -29,6 +33,12 @@ export function DecisionTrace({
         inputs: <span className="text-neutral-900">{primary}</span>
       </div>
       <div>keys read: {keysRead}</div>
+      {onchainAge != null || onchainTxs != null ? (
+        <div>
+          ONCHAIN_SIGNAL: age {onchainAge ?? "—"}d, {onchainTxs ?? "—"} txs
+          {primary === "USER_RELATIONSHIP" ? " (fetched, not used)" : ""}
+        </div>
+      ) : null}
       {keysWritten ? <div>keys written: {keysWritten}</div> : null}
       <div>
         standing {standing.toFixed(2)} · limit {formatAmount(limit)} · installments {installments}

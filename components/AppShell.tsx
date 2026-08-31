@@ -7,13 +7,15 @@ import { ConnectWallet, useInjectedWallet } from "@/components/ConnectWallet";
 import { Logo } from "@/components/Logo";
 import { SiteFooter } from "@/components/SiteFooter";
 import { formatAmount } from "@/lib/format";
+import { buildSha } from "@/lib/trace/build";
 import type { AgentStatus } from "@/lib/bnpl/status";
 
 const NAV: { href: string; label: string; ownerOnly?: boolean }[] = [
   { href: "/buy", label: "Buy" },
   { href: "/demo", label: "Demo" },
-  { href: "/history", label: "My History", ownerOnly: true },
+  { href: "/docs", label: "Docs" },
   { href: "/log", label: "Agent Log" },
+  { href: "/history", label: "My History", ownerOnly: true },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -48,41 +50,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link href="/" className="flex min-w-0 items-center gap-2 sm:gap-3">
               <Logo variant="compact" tone="light" subtitle="Reputation-weighted BNPL" />
             </Link>
-            {!isLanding ? (
-              <nav className="hidden items-center gap-1 md:flex">
-                {NAV.filter((n) => !n.ownerOnly || wallet.connected).map((n) => {
-                  const active = path === n.href || path?.startsWith(`${n.href}/`);
-                  const cls = `px-4 py-2 text-[14px] font-medium transition-all rounded-full ${
-                    active
-                      ? "bg-black/5 text-neutral-900 shadow-sm"
-                      : "text-neutral-500 hover:bg-black/5 hover:text-neutral-900"
-                  }`;
-                  return (
-                    <Link key={n.href} href={n.href} className={cls}>
-                      {n.label}
-                    </Link>
-                  );
-                })}
-              </nav>
-            ) : null}
+            <nav className="hidden items-center gap-1 md:flex">
+              {NAV.filter((n) => !n.ownerOnly || wallet.connected).map((n) => {
+                const active = n.href === "/" ? path === "/" : path === n.href || path?.startsWith(`${n.href}/`);
+                const cls = `px-4 py-2 text-[14px] font-medium transition-all rounded-full ${
+                  active
+                    ? "bg-black/5 text-neutral-900 shadow-sm"
+                    : "text-neutral-500 hover:bg-black/5 hover:text-neutral-900"
+                }`;
+                return (
+                  <Link key={n.href} href={n.href} className={cls}>
+                    {n.label}
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
-            {isLanding ? (
-              <>
-                <Link
-                  href="/demo"
-                  className="px-2 py-2 text-[14px] font-medium text-neutral-500 hover:text-neutral-900 sm:px-3"
-                >
-                  Demo
-                </Link>
-                <Link
-                  href="/docs"
-                  className="px-2 py-2 text-[14px] font-medium text-neutral-500 hover:text-neutral-900 sm:px-3"
-                >
-                  Docs
-                </Link>
-              </>
-            ) : null}
             <span className="hidden items-center gap-1.5 rounded-full bg-[#7828E8] px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.07em] text-white shadow-sm sm:inline-flex">
               <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden />
               Testnet
@@ -99,27 +83,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             )}
           </div>
         </div>
-        {!isLanding ? (
-          <nav className="mt-2 flex gap-1 overflow-x-auto rounded-full bg-white/80 px-2 py-1 ring-1 ring-black/5 md:hidden">
-            {NAV.filter((n) => !n.ownerOnly || wallet.connected).map((n) => {
-              const active = path === n.href || path?.startsWith(`${n.href}/`);
-              return (
-                <Link
-                  key={n.href}
-                  href={n.href}
-                  className={`whitespace-nowrap rounded-full px-3 py-1.5 text-[13px] font-medium ${
-                    active ? "bg-black/5 text-neutral-900" : "text-neutral-500"
-                  }`}
-                >
-                  {n.label}
-                </Link>
-              );
-            })}
-          </nav>
-        ) : null}
+        <nav className="mt-2 flex gap-1 overflow-x-auto rounded-full bg-white/80 px-2 py-1 ring-1 ring-black/5 md:hidden">
+          {NAV.filter((n) => !n.ownerOnly || wallet.connected).map((n) => {
+            const active = path === n.href || path?.startsWith(`${n.href}/`);
+            return (
+              <Link
+                key={n.href}
+                href={n.href}
+                className={`whitespace-nowrap rounded-full px-3 py-1.5 text-[13px] font-medium ${
+                  active ? "bg-black/5 text-neutral-900" : "text-neutral-500"
+                }`}
+              >
+                {n.label}
+              </Link>
+            );
+          })}
+        </nav>
       </header>
 
-      <div className={`mx-auto w-full max-w-7xl px-4 pb-16 sm:px-6 ${!isLanding ? "pt-32 sm:pt-28" : "pt-24 sm:pt-28"}`}>
+      <div className="mx-auto w-full max-w-7xl px-4 pb-16 pt-32 sm:px-6 sm:pt-28">
         {!isLanding && !isDocs ? (
           <div className="relative z-10">
             <div className="glass-panel stats-float overflow-hidden">
@@ -150,6 +132,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className={!isLanding && !isDocs ? "relative z-20 -mt-4 pt-2 md:-mt-5" : undefined}>{children}</div>
       </div>
       <SiteFooter
+        build={buildSha()}
         explorerHref={
           status?.address ? `https://sepolia.basescan.org/address/${status.address}` : undefined
         }

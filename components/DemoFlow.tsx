@@ -18,11 +18,18 @@ const STEPS = [
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
-function keysRead(rel: UserRelationship | null, usedOnchain: boolean) {
+function keysRead(
+  rel: UserRelationship | null,
+  usedOnchain: boolean,
+  onchain?: { wallet_age_days?: number; tx_count?: number } | null,
+) {
   if (!rel || rel.total_purchases === 0 || usedOnchain) {
-    return "USER_RELATIONSHIP (empty), ONCHAIN_SIGNAL (age, tx_count)";
+    const age = onchain?.wallet_age_days;
+    const txs = onchain?.tx_count;
+    const extra = age != null && txs != null ? ` (age ${age}d, ${txs} txs)` : " (age, tx_count)";
+    return `USER_RELATIONSHIP (empty), ONCHAIN_SIGNAL${extra}`;
   }
-  return "USER_RELATIONSHIP (purchases, schedules, outcomes, snapshot)";
+  return "USER_RELATIONSHIP (purchases, schedules, outcomes, snapshot). ONCHAIN_SIGNAL not used";
 }
 
 export function DemoFlow({ started }: { started: string }) {
@@ -267,7 +274,7 @@ export function DemoFlow({ started }: { started: string }) {
               limit={terms.limit}
               installments={terms.installments}
               interestRate={terms.interest_rate}
-              keysRead={keysRead(rel, terms.used_onchain)}
+              keysRead={keysRead(rel, terms.used_onchain, quote?.onchain)}
               keysWritten={
                 step === 2 && purchase
                   ? "USER_RELATIONSHIP.purchases, snapshot"
@@ -279,11 +286,15 @@ export function DemoFlow({ started }: { started: string }) {
               }
               txHash={step === 2 ? payoutHash : step === 3 ? repayHash : null}
               acpJobId={purchase?.acp?.jobId}
+              onchainAge={quote?.onchain?.wallet_age_days ?? null}
+              onchainTxs={quote?.onchain?.tx_count ?? null}
             />
           </div>
         ) : (
           <p className="mt-4 text-[13px] text-neutral-500">
-            {injected.connected ? "Loading this wallet’s book…" : "Connect a wallet in the header to start."}
+            {injected.connected
+              ? "Reading USER_RELATIONSHIP and fetching ONCHAIN_SIGNAL for this wallet…"
+              : "Connect a wallet to load the real ONCHAIN_SIGNAL and limit for this address."}
           </p>
         )}
 

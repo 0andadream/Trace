@@ -5,10 +5,7 @@ import { HowItWorks } from "@/components/HowItWorks";
 import { AgentInfrastructure } from "@/components/AgentInfrastructure";
 import { AgentRoleStack, AlexVerificationRow } from "@/components/AlexIdentity";
 import { getAgentStatus, payoutIsLive, settlementPayoutLabel } from "@/lib/bnpl/status";
-import { liveWalkthrough } from "@/lib/bnpl/walkthrough";
 import { formatAmount } from "@/lib/format";
-
-const LIVE = liveWalkthrough();
 
 export const dynamic = "force-dynamic";
 
@@ -43,9 +40,7 @@ export default async function HomePage() {
             ways to pay over time.
           </p>
           <p className="mt-3 max-w-[38.75rem] text-[15px] font-normal leading-[1.5] text-neutral-500">
-            First purchase is {LIVE.sku.name} {formatAmount(LIVE.sku.price)}. Empty book:{" "}
-            {LIVE.firstTimeBandLabel} from on-chain baseline. One on-time {formatAmount(LIVE.sku.price)}{" "}
-            lifts the next limit to {LIVE.afterOnTime.limitLabel}. Code sets those numbers, not the LLM.
+            Buy now. Pay over time. Build a financial reputation as you go.
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
             <Link

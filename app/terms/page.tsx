@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 
+export const dynamic = "force-dynamic";
+
 export default function TermsPage() {
   return (
     <AppShell>

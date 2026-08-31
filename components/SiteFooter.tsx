@@ -36,7 +36,7 @@ const COLS: { heading: string; links: { href: string; label: string; external?: 
   },
 ];
 
-export function SiteFooter({ explorerHref }: { explorerHref?: string }) {
+export function SiteFooter({ explorerHref, build }: { explorerHref?: string; build?: string }) {
   const network = COLS.map((col) =>
     col.heading !== "Network"
       ? col
@@ -92,6 +92,7 @@ export function SiteFooter({ explorerHref }: { explorerHref?: string }) {
       <div className="border-t border-white/10">
         <p className="mx-auto flex max-w-7xl min-w-0 flex-wrap items-center gap-x-3 gap-y-1 px-6 py-5 text-[11px] text-[#6B6578]">
           <span>Trace · Base Sepolia testnet · not a real loan</span>
+          {build ? <span className="font-mono uppercase tracking-[0.12em]">build {build}</span> : null}
           <a
             href={ALEX_ACP_PROFILE_URL}
             target="_blank"

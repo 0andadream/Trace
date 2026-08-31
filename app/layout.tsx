@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Inter } from "next/font/google";
+import { buildSha } from "@/lib/trace/build";
 import "./globals.css";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 const sans = Inter({
   subsets: ["latin"],
@@ -32,12 +37,15 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const sha = (process.env.VERCEL_GIT_COMMIT_SHA || "local").slice(0, 7);
+  const sha = buildSha();
   return (
     <html lang="en" className={`${sans.variable} ${mono.variable}`}>
       <body className="font-sans antialiased">
         {children}
-        <div className="pointer-events-none fixed bottom-3 right-4 font-mono text-[10px] uppercase tracking-[0.14em] text-paper-500">
+        <div
+          data-trace-build={sha}
+          className="pointer-events-none fixed bottom-3 right-4 z-[60] font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-400"
+        >
           build {sha}
         </div>
       </body>

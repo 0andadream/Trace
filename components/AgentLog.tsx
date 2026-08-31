@@ -5,6 +5,7 @@ import { formatAmount, shortAddress } from "@/lib/format";
 import { TxLink } from "@/components/TxLink";
 import { AgentInfrastructure } from "@/components/AgentInfrastructure";
 import type { AgentEvent } from "@/lib/trace/agentEvents";
+import type { LogPayload } from "@/lib/trace/logPayload";
 import type { PurchaseRecord, QuoteRecord } from "@/types/bnpl";
 import type { ReactNode } from "react";
 
@@ -19,11 +20,11 @@ function actorTone(actor: string) {
   return "text-neutral-700";
 }
 
-export function AgentLog({ execute }: { execute: boolean }) {
+export function AgentLog({ execute, initial }: { execute: boolean; initial?: LogPayload }) {
   const [rows, setRows] = useState<Row[]>([]);
-  const [events, setEvents] = useState<AgentEvent[]>([]);
+  const [events, setEvents] = useState<AgentEvent[]>(initial?.events || []);
   const [error, setError] = useState<string | null>(null);
-  const [loaded, setLoaded] = useState(false);
+  const [loaded, setLoaded] = useState(initial != null);
 
   useEffect(() => {
     let live = true;
