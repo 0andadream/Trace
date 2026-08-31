@@ -57,6 +57,7 @@ export function buildHowStory(holdEl: HTMLElement) {
   const leanEl = holdEl.querySelector<HTMLElement>(".how-phone-lean");
   const lines = holdEl.querySelectorAll<HTMLElement>(".how-copy-lines > p");
   const layers = Array.from(holdEl.querySelectorAll<HTMLElement>(".how-screen-layer"));
+  const posters = Array.from(holdEl.querySelectorAll<HTMLElement>(".how-poster"));
   const dim = holdEl.querySelector<HTMLElement>(".how-screen-dim");
 
   if (!slotEl || !maskEl || !line1 || !line2 || !maskPhone || !maskCopy || lines.length < 3) {
@@ -124,6 +125,12 @@ export function buildHowStory(holdEl: HTMLElement) {
     const sideOf = (i: number) => (i % 2 ? 1 : -1);
     const leanFor = (side: number) => side * REST_DEG;
 
+    function settlePosters(i: number) {
+      posters.forEach((el, n) => {
+        gsap.set(el, { autoAlpha: n === i ? 1 : 0, zIndex: n === i ? 2 : 1 });
+      });
+    }
+
     function settleLayers(i: number) {
       layers.forEach((el, n) => {
         gsap.set(el, {
@@ -134,6 +141,7 @@ export function buildHowStory(holdEl: HTMLElement) {
           pointerEvents: n === i ? "auto" : "none",
         });
       });
+      settlePosters(i);
       if (dim) gsap.set(dim, { opacity: 0 });
     }
 
@@ -142,6 +150,7 @@ export function buildHowStory(holdEl: HTMLElement) {
       const prev = shownIdx;
       const forward = i > prev;
       shownIdx = i;
+      settlePosters(i);
       if (Math.abs(i - prev) > 1 || !layers[prev]) {
         settleLayers(i);
         return;

@@ -36,6 +36,85 @@ type StepN = 1 | 2 | 3;
 
 const DATES = ["Sep 1", "Sep 15", "Sep 29", "Oct 13"] as const;
 
+function PosterIcon({ d }: { d: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
+      <path d={d} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function HowPosters() {
+  const score = LIVE.afterOnTime.score;
+  const sweep = Math.max(8, Math.min(100, (score / 95) * 100));
+  const signals = [
+    { label: "Sibyl Memory", d: "M5 7h14v10H5zM8 11h8M8 14h5" },
+    { label: "On-time repay", d: "M5 12.5 9.5 17 19 7" },
+    { label: "Onchain start", d: "M12 4v16M5 12h14" },
+    { label: "Open-plan cap", d: "M7 8h10v8H7zM12 8v8" },
+    { label: "Standing", d: "M5 18V11M12 18V6M19 18v-4" },
+    { label: "Next limit", d: "M5 16h14M12 8v8M8 12h8" },
+  ] as const;
+  const cards = [
+    { name: LIVE.sku.name, amount: formatAmount(LIVE.sku.price), chip: "On time" },
+    { name: "Pay with TRACE", amount: LIVE.moderate.installmentLabel, chip: "Test Shop" },
+    { name: "Next limit", amount: LIVE.afterOnTime.limitLabel, chip: "Remembered" },
+  ];
+  return (
+    <div className="how-posters" aria-hidden>
+      <div className="how-poster" data-poster="1">
+        <div className="how-glow" />
+        <div className="how-stack">
+          {cards.map((c, i) => (
+            <article key={c.name} className={`how-stack-card how-stack-card-${i + 1}`}>
+              <p className="how-stack-chip">{c.chip}</p>
+              <p className="how-stack-name">{c.name}</p>
+              <p className="how-stack-amt">{c.amount}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+      <div className="how-poster" data-poster="2">
+        <div className="how-glow" />
+        <div className="how-plan">
+          <p className="how-plan-kicker">Notebook Set</p>
+          <p className="how-plan-amt">{formatAmount(LIVE.sku.price)}</p>
+          <p className="how-plan-split">{LIVE.afterOnTime.installmentLabel}</p>
+          <p className="how-plan-limit">After one on-time, limit {LIVE.afterOnTime.limitLabel}</p>
+        </div>
+      </div>
+      <div className="how-poster" data-poster="3">
+        <div className="how-score-grid">
+          {signals.map((s) => (
+            <div key={s.label} className="how-score-cell">
+              <span className="how-score-ico">
+                <PosterIcon d={s.d} />
+              </span>
+              <span>{s.label}</span>
+            </div>
+          ))}
+        </div>
+        <div className="how-gauge">
+          <svg viewBox="0 0 220 120" className="how-gauge-svg">
+            <path d="M20 110 A90 90 0 0 1 200 110" fill="none" stroke="#E8E7EC" strokeWidth="16" strokeLinecap="round" />
+            <path
+              d="M20 110 A90 90 0 0 1 200 110"
+              fill="none"
+              stroke="#7828E8"
+              strokeWidth="16"
+              strokeLinecap="round"
+              pathLength={100}
+              strokeDasharray={`${sweep} 100`}
+            />
+          </svg>
+          <p className="how-gauge-n">{score}</p>
+          <p className="how-gauge-l">TRACE reputation</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function pill(active: boolean) {
   return active
     ? "rounded-full bg-[#7828E8] px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm"
@@ -309,11 +388,14 @@ export function HowItWorks() {
               </div>
             </div>
           </div>
+          <HowPosters />
 
           <div className="how-copy-lines">
             <p>
-              <span className="how-t">{STEPS[0].line[0]}</span>
-              <span className="how-t">{STEPS[0].line[1]}</span>
+              <span className="how-head">
+                <span className="how-t">{STEPS[0].line[0]}</span>
+                <span className="how-t">{STEPS[0].line[1]}</span>
+              </span>
               <span className="how-note">{STEPS[0].body}</span>
             </p>
             {!wide ? (
@@ -324,8 +406,10 @@ export function HowItWorks() {
               </div>
             ) : null}
             <p className="how-step-2">
-              <span className="how-t">{STEPS[1].line[0]}</span>
-              <span className="how-t">{STEPS[1].line[1]}</span>
+              <span className="how-head">
+                <span className="how-t">{STEPS[1].line[0]}</span>
+                <span className="how-t">{STEPS[1].line[1]}</span>
+              </span>
               <span className="how-note">{STEPS[1].body}</span>
             </p>
             {!wide ? (
@@ -336,8 +420,10 @@ export function HowItWorks() {
               </div>
             ) : null}
             <p>
-              <span className="how-t">{STEPS[2].line[0]}</span>
-              <span className="how-t">{STEPS[2].line[1]}</span>
+              <span className="how-head">
+                <span className="how-t">{STEPS[2].line[0]}</span>
+                <span className="how-t">{STEPS[2].line[1]}</span>
+              </span>
               <span className="how-note">{STEPS[2].body}</span>
             </p>
           </div>
