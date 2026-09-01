@@ -22,7 +22,7 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("http://localhost:3002"),
+  metadataBase: new URL("https://tracecredits.xyz"),
   title: "TRACE, buy now, pay later",
   description: "Reputation-weighted BNPL that remembers you. Buy now. Pay over time. Powered by Sibyl Memory.",
   icons: {

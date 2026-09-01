@@ -1,6 +1,6 @@
 # Demo script (4 minutes)
 
-Live: https://trace-26xx.vercel.app/demo  
+Live: https://tracecredits.xyz/demo  
 Same wallet the whole way. Default SKU: Notebook Set $12. Base Sepolia.
 
 ## 0:00–0:20 Setup

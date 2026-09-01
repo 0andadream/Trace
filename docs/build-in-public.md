@@ -16,7 +16,7 @@ No token. No fake merchants. Testnet on Base.
 
 @virtuals_io is how Alex actually files the settlement job after TRACE decides.
 
-Live: https://trace-26xx.vercel.app/
+Live: https://tracecredits.xyz/
 
 ---
 

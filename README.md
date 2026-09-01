@@ -1,6 +1,6 @@
 # TRACE
 
-[![Live](https://img.shields.io/badge/live-trace--26xx.vercel.app-7828E8)](https://trace-26xx.vercel.app/)
+[![Live](https://img.shields.io/badge/live-tracecredits.xyz-7828E8)](https://tracecredits.xyz/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Network](https://img.shields.io/badge/network-Base%20Sepolia-0052FF)](https://sepolia.basescan.org/address/0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e)
 [![Sibyl](https://img.shields.io/badge/memory-Sibyl-6B21A8)](https://github.com/Sibyl-Labs/Sibyl-Memory)
@@ -14,7 +14,7 @@
 
 TRACE is reputation-weighted BNPL on Base Sepolia. **Alex** is the agent. **Sibyl** stores this wallet’s purchases and repayments. **Virtuals ACP** is Alex’s registered identity. **Base Sepolia** moves ETH. Delete Sibyl and the same wallet looks new again. The chain does not change.
 
-**[Live ↗](https://trace-26xx.vercel.app/)** · **[Judge it in 90 seconds ↗](#judge-trace-in-90-seconds)** · **[Demo ↗](https://trace-26xx.vercel.app/demo)** · **[Alex on Virtuals ↗](https://app.virtuals.io/acp/agents/01a05400-aea9-7f70-a67e-f558448e86e3?tab=acp)** · **[Agent ↗](https://sepolia.basescan.org/address/0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e)**
+**[Live ↗](https://tracecredits.xyz/)** · **[Judge it in 90 seconds ↗](#judge-trace-in-90-seconds)** · **[Demo ↗](https://tracecredits.xyz/demo)** · **[Alex on Virtuals ↗](https://app.virtuals.io/acp/agents/01a05400-aea9-7f70-a67e-f558448e86e3?tab=acp)** · **[Agent ↗](https://sepolia.basescan.org/address/0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e)**
 
 ```
 Sibyl remembered X  →  Alex requested Y  →  Base settled Z
@@ -24,7 +24,7 @@ Sibyl remembered X  →  Alex requested Y  →  Base settled Z
 
 ## Judge TRACE in 90 seconds
 
-**Live: [trace-26xx.vercel.app](https://trace-26xx.vercel.app/)** — Next.js on Vercel, Sibyl on Redis, settlement on Base Sepolia. Open [`/demo`](https://trace-26xx.vercel.app/demo) with a wallet. Same address the whole way. Default SKU: Notebook Set **$12**.
+**Live: [tracecredits.xyz](https://tracecredits.xyz/)** — Next.js on Vercel, Sibyl on Redis, settlement on Base Sepolia. Open [`/demo`](https://tracecredits.xyz/demo) with a wallet. Same address the whole way. Default SKU: Notebook Set **$12**.
 
 | | |
 |---|---|
@@ -194,12 +194,12 @@ scripts/            wallet, seed, reset, ACP helpers
 
 | URL | What |
 |---|---|
-| [`/`](https://trace-26xx.vercel.app/) | Landing |
-| [`/buy`](https://trace-26xx.vercel.app/buy) | Quote, confirm, repay |
-| [`/demo`](https://trace-26xx.vercel.app/demo) | Five-step judge path |
-| [`/log`](https://trace-26xx.vercel.app/log) | Public agent log |
-| [`/history`](https://trace-26xx.vercel.app/history) | This wallet’s book |
-| [`/docs`](https://trace-26xx.vercel.app/docs) | Docs |
+| [`/`](https://tracecredits.xyz/) | Landing |
+| [`/buy`](https://tracecredits.xyz/buy) | Quote, confirm, repay |
+| [`/demo`](https://tracecredits.xyz/demo) | Five-step judge path |
+| [`/log`](https://tracecredits.xyz/log) | Public agent log |
+| [`/history`](https://tracecredits.xyz/history) | This wallet’s book |
+| [`/docs`](https://tracecredits.xyz/docs) | Docs |
 
 ---
 
