@@ -7,7 +7,7 @@ The primary path is **Run the demo**. No visitor wallet. The server signs as a d
 
 ## 0:00–0:20 Setup
 
-Open `/demo`. Do **not** connect a wallet. Read the label: this run uses an agent-controlled test wallet — real Sibyl memory, real Base Sepolia transactions. Point at `/buy` for anyone who wants to be the signer themselves.
+Open `/demo`. Do **not** connect a wallet. Read the label: this run uses an agent-controlled test wallet — real Sibyl memory, real Base Sepolia transactions.
 
 If the page says the demo is temporarily unavailable (agent reserve low, or demo wallet needs ETH), stop. That message is load-bearing, not a spinner bug.
 
@@ -23,11 +23,7 @@ Click **Run the demo**. Watch the stream. Every number, hash, and reasoning stri
 
 Rate limit: one public run per IP per few minutes. Do not mash the button.
 
-## 3:20–3:50 Optional: own wallet
-
-Scroll to the five-step walkthrough if a judge wants to connect MetaMask/Rabby/Coinbase and be the buyer. Same APIs. Prefer `/buy` for the full self-serve checkout.
-
-## 3:50–4:00 Close
+## 3:20–4:00 Close
 
 `/log` shows the run. `/docs` repeats Sibyl remembered → Alex requested → Base settled. Virtuals never set a limit and never moved user funds.
 

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { DecisionTrace } from "@/components/DecisionTrace";
 import { TxLink } from "@/components/TxLink";
@@ -142,11 +141,7 @@ export function DemoRun() {
       <section className="glass-panel p-5">
         <p className="text-[13px] leading-6 text-neutral-700">
           This demo runs the real flow using an agent-controlled test wallet — real Sibyl memory, real
-          Base Sepolia transactions, no wallet connection required on your end. Want to try it with
-          your own wallet instead?{" "}
-          <Link href="/buy" className="font-semibold text-[#7828E8] underline decoration-[#7828E8]/40 underline-offset-2">
-            Open /buy
-          </Link>
+          Base Sepolia transactions, no wallet connection required.
         </p>
         {status?.demoWallet ? (
           <p className="mt-3 font-mono text-[12px] text-neutral-500">
@@ -171,12 +166,6 @@ export function DemoRun() {
           >
             {busy ? "Running the real flow…" : "Run the demo"}
           </button>
-          <Link
-            href="/buy"
-            className="inline-flex items-center rounded-full border border-black/15 px-5 py-2.5 text-[14px] font-semibold text-neutral-900"
-          >
-            Use your own wallet
-          </Link>
         </div>
         {runError ? <p className="mt-3 text-[13px] text-red-700">{runError}</p> : null}
       </section>

@@ -41,7 +41,7 @@ Verified against `app/` and the live shell (`components/AppShell.tsx`). Product 
 | [`/buy`](https://tracecredits.xyz/buy) | `app/buy/page.tsx` → `Desk` | Product checkout: quote, confirm, repay. This is the app. |
 | [`/history`](https://tracecredits.xyz/history) | `app/history/page.tsx` → `HistoryView` | This connected wallet’s Sibyl book. |
 | [`/log`](https://tracecredits.xyz/log) | `app/log/page.tsx` → `AgentLog` | Public agent log (MEMORY_READ → ACP_REQUEST → CREDIT_DECISION → SETTLEMENT). |
-| [`/demo`](https://tracecredits.xyz/demo) | `app/demo/page.tsx` → `DemoRun` + `DemoFlow` | One-click real BNPL run (agent-controlled demo wallet, no visitor connect) plus optional five-step own-wallet path. |
+| [`/demo`](https://tracecredits.xyz/demo) | `app/demo/page.tsx` → `DemoRun` | One-click real BNPL run (agent-controlled demo wallet, no visitor connect). |
 | [`/docs`](https://tracecredits.xyz/docs) | `app/docs/page.tsx` → `DocsView` | In-app documentation. |
 | [`/terms`](https://tracecredits.xyz/terms) | `app/terms/page.tsx` | Testnet terms stub. |
 | [`/privacy`](https://tracecredits.xyz/privacy) | `app/privacy/page.tsx` | Privacy stub (wallet-keyed book, no name/email). |
@@ -106,7 +106,7 @@ Trace interest is code: `interestRateFromStanding` (floor 2%, ceiling 26%). You 
 
 This is the current BNPL loop, not the old treasury transfer demo. Numbers below are produced by `liveWalkthrough()` in [`lib/bnpl/walkthrough.ts`](./lib/bnpl/walkthrough.ts) against the same `computeApproval` as `/buy`. SKU: **Notebook Set $12**.
 
-1. **Run the real loop without connecting.** [`/demo`](https://tracecredits.xyz/demo) **Run the demo** uses `POST /api/demo/run` and `DEMO_WALLET_PRIVATE_KEY` (server-side only) as the buyer. Same `runAcceptPurchase` / `runRepayInstallment` as `/buy`. Or connect a wallet on [`/demo`](https://tracecredits.xyz/demo) / [`/buy`](https://tracecredits.xyz/buy) and be that wallet yourself.
+1. **Run the real loop without connecting.** [`/demo`](https://tracecredits.xyz/demo) **Run the demo** uses `POST /api/demo/run` and `DEMO_WALLET_PRIVATE_KEY` (server-side only) as the buyer. Same `runAcceptPurchase` / `runRepayInstallment` as `/buy`. To be the signer yourself, use [`/buy`](https://tracecredits.xyz/buy).
 2. **First purchase $12** with an empty book.
    - Inputs: `ONCHAIN_SIGNAL`.
    - Thin wallet: Approve, limit **$12**, **1 payment of $14.52** (21% interest).
@@ -118,7 +118,7 @@ This is the current BNPL loop, not the old treasury transfer demo. Numbers below
 4. **Second purchase, same wallet, new request.** Re-quote $12.
    - Inputs: `USER_RELATIONSHIP`. Factor text includes **`ONCHAIN_SIGNAL not used`**.
    - After one completed **on-time** $12: Approve, limit **$43.33** (inside the $40–$80 first-clean band), **4 payments of $3.51**, standing **0.39**.
-5. **Reset memory** (`pnpm memory:reset` locally, or delete in `/demo` step 5 / History). Chain is unchanged.
+5. **Reset memory** (`pnpm memory:reset` locally, or delete in History). Chain is unchanged.
 6. **Same wallet, quote $12 again.** Empty book. First-time `ONCHAIN_SIGNAL` terms return ($12 / $20 / $24).
 
 A **late** completion of that $12 (no default) currently quotes limit **$16**, **2** installments — worse than the clean $43.33 / 4-pay plan. Any **default** caps standing at **0.12** and **Declines**, limit **$8**.
@@ -130,7 +130,7 @@ pnpm memory:reset
 pnpm dev                 # http://localhost:3002
 ```
 
-Then `/demo` → **Run the demo** (no visitor wallet). Or connect → buy $12 → repay → re-quote → delete memory.
+Then `/demo` → **Run the demo** (no visitor wallet). Or `/buy` → connect → buy $12 → repay → re-quote.
 
 ---
 

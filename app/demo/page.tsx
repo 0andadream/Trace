@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { AgentInfrastructure } from "@/components/AgentInfrastructure";
-import { DemoFlow } from "@/components/DemoFlow";
 import { DemoRun } from "@/components/DemoRun";
 import { payoutIsLive } from "@/lib/bnpl/execute";
 
@@ -45,25 +44,6 @@ export default function DemoPage() {
         </div>
         <div className="mt-10">
           <DemoRun />
-        </div>
-        <div className="mt-12 border-t border-black/5 pt-10">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
-            Optional · your wallet
-          </p>
-          <h2 className="mt-2 text-[1.25rem] font-semibold text-neutral-900">
-            Walk the same steps yourself
-          </h2>
-          <p className="mt-2 text-[14px] leading-6 text-neutral-600">
-            Connect an injected wallet and run Notebook $12 through quote, repay, and a fresh
-            request. Same APIs as the button above. Prefer checkout?{" "}
-            <Link href="/buy" className="font-semibold text-[#7828E8]">
-              Go to /buy
-            </Link>
-            .
-          </p>
-          <div className="mt-6">
-            <DemoFlow started={started} />
-          </div>
         </div>
         <div className="mt-10">
           <AgentInfrastructure execute={payoutIsLive()} />

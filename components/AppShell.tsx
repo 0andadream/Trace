@@ -11,9 +11,8 @@ import { buildSha } from "@/lib/trace/build";
 import type { AgentStatus } from "@/lib/bnpl/status";
 
 const NAV: { href: string; label: string; ownerOnly?: boolean }[] = [
-  { href: "/buy", label: "Buy" },
   { href: "/demo", label: "Demo" },
-  { href: "/docs", label: "Docs" },
+  { href: "/buy", label: "Buy" },
   { href: "/log", label: "Agent Log" },
   { href: "/history", label: "My History", ownerOnly: true },
 ];
@@ -67,6 +66,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </nav>
           </div>
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
+            <Link
+              href="/docs"
+              className={`px-3 py-1.5 text-[14px] font-medium transition-all rounded-full sm:px-4 sm:py-2 ${
+                isDocs
+                  ? "bg-black/5 text-neutral-900 shadow-sm"
+                  : "text-neutral-500 hover:bg-black/5 hover:text-neutral-900"
+              }`}
+            >
+              Docs
+            </Link>
             <span className="hidden items-center gap-1.5 rounded-full bg-[#7828E8] px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.07em] text-white shadow-sm sm:inline-flex">
               <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden />
               Testnet
