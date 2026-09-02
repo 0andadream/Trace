@@ -41,7 +41,7 @@ Verified against `app/` and the live shell (`components/AppShell.tsx`). Product 
 | [`/buy`](https://tracecredits.xyz/buy) | `app/buy/page.tsx` → `Desk` | Product checkout: quote, confirm, repay. This is the app. |
 | [`/history`](https://tracecredits.xyz/history) | `app/history/page.tsx` → `HistoryView` | This connected wallet’s Sibyl book. |
 | [`/log`](https://tracecredits.xyz/log) | `app/log/page.tsx` → `AgentLog` | Public agent log (MEMORY_READ → ACP_REQUEST → CREDIT_DECISION → SETTLEMENT). |
-| [`/demo`](https://tracecredits.xyz/demo) | `app/demo/page.tsx` → `DemoFlow` | Five-step judge path, Notebook $12, same wallet. |
+| [`/demo`](https://tracecredits.xyz/demo) | `app/demo/page.tsx` → `DemoRun` + `DemoFlow` | One-click real BNPL run (agent-controlled demo wallet, no visitor connect) plus optional five-step own-wallet path. |
 | [`/docs`](https://tracecredits.xyz/docs) | `app/docs/page.tsx` → `DocsView` | In-app documentation. |
 | [`/terms`](https://tracecredits.xyz/terms) | `app/terms/page.tsx` | Testnet terms stub. |
 | [`/privacy`](https://tracecredits.xyz/privacy) | `app/privacy/page.tsx` | Privacy stub (wallet-keyed book, no name/email). |
@@ -106,7 +106,7 @@ Trace interest is code: `interestRateFromStanding` (floor 2%, ceiling 26%). You 
 
 This is the current BNPL loop, not the old treasury transfer demo. Numbers below are produced by `liveWalkthrough()` in [`lib/bnpl/walkthrough.ts`](./lib/bnpl/walkthrough.ts) against the same `computeApproval` as `/buy`. SKU: **Notebook Set $12**.
 
-1. **Connect a wallet** on [`/demo`](https://tracecredits.xyz/demo) or [`/buy`](https://tracecredits.xyz/buy). Same address the whole way. Base Sepolia.
+1. **Run the real loop without connecting.** [`/demo`](https://tracecredits.xyz/demo) **Run the demo** uses `POST /api/demo/run` and `DEMO_WALLET_PRIVATE_KEY` (server-side only) as the buyer. Same `runAcceptPurchase` / `runRepayInstallment` as `/buy`. Or connect a wallet on [`/demo`](https://tracecredits.xyz/demo) / [`/buy`](https://tracecredits.xyz/buy) and be that wallet yourself.
 2. **First purchase $12** with an empty book.
    - Inputs: `ONCHAIN_SIGNAL`.
    - Thin wallet: Approve, limit **$12**, **1 payment of $14.52** (21% interest).
@@ -130,7 +130,7 @@ pnpm memory:reset
 pnpm dev                 # http://localhost:3002
 ```
 
-Then `/demo` → connect → buy $12 → repay → re-quote → delete memory.
+Then `/demo` → **Run the demo** (no visitor wallet). Or connect → buy $12 → repay → re-quote → delete memory.
 
 ---
 
@@ -148,7 +148,7 @@ pnpm wallet:create          # writes AGENT_PRIVATE_KEY to .env.local; never comm
 pnpm dev                    # next dev --port 3002 → http://localhost:3002
 ```
 
-Other scripts: `pnpm build` / `pnpm start` (port 3002), `pnpm memory:reset`, `pnpm memory:export`, `pnpm memory:seed` (**do not run seed against production Redis**), `pnpm sibyl:health`, `pnpm acp:job`, `pnpm acp:request`, `pnpm mcp`.
+Other scripts: `pnpm build` / `pnpm start` (port 3002), `pnpm memory:reset`, `pnpm memory:export`, `pnpm memory:seed` (**do not run seed against production Redis**), `pnpm demo:wallet`, `pnpm demo:fund`, `pnpm demo:reset` (demo wallet Sibyl book only; not a public HTTP route), `pnpm sibyl:health`, `pnpm acp:job`, `pnpm acp:request`, `pnpm mcp`.
 
 ### Environment variables (from `.env.example`)
 
@@ -162,6 +162,9 @@ Other scripts: `pnpm build` / `pnpm start` (port 3002), `pnpm memory:reset`, `pn
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Same Redis, Upstash names. |
 | `AGENT_PRIVATE_KEY` | Treasury/BNPL signer. From `pnpm wallet:create`. |
 | `AGENT_ADDRESS` | Published signer if the key is absent. Repo default `0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e`. |
+| `DEMO_WALLET_PRIVATE_KEY` | Buyer signer for `/demo` **Run the demo**. From `pnpm demo:wallet`. Server-side only; never sent to the client. Must not be `AGENT_PRIVATE_KEY`. |
+| `DEMO_WALLET_ADDRESS` | Public demo buyer if the key is absent. Also published in `config/demo-wallet.json`. |
+| `DEMO_RATE_WINDOW_SEC` | Optional. Per-IP cooldown for `POST /api/demo/run`. Default 180. |
 | `BASE_PRIVATE_KEY` | Alias written by `wallet:create`; `lib/wallet.ts` accepts it if `AGENT_PRIVATE_KEY` is empty. |
 | `SEPOLIA_RPC_URL` / `BASE_RPC_URL` | Default `https://sepolia.base.org`. |
 | `BASE_CHAIN_ID` | **84532** Base Sepolia (8453 would be Base mainnet). |
@@ -183,8 +186,9 @@ Other scripts: `pnpm build` / `pnpm start` (port 3002), `pnpm memory:reset`, `pn
 1. `pnpm wallet:create` generates a key into `.env.local` and will refuse if `.gitignore` does not list `.env.local`.
 2. Stats can read the published address in [`config/agent-wallet.json`](./config/agent-wallet.json): `0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e` on `sepolia`.
 3. Fund **that agent** with Base Sepolia ETH. User repayments also go to this address.
-4. In the browser, connect **your** injected wallet on Base Sepolia (chain id 84532).
-5. Set `BASE_EXECUTE=1` on Vercel for live payouts at tracecredits.xyz. If execute is off, quotes and books still work; ETH is not broadcast.
+4. `pnpm demo:wallet` then `pnpm demo:fund` for the `/demo` buyer (separate key, Base Sepolia ETH for gas + the interest gap above the $12 payout).
+5. In the browser, connect **your** injected wallet on Base Sepolia (chain id 84532) for `/buy`. **Run the demo** does not need a visitor wallet.
+6. Set `BASE_EXECUTE=1` on Vercel for live payouts at tracecredits.xyz. If execute is off, quotes and books still work; ETH is not broadcast.
 
 Explorer: [agent on Base Sepolia](https://sepolia.basescan.org/address/0x6F75c81375B43AcE7cE839D6eAc7192e10a4440e).
 
@@ -226,12 +230,12 @@ Virtuals does **not** set the limit and does **not** move user funds. ACP identi
 ## Architecture
 
 ```
-User wallet (injected)
-  → /buy (Desk)
+User wallet (injected) on /buy
+  or demo buyer (DEMO_WALLET_PRIVATE_KEY, server-side) on /demo Run the demo
   → POST /api/purchase  →  lib/bnpl/policy.ts computeApproval
   → Sibyl USER_RELATIONSHIP (Redis on Vercel / SQLite or JSON locally)
   → ETH payout on Base Sepolia if BASE_EXECUTE=1
-  → POST /api/repay after verified user ETH
+  → POST /api/repay after verified buyer ETH
   → next quote reads the same book
 ```
 

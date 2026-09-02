@@ -320,6 +320,7 @@ export function DocsView() {
           <Lead>Open Buy, connect, enter an amount, and ask. First time, you start small.</Lead>
           <ol className="mt-4 list-none space-y-3">
             {[
+              "Or open Demo and click Run the demo. No visitor wallet. TRACE uses an agent-controlled test wallet on Base Sepolia. Same purchase and repay APIs.",
               "Go to Buy and connect a wallet. That is your login.",
               "Choose a purchase amount and how you’ll pay: today, or with TRACE over time.",
               "If eligible, TRACE finances the purchase. Repay from Buy or My History.",

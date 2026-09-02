@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { AgentInfrastructure } from "@/components/AgentInfrastructure";
 import { DemoFlow } from "@/components/DemoFlow";
+import { DemoRun } from "@/components/DemoRun";
 import { payoutIsLive } from "@/lib/bnpl/execute";
 
 export const dynamic = "force-dynamic";
@@ -18,12 +19,9 @@ export default function DemoPage() {
           Sibyl remembers. Virtuals acts. Base settles.
         </h1>
         <p className="mt-3 text-[15px] leading-6 text-neutral-600">
-          TRACE is a memory-powered BNPL agent. This page is the 2–5 minute path. Session started{" "}
+          TRACE is a memory-powered BNPL agent. Click Run the demo to execute the real purchase →
+          payout → repay → second quote loop with an agent-controlled test wallet. Session started{" "}
           <span className="font-mono text-[13px] text-neutral-800">{started}</span>.
-        </p>
-        <p className="mt-2 text-[14px] text-neutral-500">
-          Five steps, same wallet. Notebook $12. Delete memory in step 5 without changing the wallet
-          or the chain. You do not need GitHub for this path.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
@@ -46,7 +44,26 @@ export default function DemoPage() {
           </Link>
         </div>
         <div className="mt-10">
-          <DemoFlow started={started} />
+          <DemoRun />
+        </div>
+        <div className="mt-12 border-t border-black/5 pt-10">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
+            Optional · your wallet
+          </p>
+          <h2 className="mt-2 text-[1.25rem] font-semibold text-neutral-900">
+            Walk the same steps yourself
+          </h2>
+          <p className="mt-2 text-[14px] leading-6 text-neutral-600">
+            Connect an injected wallet and run Notebook $12 through quote, repay, and a fresh
+            request. Same APIs as the button above. Prefer checkout?{" "}
+            <Link href="/buy" className="font-semibold text-[#7828E8]">
+              Go to /buy
+            </Link>
+            .
+          </p>
+          <div className="mt-6">
+            <DemoFlow started={started} />
+          </div>
         </div>
         <div className="mt-10">
           <AgentInfrastructure execute={payoutIsLive()} />
