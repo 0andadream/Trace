@@ -1,7 +1,7 @@
 import { createPublicClient, formatEther, http, type Hex } from "viem";
 import { baseSepolia } from "viem/chains";
 import { DEMO_SKU } from "@/lib/bnpl/walkthrough";
-import { getDemoWalletAccount, getDemoWalletAddress } from "@/lib/bnpl/demoWallet";
+import { demoWalletConfigured, getDemoWalletAccount, getDemoWalletAddress } from "@/lib/bnpl/demoWallet";
 import { sendDemoWalletRepay } from "@/lib/bnpl/sendDemoRepay";
 import { runAcceptPurchase, runPurchaseQuote, runRepayInstallment } from "@/lib/bnpl/run";
 import { deleteRelationship, getRelationship } from "@/lib/bnpl/store";
@@ -37,6 +37,20 @@ export async function getDemoStatus(): Promise<DemoStatus> {
       available: false,
       reason: "Demo temporarily unavailable — demo wallet is not configured.",
       demoWallet: null,
+      agent: null,
+      execute: payoutIsLive(),
+      demoEth: null,
+      agentEth: null,
+      spendableUsd: null,
+      reserve,
+      sku,
+    };
+  }
+  if (!demoWalletConfigured()) {
+    return {
+      available: false,
+      reason: "Demo temporarily unavailable — demo wallet is not configured.",
+      demoWallet,
       agent: null,
       execute: payoutIsLive(),
       demoEth: null,
@@ -178,6 +192,9 @@ export async function runAgentDemo(emit: Emit) {
   }
 
   const wallet = getDemoWalletAddress();
+  if (!demoWalletConfigured()) {
+    throw new Error("Demo temporarily unavailable — demo wallet is not configured.");
+  }
   getDemoWalletAccount();
   const merchant = "Test Shop";
   const amount = DEMO_SKU.price;
