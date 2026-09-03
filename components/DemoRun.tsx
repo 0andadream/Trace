@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AgentConsole } from "@/components/AgentConsole";
 import { DecisionTrace } from "@/components/DecisionTrace";
 import { TxLink } from "@/components/TxLink";
 import type { DemoEvent, DemoStatus } from "@/lib/bnpl/demoTypes";
@@ -31,6 +32,27 @@ function stepLabel(step: string) {
   }
 }
 
+function consoleLines(events: DemoEvent[], busy: boolean): string[] {
+  const out: string[] = ["> alex online", "> sibyl memory · virtuals identity · base sepolia"];
+  for (const event of events) {
+    const mark = event.status === "error" ? "!" : event.status === "ok" ? "+" : ">";
+    out.push("");
+    out.push(`${mark} ${event.title}`);
+    if (event.message) out.push(`  ${event.message}`);
+    if (event.terms) {
+      out.push(`  inputs ${event.terms.primary_signal}`);
+      out.push(
+        `  standing ${Number(event.standing ?? event.terms.standing_score).toFixed(2)}  limit ${event.limit ?? event.terms.limit}  n=${event.installments ?? event.terms.installments}`,
+      );
+      if (event.terms.used_onchain) out.push("  ONCHAIN_SIGNAL used");
+      else out.push("  ONCHAIN_SIGNAL not used");
+    }
+    if (event.txHash) out.push(`  tx ${event.txHash}`);
+  }
+  if (busy) out.push("", "> typing…");
+  return out;
+}
+
 function parseSseChunk(chunk: string, onEvent: (event: DemoEvent) => void) {
   for (const block of chunk.split("\n\n")) {
     const line = block.split("\n").find((l) => l.startsWith("data: "));
@@ -49,6 +71,7 @@ export function DemoRun() {
   const [events, setEvents] = useState<DemoEvent[]>([]);
   const [busy, setBusy] = useState(false);
   const [runError, setRunError] = useState<string | null>(null);
+  const typed = useMemo(() => consoleLines(events, busy), [events, busy]);
 
   const loadStatus = useCallback(async () => {
     const res = await fetch("/api/demo/status", { cache: "no-store" });
@@ -169,6 +192,8 @@ export function DemoRun() {
         </div>
         {runError ? <p className="mt-3 text-[13px] text-red-700">{runError}</p> : null}
       </section>
+
+      <AgentConsole lines={typed} live={busy} />
 
       {events.length > 0 ? (
         <ol className="space-y-3">
