@@ -15,11 +15,12 @@ If the page says the demo is temporarily unavailable (agent reserve low, or demo
 
 Click **Run the demo**. Watch the stream. Every number, hash, and reasoning string is from the live APIs.
 
-1. **Memory.** `USER_RELATIONSHIP` for the demo wallet. This run clears only that wallet’s book first so you see empty-book terms, then a real repay, then improved terms.
+1. **Memory.** `USER_RELATIONSHIP` for the demo wallet. This run clears only that wallet’s book first so you see empty-book terms, then a real repay, then a second purchase on remembered terms.
 2. **First purchase.** Real `runAcceptPurchase` for Notebook $12. Decision / standing / limit / installments come from `computeApproval`.
 3. **Payout.** If execute is on, the agent sends ETH to the demo wallet. Open the hash on [Base Sepolia explorer](https://sepolia.basescan.org). Confirmed transfer, not a mock.
 4. **Repay.** The demo wallet signs a real ETH transfer back to Alex. Open that hash too. `POST /api/repay` runs only after `verifyUserRepay`.
-5. **Second purchase.** New `runPurchaseQuote` as the same address. Inputs should now be `USER_RELATIONSHIP`. Limit and installment count should move (first-clean band after an on-time $12). Reasoning cites the book just written — not a hardcoded before/after.
+5. **Second purchase.** Real `runAcceptPurchase` for the same Notebook $12 as the same address. Inputs should now be `USER_RELATIONSHIP`. Limit and installment count should move (first-clean band after an on-time $12). Reasoning cites the book just written — not a hardcoded before/after.
+6. **Second payout.** If execute is on, Alex sends ETH again. Sibyl now has two originated purchases for this wallet. The second plan is left open so the remembered book is visible.
 
 Rate limit: one public run per IP per few minutes. Do not mash the button.
 

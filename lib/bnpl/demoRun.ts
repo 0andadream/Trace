@@ -3,7 +3,7 @@ import { baseSepolia } from "viem/chains";
 import { DEMO_SKU } from "@/lib/bnpl/walkthrough";
 import { demoWalletConfigured, getDemoWalletAccount, getDemoWalletAddress } from "@/lib/bnpl/demoWallet";
 import { sendDemoWalletRepay } from "@/lib/bnpl/sendDemoRepay";
-import { runAcceptPurchase, runPurchaseQuote, runRepayInstallment } from "@/lib/bnpl/run";
+import { runAcceptPurchase, runRepayInstallment } from "@/lib/bnpl/run";
 import { deleteRelationship, getRelationship } from "@/lib/bnpl/store";
 import {
   agentOutstandingExposure,
@@ -184,6 +184,52 @@ function bookLine(rel: UserRelationship) {
   return `purchases=${rel.total_purchases} on_time=${rel.on_time_count} late=${rel.late_count} default=${rel.default_count} standing=${rel.current_standing_score} limit=${rel.current_limit}. ${rel.snapshot?.trust_note || ""}`;
 }
 
+async function waitPayout(
+  emit: Emit,
+  step: "payout" | "payout2",
+  accepted: Awaited<ReturnType<typeof runAcceptPurchase>>,
+) {
+  const second = step === "payout2";
+  if (accepted.tx.sent && accepted.tx.txHash) {
+    emit({
+      step,
+      status: "start",
+      title: second ? "Sending second payout…" : "Sending payout…",
+      message: second
+        ? "Waiting for the second agent payout on Base Sepolia."
+        : "Waiting for the agent payout on Base Sepolia.",
+      txHash: accepted.tx.txHash,
+      explorerUrl: accepted.tx.explorerUrl,
+    });
+    const rpc = process.env.BASE_RPC_URL || process.env.SEPOLIA_RPC_URL || "https://sepolia.base.org";
+    const publicClient = createPublicClient({ chain: baseSepolia, transport: http(rpc) });
+    const receipt = await publicClient.waitForTransactionReceipt({
+      hash: accepted.tx.txHash as Hex,
+      timeout: 120_000,
+    });
+    if (receipt.status !== "success") {
+      throw new Error(second ? "Second agent payout did not confirm." : "Agent payout did not confirm.");
+    }
+    emit({
+      step,
+      status: "ok",
+      title: second ? "Second payout confirmed" : "Payout confirmed",
+      message: `Live on Base Sepolia. ${usdToEthFixed(accepted.purchase.amount)} ETH ≈ $${accepted.purchase.amount}.`,
+      txHash: accepted.tx.txHash,
+      explorerUrl: accepted.tx.explorerUrl,
+    });
+    return;
+  }
+  emit({
+    step,
+    status: "ok",
+    title: second ? "Second payout simulated" : "Payout simulated",
+    message: accepted.tx.reason || "BASE_EXECUTE is off. The plan is stored; ETH was not broadcast.",
+    txHash: null,
+    explorerUrl: null,
+  });
+}
+
 export async function runAgentDemo(emit: Emit) {
   const pre = await getDemoStatus();
   if (!pre.available) {
@@ -203,7 +249,7 @@ export async function runAgentDemo(emit: Emit) {
     step: "reset",
     status: "start",
     title: "Preparing a first-time book",
-    message: `Clearing Sibyl USER_RELATIONSHIP for the demo wallet ${wallet} so this run shows empty-book terms, then a real repay, then improved terms. The chain is not reset.`,
+    message: `Clearing Sibyl USER_RELATIONSHIP for the demo wallet ${wallet} so this run shows empty-book terms, then a real repay, then a second purchase on remembered terms. The chain is not reset.`,
   });
   await resetDemoWalletBook();
   emit({
@@ -257,40 +303,7 @@ export async function runAgentDemo(emit: Emit) {
     purchases: accepted.relationship.total_purchases,
   });
 
-  if (accepted.tx.sent && accepted.tx.txHash) {
-    emit({
-      step: "payout",
-      status: "start",
-      title: "Sending payout…",
-      message: "Waiting for the agent payout on Base Sepolia.",
-      txHash: accepted.tx.txHash,
-      explorerUrl: accepted.tx.explorerUrl,
-    });
-    const rpc = process.env.BASE_RPC_URL || process.env.SEPOLIA_RPC_URL || "https://sepolia.base.org";
-    const publicClient = createPublicClient({ chain: baseSepolia, transport: http(rpc) });
-    const receipt = await publicClient.waitForTransactionReceipt({
-      hash: accepted.tx.txHash as Hex,
-      timeout: 120_000,
-    });
-    if (receipt.status !== "success") throw new Error("Agent payout did not confirm.");
-    emit({
-      step: "payout",
-      status: "ok",
-      title: "Payout confirmed",
-      message: `Live on Base Sepolia. ${usdToEthFixed(accepted.purchase.amount)} ETH ≈ $${accepted.purchase.amount}.`,
-      txHash: accepted.tx.txHash,
-      explorerUrl: accepted.tx.explorerUrl,
-    });
-  } else {
-    emit({
-      step: "payout",
-      status: "ok",
-      title: "Payout simulated",
-      message: accepted.tx.reason || "BASE_EXECUTE is off. The plan is stored; ETH was not broadcast.",
-      txHash: null,
-      explorerUrl: null,
-    });
-  }
+  await waitPayout(emit, "payout", accepted);
 
   const plan = accepted.relationship.purchases.find((p) => p.purchase_id === accepted.purchase.purchase_id);
   const pending = (plan?.schedule || []).filter((i) => i.status === "pending");
@@ -344,39 +357,48 @@ export async function runAgentDemo(emit: Emit) {
     step: "purchase2",
     status: "start",
     title: "Requesting second purchase…",
-    message: `POST /api/purchase quote $${amount} as the same demo wallet.`,
+    message: `POST /api/purchase accept ${DEMO_SKU.name} $${amount} as ${wallet}`,
   });
-  const second = await runPurchaseQuote({
+  const accepted2 = await runAcceptPurchase({
     wallet,
     amount,
     merchant,
-    persist: true,
+    channel: "buy",
   });
-  const improved = second.terms.limit > firstQuote.terms.limit || second.terms.installments > firstQuote.terms.installments;
+  const secondQuote = accepted2.quote;
   emit({
     step: "purchase2",
     status: "ok",
-    title: second.terms.decision,
-    message: (second.verdict.reasoning || []).join(" ") || second.terms.factors.map((f) => f.detail).join(" "),
-    ...packTerms(second),
-    purchases: second.relationship.total_purchases,
-    on_time: second.relationship.on_time_count,
-    standing: second.terms.standing_score,
-    limit: second.terms.limit,
+    title: secondQuote.terms.decision,
+    message: (secondQuote.verdict.reasoning || []).join(" ") || secondQuote.terms.factors.map((f) => f.detail).join(" "),
+    ...packTerms(secondQuote),
+    txHash: accepted2.tx.txHash || accepted2.purchase.payout_tx_hash || null,
+    explorerUrl: accepted2.tx.explorerUrl || accepted2.purchase.payout_explorer || null,
+    acpJobId: accepted2.purchase.acp?.jobId || null,
+    acpExplorer: accepted2.purchase.acp?.explorerUrl || null,
+    purchases: accepted2.relationship.total_purchases,
+    on_time: accepted2.relationship.on_time_count,
+    standing: secondQuote.terms.standing_score,
+    limit: secondQuote.terms.limit,
   });
 
+  await waitPayout(emit, "payout2", accepted2);
+
+  const improved =
+    secondQuote.terms.limit > firstQuote.terms.limit ||
+    secondQuote.terms.installments > firstQuote.terms.installments;
   emit({
     step: "done",
     status: "ok",
-    title: improved ? "Terms improved from real memory" : "Second quote recorded",
+    title: improved ? "Terms improved from real memory" : "Second purchase recorded",
     message: improved
-      ? `First limit ${firstQuote.terms.limit} / ${firstQuote.terms.installments} installment(s). Second limit ${second.terms.limit} / ${second.terms.installments} installment(s). Primary ${second.terms.primary_signal}. used_onchain=${second.terms.used_onchain}.`
-      : `Second quote primary ${second.terms.primary_signal}. used_onchain=${second.terms.used_onchain}.`,
-    ...packTerms(second),
-    limit: second.terms.limit,
-    installments: second.terms.installments,
-    standing: second.terms.standing_score,
-    used_onchain: second.terms.used_onchain,
-    primary: second.terms.primary_signal,
+      ? `First limit ${firstQuote.terms.limit} / ${firstQuote.terms.installments} installment(s). Second limit ${secondQuote.terms.limit} / ${secondQuote.terms.installments} installment(s). Primary ${secondQuote.terms.primary_signal}. used_onchain=${secondQuote.terms.used_onchain}. Alex originated both purchases. Sibyl now has purchases=${accepted2.relationship.total_purchases}.`
+      : `Second purchase primary ${secondQuote.terms.primary_signal}. used_onchain=${secondQuote.terms.used_onchain}. Alex originated both purchases. Sibyl now has purchases=${accepted2.relationship.total_purchases}.`,
+    ...packTerms(secondQuote),
+    limit: secondQuote.terms.limit,
+    installments: secondQuote.terms.installments,
+    standing: secondQuote.terms.standing_score,
+    used_onchain: secondQuote.terms.used_onchain,
+    primary: secondQuote.terms.primary_signal,
   });
 }

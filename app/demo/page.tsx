@@ -19,7 +19,7 @@ export default function DemoPage() {
         </h1>
         <p className="mt-3 text-[15px] leading-6 text-neutral-600">
           TRACE is a memory-powered BNPL agent. Click Run the demo to execute the real purchase →
-          payout → repay → second quote loop with an agent-controlled test wallet. Session started{" "}
+          payout → repay → second purchase loop with an agent-controlled test wallet. Session started{" "}
           <span className="font-mono text-[13px] text-neutral-800">{started}</span>.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">

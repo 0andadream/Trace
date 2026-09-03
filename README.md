@@ -106,7 +106,7 @@ Trace interest is code: `interestRateFromStanding` (floor 2%, ceiling 26%). You 
 
 This is the current BNPL loop, not the old treasury transfer demo. Numbers below are produced by `liveWalkthrough()` in [`lib/bnpl/walkthrough.ts`](./lib/bnpl/walkthrough.ts) against the same `computeApproval` as `/buy`. SKU: **Notebook Set $12**.
 
-1. **Run the real loop without connecting.** [`/demo`](https://tracecredits.xyz/demo) **Run the demo** uses `POST /api/demo/run` and `DEMO_WALLET_PRIVATE_KEY` (server-side only) as the buyer. Same `runAcceptPurchase` / `runRepayInstallment` as `/buy`. To be the signer yourself, use [`/buy`](https://tracecredits.xyz/buy).
+1. **Run the real loop without connecting.** [`/demo`](https://tracecredits.xyz/demo) **Run the demo** uses `POST /api/demo/run` and `DEMO_WALLET_PRIVATE_KEY` (server-side only) as the buyer. Same `runAcceptPurchase` / `runRepayInstallment` as `/buy`. The run originates **two** purchases: empty-book, repay, then a second accept on the remembered book. To be the signer yourself, use [`/buy`](https://tracecredits.xyz/buy).
 2. **First purchase $12** with an empty book.
    - Inputs: `ONCHAIN_SIGNAL`.
    - Thin wallet: Approve, limit **$12**, **1 payment of $14.52** (21% interest).
@@ -115,7 +115,7 @@ This is the current BNPL loop, not the old treasury transfer demo. Numbers below
    - Confirm. If `BASE_EXECUTE=1`, ETH is sent to your wallet; otherwise the UI says simulated. The plan is stored either way.
    - While the plan is open: standing **0.38**, limit capped at **$24**.
 3. **Repay** from `/buy` (or demo step 3). Confirm the ETH transfer to the agent. Sibyl writes `on_time` / `late` only after verification.
-4. **Second purchase, same wallet, new request.** Re-quote $12.
+4. **Second purchase, same wallet, new request.** Re-quote $12. On `/demo` this is a second `runAcceptPurchase` (ETH payout included), not a quote-only step.
    - Inputs: `USER_RELATIONSHIP`. Factor text includes **`ONCHAIN_SIGNAL not used`**.
    - After one completed **on-time** $12: Approve, limit **$43.33** (inside the $40–$80 first-clean band), **4 payments of $3.51**, standing **0.39**.
 5. **Reset memory** (`pnpm memory:reset` locally, or delete in History). Chain is unchanged.

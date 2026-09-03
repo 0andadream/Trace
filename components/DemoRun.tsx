@@ -7,7 +7,17 @@ import type { DemoEvent, DemoStatus } from "@/lib/bnpl/demoTypes";
 import { formatAmount, shortAddress } from "@/lib/format";
 import { ALEX_ACP_PROFILE_URL } from "@/lib/virtuals/identity";
 
-const STEP_ORDER = ["reset", "memory", "purchase1", "payout", "repay", "repay_record", "purchase2", "done"] as const;
+const STEP_ORDER = [
+  "reset",
+  "memory",
+  "purchase1",
+  "payout",
+  "repay",
+  "repay_record",
+  "purchase2",
+  "payout2",
+  "done",
+] as const;
 
 function stepLabel(step: string) {
   switch (step) {
@@ -25,6 +35,8 @@ function stepLabel(step: string) {
       return "Verifying repayment…";
     case "purchase2":
       return "Requesting second purchase…";
+    case "payout2":
+      return "Sending second payout…";
     case "done":
       return "Done";
     default:
@@ -134,6 +146,7 @@ export function DemoRun() {
   const first = latestByStep.get("purchase1");
   const second = latestByStep.get("purchase2");
   const payout = latestByStep.get("payout");
+  const payout2 = latestByStep.get("payout2");
   const repay = latestByStep.get("repay");
   const done = latestByStep.get("done");
   const unavailable = status && !status.available;
@@ -143,8 +156,9 @@ export function DemoRun() {
     <div className="space-y-6">
       <section className="glass-panel p-5">
         <p className="text-[13px] leading-6 text-neutral-700">
-          This demo runs the real flow using an agent-controlled test wallet — real Sibyl memory, real
-          Base Sepolia transactions, no wallet connection required.
+          This demo runs the real flow using an agent-controlled test wallet. It buys twice so you
+          can see Sibyl memory change the second offer — real Base Sepolia transactions, no wallet
+          connection required.
         </p>
         {status?.demoWallet ? (
           <p className="mt-3 font-mono text-[12px] text-neutral-500">
@@ -246,8 +260,8 @@ export function DemoRun() {
           </p>
           <p className="mt-2 text-[13px] leading-6 text-neutral-600">
             Each run deletes this demo wallet&apos;s Sibyl book first, so you always see first-time
-            terms, then a real repay, then the better quote. The Base address stays the same. Only
-            memory is wiped. On-chain history is not reset.
+            terms, then a real repay, then a second live purchase on remembered terms. The Base
+            address stays the same. Only memory is wiped. On-chain history is not reset.
           </p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <div className="rounded-2xl bg-black/[0.03] p-4 ring-1 ring-black/5">
@@ -300,10 +314,17 @@ export function DemoRun() {
             ) : null}
             {payout?.txHash ? (
               <li>
-                Payout tx <TxLink hash={payout.txHash} />
+                First payout tx <TxLink hash={payout.txHash} />
               </li>
             ) : (
-              <li className="text-neutral-500">Payout tx — simulated, no hash</li>
+              <li className="text-neutral-500">First payout tx — simulated, no hash</li>
+            )}
+            {payout2?.txHash ? (
+              <li>
+                Second payout tx <TxLink hash={payout2.txHash} />
+              </li>
+            ) : (
+              <li className="text-neutral-500">Second payout tx — simulated, no hash</li>
             )}
             {repay?.txHash ? (
               <li>
@@ -312,12 +333,30 @@ export function DemoRun() {
             ) : null}
             {first.acpJobId ? (
               <li>
-                Virtuals ACP job {first.acpJobId}
+                First Virtuals ACP job {first.acpJobId}
                 {first.acpExplorer ? (
                   <>
                     {" · "}
                     <a
                       href={first.acpExplorer}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[#7828E8] underline decoration-[#7828E8]/40 underline-offset-2"
+                    >
+                      explorer
+                    </a>
+                  </>
+                ) : null}
+              </li>
+            ) : null}
+            {second.acpJobId ? (
+              <li>
+                Second Virtuals ACP job {second.acpJobId}
+                {second.acpExplorer ? (
+                  <>
+                    {" · "}
+                    <a
+                      href={second.acpExplorer}
                       target="_blank"
                       rel="noreferrer"
                       className="text-[#7828E8] underline decoration-[#7828E8]/40 underline-offset-2"
