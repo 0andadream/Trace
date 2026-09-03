@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { AgentConsole } from "@/components/AgentConsole";
+import { useCallback, useEffect, useState } from "react";
 import { DecisionTrace } from "@/components/DecisionTrace";
 import { TxLink } from "@/components/TxLink";
 import type { DemoEvent, DemoStatus } from "@/lib/bnpl/demoTypes";
@@ -33,27 +32,6 @@ function stepLabel(step: string) {
   }
 }
 
-function consoleLines(events: DemoEvent[], busy: boolean): string[] {
-  const out: string[] = ["> alex online", "> sibyl memory · virtuals identity · base sepolia"];
-  for (const event of events) {
-    const mark = event.status === "error" ? "!" : event.status === "ok" ? "+" : ">";
-    out.push("");
-    out.push(`${mark} ${event.title}`);
-    if (event.message) out.push(`  ${event.message}`);
-    if (event.terms) {
-      out.push(`  inputs ${event.terms.primary_signal}`);
-      out.push(
-        `  standing ${Number(event.standing ?? event.terms.standing_score).toFixed(2)}  limit ${event.limit ?? event.terms.limit}  n=${event.installments ?? event.terms.installments}`,
-      );
-      if (event.terms.used_onchain) out.push("  ONCHAIN_SIGNAL used");
-      else out.push("  ONCHAIN_SIGNAL not used");
-    }
-    if (event.txHash) out.push(`  tx ${event.txHash}`);
-  }
-  if (busy) out.push("", "> typing…");
-  return out;
-}
-
 function parseSseChunk(chunk: string, onEvent: (event: DemoEvent) => void) {
   for (const block of chunk.split("\n\n")) {
     const line = block.split("\n").find((l) => l.startsWith("data: "));
@@ -72,7 +50,6 @@ export function DemoRun() {
   const [events, setEvents] = useState<DemoEvent[]>([]);
   const [busy, setBusy] = useState(false);
   const [runError, setRunError] = useState<string | null>(null);
-  const typed = useMemo(() => consoleLines(events, busy), [events, busy]);
 
   const loadStatus = useCallback(async () => {
     const res = await fetch("/api/demo/status", { cache: "no-store" });
@@ -164,37 +141,37 @@ export function DemoRun() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-[13px] leading-6 text-neutral-600">
-            Real Sibyl, real Base Sepolia, agent-controlled test wallet. No connect required. Watch
-            Alex type the loop.
-          </p>
-          {status?.demoWallet ? (
-            <p className="mt-1 font-mono text-[12px] text-neutral-500">
-              {shortAddress(status.demoWallet)}
-              {status.execute ? " · live Base Sepolia" : " · payout simulated"}
-              {status.demoEth != null ? ` · ${Number(status.demoEth).toFixed(4)} ETH` : ""}
-            </p>
-          ) : null}
-        </div>
-        <button
-          type="button"
-          disabled={busy || Boolean(unavailable)}
-          onClick={run}
-          className="rounded-full bg-[#7828E8] px-5 py-2.5 text-[14px] font-semibold text-white disabled:opacity-40"
-        >
-          {busy ? "Alex is running…" : "Run the demo"}
-        </button>
-      </div>
-      {unavailable || reason ? (
-        <p className="rounded-xl bg-amber-50 px-4 py-3 text-[14px] leading-6 text-amber-900 ring-1 ring-amber-200">
-          {reason || "Demo temporarily unavailable."}
+      <section className="glass-panel p-5">
+        <p className="text-[13px] leading-6 text-neutral-700">
+          This demo runs the real flow using an agent-controlled test wallet — real Sibyl memory, real
+          Base Sepolia transactions, no wallet connection required.
         </p>
-      ) : null}
-      {runError ? <p className="text-[13px] text-red-700">{runError}</p> : null}
+        {status?.demoWallet ? (
+          <p className="mt-3 font-mono text-[12px] text-neutral-500">
+            Demo wallet {shortAddress(status.demoWallet)}
+            {status.execute ? " · live Base Sepolia" : " · BASE_EXECUTE off (payout simulated)"}
+            {status.demoEth != null ? ` · ${Number(status.demoEth).toFixed(4)} ETH` : ""}
+          </p>
+        ) : null}
 
-      <AgentConsole lines={typed} live={busy} />
+        {unavailable || reason ? (
+          <p className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-[14px] leading-6 text-amber-900 ring-1 ring-amber-200">
+            {reason || "Demo temporarily unavailable."}
+          </p>
+        ) : null}
+
+        <div className="mt-5 flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={busy || Boolean(unavailable)}
+            onClick={run}
+            className="rounded-full bg-[#7828E8] px-5 py-2.5 text-[14px] font-semibold text-white disabled:opacity-40"
+          >
+            {busy ? "Running the real flow…" : "Run the demo"}
+          </button>
+        </div>
+        {runError ? <p className="mt-3 text-[13px] text-red-700">{runError}</p> : null}
+      </section>
 
       {events.length > 0 ? (
         <ol className="space-y-3">
