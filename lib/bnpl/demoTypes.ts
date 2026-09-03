@@ -9,6 +9,8 @@ export type DemoEvent = {
   factors?: ApprovalTerms["factors"];
   txHash?: string | null;
   explorerUrl?: string | null;
+  acpJobId?: string | null;
+  acpExplorer?: string | null;
   primary?: PolicyPrimary;
   used_onchain?: boolean;
   limit?: number;

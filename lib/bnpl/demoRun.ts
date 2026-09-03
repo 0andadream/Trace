@@ -252,6 +252,8 @@ export async function runAgentDemo(emit: Emit) {
     ...packTerms(firstQuote),
     txHash: accepted.tx.txHash || accepted.purchase.payout_tx_hash || null,
     explorerUrl: accepted.tx.explorerUrl || accepted.purchase.payout_explorer || null,
+    acpJobId: accepted.purchase.acp?.jobId || null,
+    acpExplorer: accepted.purchase.acp?.explorerUrl || null,
     purchases: accepted.relationship.total_purchases,
   });
 

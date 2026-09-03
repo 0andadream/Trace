@@ -6,6 +6,7 @@ import { DecisionTrace } from "@/components/DecisionTrace";
 import { TxLink } from "@/components/TxLink";
 import type { DemoEvent, DemoStatus } from "@/lib/bnpl/demoTypes";
 import { formatAmount, shortAddress } from "@/lib/format";
+import { ALEX_ACP_PROFILE_URL } from "@/lib/virtuals/identity";
 
 const STEP_ORDER = ["reset", "memory", "purchase1", "payout", "repay", "repay_record", "purchase2", "done"] as const;
 
@@ -155,6 +156,8 @@ export function DemoRun() {
   for (const event of events) latestByStep.set(event.step, event);
   const first = latestByStep.get("purchase1");
   const second = latestByStep.get("purchase2");
+  const payout = latestByStep.get("payout");
+  const repay = latestByStep.get("repay");
   const done = latestByStep.get("done");
   const unavailable = status && !status.available;
   const reason = statusError || status?.reason || null;
@@ -264,6 +267,11 @@ export function DemoRun() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
             Live terms, same wallet
           </p>
+          <p className="mt-2 text-[13px] leading-6 text-neutral-600">
+            Each run deletes this demo wallet&apos;s Sibyl book first, so you always see first-time
+            terms, then a real repay, then the better quote. The Base address stays the same. Only
+            memory is wiped. On-chain history is not reset.
+          </p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <div className="rounded-2xl bg-black/[0.03] p-4 ring-1 ring-black/5">
               <p className="text-[12px] font-semibold text-neutral-500">First purchase</p>
@@ -282,6 +290,91 @@ export function DemoRun() {
               </p>
             </div>
           </div>
+
+          <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
+            Links
+          </p>
+          <ul className="mt-2 space-y-1.5 text-[13px] leading-6">
+            {status?.demoWallet ? (
+              <li>
+                Demo wallet{" "}
+                <a
+                  href={`https://sepolia.basescan.org/address/${status.demoWallet}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-mono text-[#7828E8] underline decoration-[#7828E8]/40 underline-offset-2"
+                >
+                  {status.demoWallet}
+                </a>
+              </li>
+            ) : null}
+            {status?.agent ? (
+              <li>
+                TRACE agent{" "}
+                <a
+                  href={`https://sepolia.basescan.org/address/${status.agent}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-mono text-[#7828E8] underline decoration-[#7828E8]/40 underline-offset-2"
+                >
+                  {status.agent}
+                </a>
+              </li>
+            ) : null}
+            {payout?.txHash ? (
+              <li>
+                Payout tx <TxLink hash={payout.txHash} />
+              </li>
+            ) : (
+              <li className="text-neutral-500">Payout tx — simulated, no hash</li>
+            )}
+            {repay?.txHash ? (
+              <li>
+                Repay tx <TxLink hash={repay.txHash} />
+              </li>
+            ) : null}
+            {first.acpJobId ? (
+              <li>
+                Virtuals ACP job {first.acpJobId}
+                {first.acpExplorer ? (
+                  <>
+                    {" · "}
+                    <a
+                      href={first.acpExplorer}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[#7828E8] underline decoration-[#7828E8]/40 underline-offset-2"
+                    >
+                      explorer
+                    </a>
+                  </>
+                ) : null}
+              </li>
+            ) : null}
+            <li>
+              <a
+                href={ALEX_ACP_PROFILE_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="text-[#7828E8] underline decoration-[#7828E8]/40 underline-offset-2"
+              >
+                Alex on Virtuals
+              </a>
+            </li>
+            <li>
+              <a href="/log" className="text-[#7828E8] underline decoration-[#7828E8]/40 underline-offset-2">
+                Agent log
+              </a>
+              {" · "}
+              <a href="/buy" className="text-[#7828E8] underline decoration-[#7828E8]/40 underline-offset-2">
+                Buy
+              </a>
+              {" · "}
+              <a href="/docs" className="text-[#7828E8] underline decoration-[#7828E8]/40 underline-offset-2">
+                Docs
+              </a>
+            </li>
+          </ul>
         </section>
       ) : null}
     </div>
